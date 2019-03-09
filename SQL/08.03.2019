@@ -1,0 +1,118 @@
+-- Table: data.user_types
+
+-- DROP TABLE data.user_types;
+
+CREATE TABLE data.user_types
+(
+  type_id serial NOT NULL,
+  type_code integer NOT NULL,
+  type_name character varying(64) NOT NULL,
+  CONSTRAINT user_types_type_code_key UNIQUE (type_code)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE data.user_types
+  OWNER TO postgres;
+
+--
+
+CREATE TABLE data.users
+(
+  user_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_type integer NOT NULL,
+  user_login character varying NOT NULL,
+  user_password character varying NOT NULL,
+  user_name character varying NOT NULL,
+  CONSTRAINT users_user_login_key UNIQUE (user_login),
+  CONSTRAINT users_user_uuid_key UNIQUE (user_uuid)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE data.users
+  OWNER TO postgres;
+
+--
+
+CREATE TABLE data.friend_list
+(
+  fl_id serial NOT NULL,
+  fl_owner_uuid uuid NOT NULL,
+  fl_friend_uuid uuid NOT NULL
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE data.friend_list
+  OWNER TO postgres;
+
+--
+
+CREATE OR REPLACE FUNCTION public.create_user(
+    in_login character varying,
+    in_password character varying,
+    in_name character varying)
+  RETURNS integer AS
+$BODY$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+   RETURN 2;
+ELSE 
+   INSERT INTO data.users(user_type, user_login, user_password, user_name) VALUES(2, in_login, in_password, in_name);
+   RETURN 1;
+END IF;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.create_user(character varying, character varying, character varying)
+  OWNER TO postgres;
+
+--
+
+CREATE OR REPLACE FUNCTION public.can_user_authorization(
+    in_login character varying,
+    in_password character varying)
+  RETURNS type_authorization_result AS
+$BODY$
+DECLARE
+ authorization_result type_authorization_result;
+ found_uuid uuid;
+BEGIN
+
+SELECT user_uuid INTO found_uuid FROM data.users WHERE user_login = in_login AND user_password = in_password;
+
+IF (found_uuid IS NOT NULL) THEN
+   SELECT 1, found_uuid INTO authorization_result; -- Пользователь с таким логином  и паролем существует 
+ELSE 
+   IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+	SELECT 2, NULL INTO authorization_result; -- Пользователь существует, но пароль не верный
+   ELSE
+	SELECT 3, NULL INTO authorization_result; -- Нет такого пользователя
+   END IF;
+END IF;
+
+RETURN authorization_result;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.can_user_authorization(character varying, character varying)
+  OWNER TO postgres;
+
+--
+
+CREATE OR REPLACE FUNCTION public.get_user_info(IN in_user_uuid uuid)
+  RETURNS TABLE(found_user_uuid uuid, found_user_type integer, found_user_login character varying, found_user_name character varying) AS
+$BODY$
+BEGIN
+     RETURN QUERY SELECT user_uuid, user_type, user_login, user_name FROM data.users WHERE user_uuid = in_user_uuid;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION public.get_user_info(uuid)
+  OWNER TO postgres;
+
