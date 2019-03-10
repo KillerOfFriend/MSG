@@ -48,12 +48,13 @@ QVariant TConnectedUsersModel::data(const QModelIndex &index, int role) const
         {
             switch (index.column())
             {
-                case cUserAddres: { Result = It->first->localAddress().toString(); break; }
+                case cUserAddres: { Result = It->first->peerAddress().toString(); break; }
                 case cUserLogin: { Result = It->second.userLogin(); break; }
                 case cUserName: { Result = It->second.userName(); break; }
+                case cUserUuid: { Result = It->second.userUuid(); break; }
                 case cUserType:
                 {
-                    OtherTypes::TUserType ForSeach = {It->second.userType(), ""};
+                    OtherTypes::TUserType ForSeach(It->second.userType(), "");
                     auto TypeIt = fUserTypes->find(ForSeach);
 
                     if (TypeIt != fUserTypes->end())
@@ -62,7 +63,6 @@ QVariant TConnectedUsersModel::data(const QModelIndex &index, int role) const
 
                     break;
                 }
-                case cUserUuid: { Result = It->second.userUuid(); break; }
                 default: { Result = QVariant(); break; }
             }
             break; // case Qt::DisplayRole:
@@ -74,8 +74,8 @@ QVariant TConnectedUsersModel::data(const QModelIndex &index, int role) const
                 case cUserAddres: { Result = QColor(64, 0, 255); break; }
                 case cUserLogin: { Result = QColor(255,99,71); break; }
                 case cUserName: { Result = QColor(210,105,30); break; }
-                case cUserType: { Result = fUserTypes->data(index, role); break; }
                 case cUserUuid: { Result = QColor(255,215,0); break; }
+                case cUserType: { Result = QColor(50, 205, 50); break; }
                 default: { Result = QVariant(); break; }
             }
             break; // case Qt::TextColorRole:

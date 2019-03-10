@@ -1,5 +1,6 @@
 #include "Settings.h"
 #include <QFile>
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 TSettings::TSettings(QObject *inParent) : QObject(inParent)
@@ -8,7 +9,10 @@ TSettings::TSettings(QObject *inParent) : QObject(inParent)
 TSettings::~TSettings()
 {
     if (fSettings)
+    {
         fSettings->sync();
+        qDebug() << "[ИНФО] Настройки сохранены.";
+    }
 }
 //-----------------------------------------------------------------------------
 TSettings& TSettings::Instance()
@@ -28,7 +32,7 @@ QHostAddress TSettings::ServerAddress() /// Метод вернёт адрес �
     QHostAddress Result;
 
     if (!fSettings)
-        Result = QHostAddress();
+        Result = QHostAddress("127.0.0.1");
     else
     {
         if (!fSettings->contains("SERVER/Host"))
@@ -51,11 +55,11 @@ quint16 TSettings::ServerPort() /// Метод вернёт порт серве�
     quint16 Result;
 
     if (!fSettings)
-        Result = 0;
+        Result = 7876;
     else
     {
         if (!fSettings->contains("SERVER/Port"))
-            fSettings->setValue("SERVER/Port", "7876");
+            fSettings->setValue("SERVER/Port", 7876);
 
         Result = fSettings->value("SERVER/Port").toUInt();
     }
@@ -95,7 +99,7 @@ void TSettings::setLogin(QString inLogin) /// Метод задаст храни
         fSettings->setValue("LOCAL/Login", inLogin);
 }
 //-----------------------------------------------------------------------------
-QString TSettings::Login() /// Метод вернёт хранимый логин
+QString TSettings::Login() // Метод вернёт хранимый логин
 {
     QString Result;
 
@@ -112,18 +116,31 @@ QString TSettings::Login() /// Метод вернёт хранимый логи
     return Result;
 }
 //-----------------------------------------------------------------------------
-void TSettings::init() /// Метод инициализирует класс
+void TSettings::init() // Метод инициализирует класс
 {
     try
     {
-        if (!QFile::exists(fSettingsPath))
-        {
-            QFile FileSettings(fSettingsPath);
-            FileSettings.open(QIODevice::WriteOnly);
-            FileSettings.close();
-        }
+        bool SettingsFileOK = true; // Флаг состояния файла конфигураций
 
-        fSettings.reset(new QSettings(fSettingsPath, QSettings::IniFormat));
+        if (!QFile::exists(fSettingsPath)) // Если файла не существует
+        {
+            QFile FileSettings(fSettingsPath); // Инициализируем файл настроек
+
+            if (!FileSettings.open(QIODevice::WriteOnly)) // Если файл не удалось создать
+            {
+                SettingsFileOK = false;
+                qDebug() << "[ОШИБКА] Не удалось создать файл конфигураций!";
+            }
+            else // Если файл создан
+            {
+                FileSettings.close(); // Закрываем созданный файл (Пустой)
+                SettingsFileOK = true;
+                qDebug() << "[ИНФО] Создан файл конфигураций.";
+            }
+        } else SettingsFileOK = true; // Файл существует
+
+        if (SettingsFileOK) // Если файл найден\создан
+            fSettings.reset(new QSettings(fSettingsPath, QSettings::IniFormat)); // Инициализируем настройки
     }
     catch(...)
     {

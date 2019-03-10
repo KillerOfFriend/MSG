@@ -36,8 +36,6 @@ void TMSGClient::init()
 void TMSGClient::Link()
 {
     connect(fClient.get(), &QTcpSocket::readyRead, this, &TMSGClient::slot_ReadyRead);
-    connect(fClient.get(), &QTcpSocket::channelReadyRead, this, &TMSGClient::slot_ChannelReadyRead);
-    connect(fClient.get(), &QTcpSocket::bytesWritten, this, &TMSGClient::slot_BytesWritten);
 
     connect(fClient.get(), &QTcpSocket::hostFound, this, &TMSGClient::slot_hostFound);
     connect(fClient.get(), &QTcpSocket::connected, this, &TMSGClient::slot_connected);
@@ -73,7 +71,9 @@ bool TMSGClient::createUser(QString inLogin, QString inPassword) /// Метод 
 {
     bool Result = true;
 
-    if(isConnected())
+    if(!isConnected())
+        Result = false;
+    else
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
@@ -84,7 +84,6 @@ bool TMSGClient::createUser(QString inLogin, QString inPassword) /// Метод 
         fClient->write(SendingData);
         //Result = fClient->waitForBytesWritten();
     }
-    else Result = false;
 
     return Result;
 }
@@ -93,7 +92,9 @@ bool TMSGClient::authorization(QString inLogin, QString inPassword) // Мето�
 {
     bool Result = true;
 
-    if(isConnected())
+    if(!isConnected())
+        Result = false;
+    else
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
@@ -104,7 +105,60 @@ bool TMSGClient::authorization(QString inLogin, QString inPassword) // Мето�
         fClient->write(SendingData);
         //Result = fClient->waitForBytesWritten();
     }
-    else Result = false;
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+bool TMSGClient::findUsers(QString inUserName) // Метод отправит команду на поиск пользователей
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Stream << Commands::FindUsers << inUserName.toLower().toUtf8();
+
+        fClient->write(SendingData);
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+bool TMSGClient::addContact(QUuid inSelfUuid, QUuid inContactUuid) // Метод отправит команду на добавление контакта
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Stream << Commands::AddContact << inSelfUuid << inContactUuid;
+
+        fClient->write(SendingData);
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+bool TMSGClient::getContacts(QUuid inSelfUuid) // Метод отправит команду на на возвращение списка контактов
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Stream << Commands::GetContacts << inSelfUuid;
+
+        fClient->write(SendingData);
+    }
 
     return Result;
 }
@@ -112,16 +166,6 @@ bool TMSGClient::authorization(QString inLogin, QString inPassword) // Мето�
 void TMSGClient::slot_ReadyRead()
 {
     ComandExecutor->executCommand(fClient.get());
-}
-//-----------------------------------------------------------------------------
-void TMSGClient::slot_ChannelReadyRead(int channel)
-{
-    qDebug() << "slot_ChannelReadyRead " + QString::number(channel);
-}
-//-----------------------------------------------------------------------------
-void TMSGClient::slot_BytesWritten(qint64 bytes)
-{
-    qDebug() << "slot_BytesWritten " + QString::number(bytes);
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_hostFound()

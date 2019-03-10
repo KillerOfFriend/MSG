@@ -65,6 +65,30 @@ void TMSGServer::disconnectAll()
 }
 //-----------------------------------------------------------------------------
 /**
+ * @brief serverAddress - Метод вернёт адрес сервера
+ * @return Вернёт адрес сервера
+ */
+QHostAddress TMSGServer::serverAddress() const
+{
+    if (!fServer)
+        return QHostAddress();
+    else
+        return fServer->serverAddress();
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief serverPort - Метод вернёт порт сервера
+ * @return Вернёт порт сервера
+ */
+quint16 TMSGServer::serverPort() const
+{
+    if (!fServer)
+        return 0;
+    else
+        return fServer->serverPort();
+}
+//-----------------------------------------------------------------------------
+/**
  * @brief TMSGServer::clientsModel - Метод вернёт модель данных подключённых клиентов
  * @return Вернёт табличную модель данных клиентов
  */
@@ -110,7 +134,7 @@ void TMSGServer::Link()
 {
     connect(fServer.get(), &QTcpServer::newConnection, this, &TMSGServer::slot_NewConnection);
     connect(fComandExecutor.get(), &TComandExecutor::sig_LogMessage, this, &TMSGServer::sig_LogMessage);
-    connect(fComandExecutor.get(), &TComandExecutor::sigSetUserInfo, this, &TMSGServer::slot_SetAutClient);
+    connect(fComandExecutor.get(), &TComandExecutor::sig_SetUserInfo, this, &TMSGServer::slot_SetAutClient);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -129,7 +153,7 @@ void TMSGServer::slot_NewConnection()
 
     if (!InsertRes.second)
     {
-        sig_LogMessage(NewConnection->localAddress(), "Ошибка подключения к серверу");
+        sig_LogMessage(NewConnection->peerAddress(), "Ошибка подключения к серверу");
         NewConnection->disconnect();
     }
     else
@@ -139,7 +163,7 @@ void TMSGServer::slot_NewConnection()
         connect(NewConnection, &QAbstractSocket::stateChanged, this, &TMSGServer::slot_ClientChangeState);
         connect(NewConnection, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &TMSGServer::slot_ClientError);
 
-        sig_LogMessage(NewConnection->localAddress(), "Новое подключение");
+        sig_LogMessage(NewConnection->peerAddress(), "Новое подключение");
     }
 }
 //-----------------------------------------------------------------------------
@@ -156,7 +180,7 @@ void TMSGServer::slot_ClientDisconnect()
         if (FindRes != fClients.end()) // Если находим
             fClients.erase(FindRes); // Удаляем
 
-        sig_LogMessage(Client->localAddress(), "Клиент отключён");
+        sig_LogMessage(Client->peerAddress(), "Клиент отключён");
     }
 }
 //-----------------------------------------------------------------------------
@@ -168,11 +192,11 @@ void TMSGServer::slot_ClientReadData()
     QTcpSocket* Client = qobject_cast<QTcpSocket*>(QObject::sender());
 
     if (!Client)
-        sig_LogMessage(Client->localAddress(), "Ошибка получения сокета!");
+        sig_LogMessage(Client->peerAddress(), "Ошибка получения сокета!");
     else
     {
         if (!fComandExecutor)
-            sig_LogMessage(Client->localAddress(), "Невозможно выполнить команду");
+            sig_LogMessage(Client->peerAddress(), "Невозможно выполнить команду");
         else
         {
             fComandExecutor->executCommand(Client);
@@ -204,7 +228,7 @@ void TMSGServer::slot_ClientChangeState(QAbstractSocket::SocketState inState)
         default : Message += "НЕИЗВЕСТНЫЙ";
     }
 
-    sig_LogMessage(Client->localAddress(), Message);
+    sig_LogMessage(Client->peerAddress(), Message);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -217,7 +241,7 @@ void TMSGServer::slot_ClientError(QAbstractSocket::SocketError inError)
     if (!Client)
         return;
 
-    sig_LogMessage(Client->localAddress(), "Ошибка: " + QString::number(inError));
+    sig_LogMessage(Client->peerAddress(), "Ошибка: " + QString::number(inError));
 }
 //-----------------------------------------------------------------------------
 /**

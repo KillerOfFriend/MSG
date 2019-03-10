@@ -4,6 +4,7 @@
 #include <QDateTime>
 
 #include "Classes/DataModule/DataModule.h"
+#include "Classes/Settings/Settings.h"
 
 //-----------------------------------------------------------------------------
 TServerMainWindow::TServerMainWindow(QWidget *parent) :
@@ -24,6 +25,12 @@ TServerMainWindow::~TServerMainWindow()
 void TServerMainWindow::init()
 {
     TDM &DM = TDM::Instance();
+
+    fServerHostLable.reset(new QLabel("Host IP: " + DM.Server()->serverAddress().toString(), this));
+    fServerPortLable.reset(new QLabel("Port: " + QString::number(DM.Server()->serverPort()), this));
+
+    ui->statusBar->addWidget(fServerHostLable.get());
+    ui->statusBar->addWidget(fServerPortLable.get());
 
     ui->LogTableView->setModel(DM.LogModel().get());
     ui->LogTableView->setSelectionBehavior(QAbstractItemView::SelectRows);

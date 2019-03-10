@@ -22,6 +22,24 @@ namespace Res
         const qint32 caAuthorizationFalse = 3;
         const qint32 caUserInfoError = 4;
     }
+
+    namespace FindUsers
+    {
+        const qint32 fuUsersFound = 1;
+        const qint32 fuUsersNotFound = 2;
+    }
+
+    namespace AddContact
+    {
+        const qint32 acCreated = 1;
+        const qint32 acAlredyExist = 2;
+    }
+
+    namespace GetContacts
+    {
+        const qint32 gcUsersFound = 1;
+        const qint32 gcUsersNotFound = 2;
+    }
 }
 
 #endif // RESULTCODES_H

@@ -2,9 +2,9 @@
 #define USERSTYPEMODEL_H
 
 #include <QAbstractListModel>
-#include <QColor>
 
 #include <set>
+#include <map>
 
 #include "othertypes.h"
 
@@ -26,10 +26,7 @@ public:
     void clear();
 
 private:
-    static const quint8 fColorCount = 4;
-    std::array<QColor, fColorCount> fColor;
 
-    void initColors();
 };
 
 #endif // USERSTYPEMODEL_H

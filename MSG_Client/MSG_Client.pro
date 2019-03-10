@@ -31,28 +31,38 @@ SOURCES += \
     Classes/DataModule/DataModule.cpp \
     Classes/MSGClient/MSGClient.cpp \
     Classes/Settings/Settings.cpp \
-    ConnectDialog.cpp \
     Classes/ComandExecutor/ComandExecutor.cpp \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Classes/UserAccount/UserAccount.cpp \
     Frames/MainFrame.cpp \
-    Classes/FrameController/FrameController.cpp
+    Classes/FrameController/FrameController.cpp \
+    Models/UsersModel/UsersModel.cpp \
+    Models.cpp \
+    Dialogs/UserViewDialog/UserViewDialog.cpp \
+    Dialogs/ConnectDialog/ConnectDialog.cpp
 
 HEADERS += \
         ClientMainWindow.h \
     Classes/DataModule/DataModule.h \
     Classes/MSGClient/MSGClient.h \
     Classes/Settings/Settings.h \
-    ConnectDialog.h \
     Classes/ComandExecutor/ComandExecutor.h \
     ../Common/comandes.h \
     ../Common/resultcodes.h \
     ../Common/Classes/UserInfo/UserInfo.h \
     Classes/UserAccount/UserAccount.h \
     Frames/MainFrame.h \
-    Classes/FrameController/FrameController.h
+    Classes/FrameController/FrameController.h \
+    Models/UsersModel/UsersModel.h \
+    Models.h \
+    Dialogs/UserViewDialog/UserViewDialog.h \
+    Dialogs/ConnectDialog/ConnectDialog.h
 
 FORMS += \
         ClientMainWindow.ui \
-    ConnectDialog.ui \
-    Frames/MainFrame.ui
+    Frames/MainFrame.ui \
+    Dialogs/UserViewDialog/UserViewDialog.ui \
+    Dialogs/ConnectDialog/ConnectDialog.ui
+
+RESOURCES += \
+    clientres.qrc

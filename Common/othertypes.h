@@ -7,6 +7,8 @@ namespace OtherTypes
 {
     struct TUserType
     {
+        TUserType(qint32 inTypeCode = 0, QString inTypeName = ""): TypeCode(inTypeCode), TypeName(inTypeName) {};
+
         qint32 TypeCode;
         QString TypeName;
 

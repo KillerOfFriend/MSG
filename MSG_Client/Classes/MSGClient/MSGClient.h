@@ -24,6 +24,10 @@ public:
     bool createUser(QString inLogin, QString inPassword); // Метод отправит команду на создание пользователья
     bool authorization(QString inLogin, QString inPassword); // Метод отправит номанду на авторизацию пользователя
 
+    bool findUsers(QString inUserName); // Метод отправит команду на поиск пользователей
+    bool addContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на добавление контакта
+    bool getContacts(QUuid inSelfUuid); // Метод отправит команду на на возвращение списка контактов
+
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;
 
@@ -32,9 +36,6 @@ private:
 
 private slots: 
     void slot_ReadyRead();
-
-    void slot_ChannelReadyRead(int channel);
-    void slot_BytesWritten(qint64 bytes);
 
     void slot_hostFound();
     void slot_connected();

@@ -34,7 +34,9 @@ SOURCES += \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Models/ConnectedUsers/ConnectedUsers.cpp \
     Models/ServerLogModel/ServerLogModel.cpp \
-    Models/UsersTypeModel/UsersTypeModel.cpp
+    Models/UsersTypeModel/UsersTypeModel.cpp \
+    Classes/DB/DB.cpp \
+    Classes/Settings/Settings.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -47,7 +49,9 @@ HEADERS += \
     Models/ConnectedUsers/ConnectedUsers.h \
     Models/ServerLogModel/ServerLogModel.h \
     Models/UsersTypeModel/UsersTypeModel.h \
-    ../Common/othertypes.h
+    ../Common/othertypes.h \
+    Classes/DB/DB.h \
+    Classes/Settings/Settings.h
 
 FORMS += \
         ServerMainWindow.ui

@@ -1,5 +1,7 @@
 #include "ServerMainWindow.h"
 #include <QApplication>
+
+#include "Classes/DB/DB.h"
 #include "Classes/DataModule/DataModule.h"
 
 int main(int argc, char *argv[])
@@ -7,9 +9,10 @@ int main(int argc, char *argv[])
     int WorkResult = 0;
     QApplication a(argc, argv);
 
-    TDM& DM = TDM::Instance(); // Инициализируем модель данных
+    TDB& DB = TDB::Instance(); // Инициализируем базу данных
+    TDM& DM = TDM::Instance(); // Инициализируем модуль данных
 
-    if ( !DM.DB().isOpen() || ( !DM.Server() || !DM.Server()->isActive() ) )
+    if ( !DB.DB().isOpen() || ( !DM.Server() || !DM.Server()->isActive() ) )
     {
         qDebug() << "[ФАТАЛЬНАЯ ОШИБКА] Аварийное завершение.";
         WorkResult = 0;

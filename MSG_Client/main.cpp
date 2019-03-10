@@ -1,9 +1,9 @@
 #include "ClientMainWindow.h"
-#include "ConnectDialog.h"
 
 #include <QApplication>
 #include <QDialogButtonBox>
 
+#include "Dialogs/ConnectDialog/ConnectDialog.h"
 #include "Classes/Settings/Settings.h"
 #include "Classes/DataModule/DataModule.h"
 

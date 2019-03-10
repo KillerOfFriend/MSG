@@ -3,13 +3,14 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QDebug>
 
-#include "Classes/DataModule/DataModule.h"
+#include "Classes/DB/DB.h"
 
 //-----------------------------------------------------------------------------
 TUsersTypeModel::TUsersTypeModel(QObject *inParent) : QAbstractListModel(inParent)
 {
-    //initFromDB();
+    initFromDB();
 }
 //-----------------------------------------------------------------------------
 TUsersTypeModel::~TUsersTypeModel()
@@ -22,7 +23,7 @@ bool TUsersTypeModel::initFromDB()
     bool Result = true;
     this->clear();
 
-    QSqlQuery Query(TDM::Instance().DB());
+    QSqlQuery Query(TDB::Instance().DB());
 
     if (!Query.exec("SELECT * FROM get_users_types()"))
     {
@@ -71,14 +72,6 @@ QVariant TUsersTypeModel::data(const QModelIndex &index, int role) const
     {
         case TypeCodeRole: { Result = It->TypeCode; break; }
         case Qt::DisplayRole: { Result = It->TypeName;  break; }
-        case Qt::TextColorRole:
-        {
-            if (index.row() >= fColorCount)
-                Result = QVariant();
-            else Result = fColor[index.row()];
-
-            break;
-        }
         default: { Result = QVariant(); break; }
     }
 
@@ -112,13 +105,5 @@ void TUsersTypeModel::clear()
     beginRemoveRows(QModelIndex(), 0, rowCount());
     std::set<OtherTypes::TUserType, OtherTypes::TUserType>::clear();
     endRemoveRows();
-}
-//-----------------------------------------------------------------------------
-void TUsersTypeModel::initColors()
-{
-   fColor[0] = QColor(0, 0, 0);
-   fColor[1] = QColor(128, 0, 255);
-   fColor[2] = QColor(0, 255, 64);
-   fColor[3] = QColor(255, 64, 0);
 }
 //-----------------------------------------------------------------------------

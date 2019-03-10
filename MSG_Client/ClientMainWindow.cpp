@@ -17,6 +17,7 @@ TClientMainWindow::TClientMainWindow(QWidget *parent) :
 //-----------------------------------------------------------------------------
 TClientMainWindow::~TClientMainWindow()
 {
+    this->centralWidget()->setParent(nullptr); // Задаём предка (Это запретит форме удаление фиджета из умного указателя, что привело бы к ошибке)
     delete ui;
 }
 //-----------------------------------------------------------------------------

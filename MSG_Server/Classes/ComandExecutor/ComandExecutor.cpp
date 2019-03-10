@@ -6,6 +6,8 @@
 
 #include "comandes.h"
 #include "resultcodes.h"
+
+#include "Classes/DB/DB.h"
 #include "Classes/DataModule/DataModule.h"
 
 //-----------------------------------------------------------------------------
@@ -31,17 +33,17 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
     {
         case Commands::CreateUser: // Регистрация пользователя
         {
-            sig_LogMessage(inClientSender->localAddress(), "Получен запрос на создание пользователя");
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание пользователя");
 
             qint32 Resuslt = creteUser(inStream); // Регистрация пользователя
             outStream << Command << Resuslt; // Пишем в результат команду и результат обработки
-            sig_LogMessage(inClientSender->localAddress(), "Отправка ответа о создании пользователя");
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка ответа о создании пользователя");
 
             break;
         }
         case Commands::Authorization: // Авторизация пользователя
         {
-            sig_LogMessage(inClientSender->localAddress(), "Получен запрос на авторизацию");
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на авторизацию");
 
             std::pair<qint32, QUuid> Resuslt = canAuthorization(inStream); // Обрабатываем возможность авторизации
 
@@ -50,13 +52,13 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                 case Res::CanAut::caAuthorizationFalse: // Пользователь не найден (авторизация не возможна)
                 {
                     outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
-                    sig_LogMessage(inClientSender->localAddress(), "Отказ в авторизации, пользователь не найден");
+                    sig_LogMessage(inClientSender->peerAddress(), "Отказ в авторизации, пользователь не найден");
                     break;
                 }
                 case Res::CanAut::caIncorrectPass: // Пользователь найден, но пароль не верный (авторизация не возможна)
                 {
                     outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
-                    sig_LogMessage(inClientSender->localAddress(), "Отказ в авторизации, не верный пароль");
+                    sig_LogMessage(inClientSender->peerAddress(), "Отказ в авторизации, не верный пароль");
                     break;
                 }
                 case Res::CanAut::caAuthorizationTrue: // Вользователь найден (авторизация возможна)
@@ -66,28 +68,62 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                     if (UserInfo.userUuid() != Resuslt.second)
                     {
                         outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
-                        sig_LogMessage(inClientSender->localAddress(), "Ошибка чтения данных записи");
+                        sig_LogMessage(inClientSender->peerAddress(), "Ошибка чтения данных записи");
                     }
                     else
                     {
                         outStream << Command << Resuslt.first << UserInfo; // Пишем в результат команду и результат обработки
-                        sigSetUserInfo(inClientSender, UserInfo); // Авторизируем пользователя
-                        sig_LogMessage(inClientSender->localAddress(), "Авторизация разрешена");
+                        sig_SetUserInfo(inClientSender, UserInfo); // Авторизируем пользователя
+                        sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
                     break;
                 }
                 default: // Вернулось нипойми что
                 {
                     outStream << Command << Res::rUnknown; // Пишем в результат команду и результат обработки
-                    sig_LogMessage(inClientSender->localAddress(), "Неизвестная ошибка");
+                    sig_LogMessage(inClientSender->peerAddress(), "Неизвестная ошибка");
                     break;
                 }
             }
+            break;
+        }
+        case Commands::FindUsers: // Поиск пользователей
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на поиск пользователя");
+            QList<TUserInfo> Resuslt = findUsers(inStream); // Поиск пользователя
 
+            if (Resuslt.isEmpty()) // Если список пуст
+                outStream << Command << Res::FindUsers::fuUsersNotFound; // Возвращаем результат (Пользователи не найдены)
+            else
+                outStream << Command << Res::FindUsers::fuUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
+            break;
+        }
+        case Commands::AddContact: // Добавление контакта
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
+            qint32 Result = addContact(inStream); // Добавляем контакт
+
+            outStream << Command << Result; // Пишем в результат команду и результат обработки
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка результата добавления контакта");
+            break;
+        }
+        case Commands::GetContacts: // Запрос списка контактов
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка контактов");
+            QList<TUserInfo> Resuslt = getContacts(inStream); // Поиск контактов
+
+            if (Resuslt.isEmpty()) // Если список пуст
+                outStream << Command << Res::GetContacts::gcUsersFound; // Возвращаем результат (Контакты не найдены)
+            else
+                outStream << Command << Res::GetContacts::gcUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
             break;
         }
 
-        default: sig_LogMessage(inClientSender->localAddress(), "Получена неизвестная команда");
+        default: sig_LogMessage(inClientSender->peerAddress(), "Получена неизвестная команда");
     }
 
     inClientSender->write(ReturningData); // Возвращаем результат
@@ -96,14 +132,14 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
 //-----------------------------------------------------------------------------
 qint32 TComandExecutor::creteUser(QDataStream &inDataStream)
 {
-    quint32 Result = 0;
+    quint32 Result = Res::rUnknown;
 
     QString Login = ReadStringFromStream(inDataStream);
 
     QByteArray PasswordHash;
     inDataStream >> PasswordHash;
 
-    QSqlQuery Query(TDM::Instance().DB());
+    QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM create_user(:in_login, :in_password, :in_name)"))
         qDebug() << "[ОШИБКА]: " + Query.lastError().text();
@@ -134,7 +170,7 @@ std::pair<qint32, QUuid> TComandExecutor::canAuthorization(QDataStream &inDataSt
     QByteArray PasswordHash;
     inDataStream >> PasswordHash;
 
-    QSqlQuery Query(TDM::Instance().DB());
+    QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM can_user_authorization(:in_login, :in_password)"))
         qDebug() << "[ОШИБКА]: " + Query.lastError().text();
@@ -158,11 +194,42 @@ std::pair<qint32, QUuid> TComandExecutor::canAuthorization(QDataStream &inDataSt
     return Result;
 }
 //-----------------------------------------------------------------------------
+QList<TUserInfo> TComandExecutor::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
+{
+    QList<TUserInfo> Result;
+    QString UserNameLogin = '%' + ReadStringFromStream(inDataStream) + '%'; // Получаем фильтр поиска
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM find_users(:in_user)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_user", UserNameLogin.toUtf8());
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            QUuid FindRes; // Uuid найденного пользователя
+            while (Query.next()) // Читаем все записи
+            {
+                FindRes = Query.value("found_user_uuid").toUuid();
+
+                if (!FindRes.isNull())
+                    Result.push_back(getUserInfo(FindRes));
+            }
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
 TUserInfo TComandExecutor::getUserInfo(QUuid inUserUuid)
 {
     TUserInfo Result;
 
-    QSqlQuery Query(TDM::Instance().DB());
+    QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM get_user_info(:in_uuid)"))
         qDebug() << "[ОШИБКА]: " + Query.lastError().text();
@@ -174,12 +241,75 @@ TUserInfo TComandExecutor::getUserInfo(QUuid inUserUuid)
             qDebug() << "[ОШИБКА]: " + Query.lastError().text();
         else
         {
-            while (Query.next()) // Вернётся только 1 запись
+            while (Query.next()) // Читаем все записи
             {
                 Result.setUserUuid(Query.value("found_user_uuid").toUuid());
                 Result.setUserType(Query.value("found_user_type").toUInt());
                 Result.setUserLogin(QString::fromUtf8(Query.value("found_user_login").toByteArray()));
                 Result.setUserName(QString::fromUtf8(Query.value("found_user_name").toByteArray()));
+            }
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+qint32 TComandExecutor::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
+{
+    qint32 Result = Res::rUnknown;
+
+    QUuid Owner; // Владелец нового контакта
+    QUuid NewContact; // Сам новый контакт
+
+    inDataStream >> Owner >> NewContact; // Читаем из потока Uuid'ы контактов
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM create_contact(:in_owner,:in_contact)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_owner", Owner);
+        Query.bindValue(":in_contact", NewContact);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result = Query.value("create_contact").toInt();
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов по указанного пользователя
+{
+    QList<TUserInfo> Result;
+    QUuid OwnerUuid;
+
+    inDataStream >> OwnerUuid; // Получаем владельца контактов
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM get_contacts(:in_owner)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_owner", OwnerUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            QUuid FindRes; // Uuid найденного пользователя
+            while (Query.next()) // Читаем все записи
+            {
+                FindRes = Query.value("found_friend_uuid").toUuid();
+
+                if (!FindRes.isNull())
+                    Result.push_back(getUserInfo(FindRes));
             }
         }
     }

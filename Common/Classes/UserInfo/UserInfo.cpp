@@ -27,6 +27,9 @@ TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
     return *this;
 }
 //-----------------------------------------------------------------------------
+bool TUserInfo::operator == (const TUserInfo &inOther) const
+{ return this->userUuid() == inOther.userUuid(); }
+//-----------------------------------------------------------------------------
 TUserInfo::~TUserInfo()
 {
     fLogin.clear();

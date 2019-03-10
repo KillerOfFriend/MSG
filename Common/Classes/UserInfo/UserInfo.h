@@ -26,6 +26,7 @@ public:
     QString userName() const;
 
     TUserInfo& operator = (const TUserInfo &inOther);
+    bool operator == (const TUserInfo &inOther) const;
 
     friend QDataStream& operator <<(QDataStream&, const TUserInfo&);
     friend QDataStream& operator >>(QDataStream&, TUserInfo&);

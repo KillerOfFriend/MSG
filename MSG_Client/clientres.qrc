@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/Resurse/UserViewDialog">
+        <file>Images/UserViewDialog/AddToContacts.png</file>
+        <file>Images/UserViewDialog/RemoveFromContacts.png</file>
+        <file>Images/UserViewDialog/SendMessage.png</file>
+    </qresource>
+</RCC>

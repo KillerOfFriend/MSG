@@ -1,6 +1,7 @@
 #ifndef COMANDEXECUTOR_H
 #define COMANDEXECUTOR_H
 
+#include <QList>
 #include <QObject>
 #include <QTcpSocket>
 #include <QDataStream>
@@ -13,13 +14,16 @@ class TComandExecutor : public QObject
 public:
     explicit TComandExecutor(QObject *inParent = nullptr);
 
-    void executCommand(QTcpSocket* inSender);
+    void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
 
 private:
     void creteUserResult(QDataStream &inDataStream); // Мтод обработает результат регистрации
     void userAuthorization(QDataStream &inDataStream); // Метод обработает результат авторизации
+    void findUsersResult(QDataStream &inDataStream); // Метод обработает результат поика пользователей
+    void addContactResult(QDataStream &inDataStream); // Метод обработает результат добавления контакта
+    void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
 
-    QString ReadStringFromStream(QDataStream &inDataStream);
+    QString ReadStringFromStream(QDataStream &inDataStream); // Метод считает строку из потока
 
 signals:
     void sig_LogMessage(QString inMessage);
@@ -27,6 +31,9 @@ signals:
 
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);
+    void sig_FindUsersResult(const QList<TUserInfo> &inUsers);
+    void sig_AddContactResult(qint32 inResult);
+    void sig_GetContactsResult(const QList<TUserInfo> &inUsers);
 
 
 public slots:

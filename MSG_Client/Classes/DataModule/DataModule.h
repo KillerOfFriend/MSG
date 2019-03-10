@@ -28,6 +28,7 @@ private:
     std::shared_ptr<TUserAccount> fUserAccount = nullptr;
     std::shared_ptr<TFrameController> fFrameController = nullptr;
 
+
     TDM(TDM const&) = delete;
     TDM& operator= (TDM const&) = delete;
 

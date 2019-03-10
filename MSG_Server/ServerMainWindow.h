@@ -1,6 +1,8 @@
 #ifndef SERVERMAINWINDOW_H
 #define SERVERMAINWINDOW_H
 
+#include <memory>
+
 #include <QMainWindow>
 #include <QLabel>
 
@@ -19,8 +21,8 @@ public:
 private:
     Ui::TServerMainWindow *ui;
 
-    QLabel fServerHostLable;
-    QLabel fServerPortLable;
+    std::unique_ptr<QLabel> fServerHostLable = nullptr;
+    std::unique_ptr<QLabel> fServerPortLable = nullptr;
 
     void init();
     void Link();

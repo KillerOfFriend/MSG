@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <QHostAddress>
 
 #include <QObject>
 #include <QtNetwork/QTcpServer>
@@ -23,6 +24,9 @@ public:
     bool isActive(); // Метод вернёт флаг активности сервера
     void disconnectClient(QTcpSocket* inClient); // Метод отключит клиента
     void disconnectAll(); // Метод отключит всех клиентов
+
+    QHostAddress serverAddress() const; // Метод вернёт адрес сервера
+    quint16 serverPort() const; // Метод вернёт порт сервера
 
     QAbstractTableModel* clientsModel(); // Метод вернёт модель данных подключённых клиентов
 
