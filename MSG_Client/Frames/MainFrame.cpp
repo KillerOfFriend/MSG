@@ -44,6 +44,7 @@ void TfmeMainFrame::Link()
 {
     connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes);
     connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_AddContactResult, this, &TfmeMainFrame::slot_AddContactRes);
+    connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_DeleteContactResult, this, &TfmeMainFrame::slot_DeleteContactRes);
 
     connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers);
 }
@@ -61,8 +62,18 @@ void TfmeMainFrame::slot_UserViewDialogResult(const TUserInfo &inUserInfo, qint3
 
     switch(inResult)
     {
-        case TUserViewDialog::rbAdd: { DM.Client()->addContact(DM.UserAccount()->UserInfo.userUuid(), inUserInfo.userUuid()); break; };
-        case TUserViewDialog::rbRemove: { break; };
+        case TUserViewDialog::rbAdd:
+    {
+        if (!DM.Client()->addContact(DM.UserAccount()->UserInfo.userUuid(), inUserInfo.userUuid()))
+            QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось добавить контакт!"));
+        break;
+    };
+        case TUserViewDialog::rbRemove:
+        {
+            if (!DM.Client()->deleteContact(DM.UserAccount()->UserInfo.userUuid(), inUserInfo.userUuid()))
+                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось удалить контакт!"));
+            break;
+        };
         case TUserViewDialog::rbSendMsg: { break; }
         default: break;
     }
@@ -79,7 +90,9 @@ void TfmeMainFrame::slot_FindUsers()
     {
         if (Sender->text().isEmpty())
             fFoundUsers->clear();
-        else TDM::Instance().Client()->findUsers(Sender->text());
+        else
+            if (!TDM::Instance().Client()->findUsers(Sender->text()))
+                QMessageBox::critical(this, tr("Ошибка"), tr("Поиск контактов не удался!"));
     }
 }
 //-----------------------------------------------------------------------------
@@ -106,11 +119,33 @@ void TfmeMainFrame::slot_AddContactRes(qint32 inResult)
         {
             QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно добавлен"));
             TDM &DM = TDM::Instance();
-            DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid()); // Запрашиваем список контактов
+            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
+                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
             break;
         };
         case Res::AddContact::acAlredyExist: { QMessageBox::warning(this, tr("Предупреждение"), tr("Контакт уже существует!")); break; };
         default: { QMessageBox::critical(this, tr("Ошибка"), tr("Произошла непредвиденная ошибка!")); break; };
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TfmeMainFrame::slot_DeleteContactRes - Слот, получающий результат удаления контакта
+ * @param inResult - Результат выполнения
+ */
+void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult)
+{
+    switch (inResult)
+    {
+        case Res::DeleteContact::dcContactRemove:
+        {
+            QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно удалён"));
+            TDM &DM = TDM::Instance();
+            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
+                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
+            break;
+        };
+        case Res::DeleteContact::dcContactNotFound: {QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось найти пользователя!")); break; }
+        default: { QMessageBox::critical(this, tr("Ошибка"), tr("Что то пошло не так!")); break; };
     }
 }
 //-----------------------------------------------------------------------------
@@ -135,6 +170,20 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
     connect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
     UserViewDialog.exec(); // Вызываем диалог
     disconnect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
+{
+    auto OtherUserIt = TDM::Instance().UserAccount()->Contacts()->begin();
+    std::advance(OtherUserIt, index.row()); // Получаем итератор на выбранного пользователя
 
+    TUserViewDialog UserViewDialog((*OtherUserIt), this); // Инициализируем диалог просмотра пользователя
+    UserViewDialog.setModal(true); // Задаём подальность
+
+    UserViewDialog.setButtons(TUserViewDialog::eResButtons(TUserViewDialog::rbRemove | TUserViewDialog::rbSendMsg)); // Разрешаем удалить и написать
+
+    connect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
+    UserViewDialog.exec(); // Вызываем диалог
+    disconnect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
 }
 //-----------------------------------------------------------------------------

@@ -40,6 +40,12 @@ namespace Res
         const qint32 gcUsersFound = 1;
         const qint32 gcUsersNotFound = 2;
     }
+
+    namespace DeleteContact
+    {
+        const qint32 dcContactRemove = 1;
+        const qint32 dcContactNotFound = 2;
+    }
 }
 
 #endif // RESULTCODES_H

@@ -32,8 +32,11 @@ private slots:
     void slot_FindUsers(); // Слот реагирует на запрос поиска пользователей
     void slot_FindUsersRes(const QList<TUserInfo> &inUsers); // Слот, получающий результат поиска пользователей
     void slot_AddContactRes(qint32 inResult); // Слот, получающий результат добавления контакта
+    void slot_DeleteContactRes(qint32 inResult); // Слот, получающий результат удаления контакта
 
     void on_ContactsFindListView_doubleClicked(const QModelIndex &index);
+
+    void on_ContactsListView_doubleClicked(const QModelIndex &index);
 
 private:
     Ui::TfmeMainFrame *ui;

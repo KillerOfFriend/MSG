@@ -60,6 +60,12 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
             getContactsResult(inStream); // Обработать результат запроса списка контактов
             break;
         }
+        case Commands::DeleteContact:
+        {
+            sig_LogMessage("Получен ответ на удаление контакта" + inClientSender->peerAddress().toString());
+            deleteContactResult(inStream); // Обработать результат удаления контака
+            break;
+        }
 
         default: sig_LogMessage("Получена неизвестная команда от " + inClientSender->peerAddress().toString());
     }
@@ -138,6 +144,17 @@ void TComandExecutor::getContactsResult(QDataStream &inDataStream)
         inDataStream >> FoundContacts; // Получаем информацию о контактах
 
     sig_GetContactsResult(FoundContacts);
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TComandExecutor::deleteContactResult - Метод обработает результат удаления контакта
+ * @param inDataStream - Входящий поток
+ */
+void TComandExecutor::deleteContactResult(QDataStream &inDataStream)
+{
+    qint32 Result = Res::rUnknown;
+    inDataStream >> Result;
+    sig_DeleteContactResult(Result);
 }
 //-----------------------------------------------------------------------------
 /**

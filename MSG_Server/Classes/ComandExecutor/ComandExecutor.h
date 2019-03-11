@@ -27,6 +27,7 @@ private:
     QList<TUserInfo> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
     qint32 addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
     QList<TUserInfo> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по указанного пользователя
+    qint32 deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 

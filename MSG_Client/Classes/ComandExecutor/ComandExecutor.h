@@ -22,6 +22,7 @@ private:
     void findUsersResult(QDataStream &inDataStream); // Метод обработает результат поика пользователей
     void addContactResult(QDataStream &inDataStream); // Метод обработает результат добавления контакта
     void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
+    void deleteContactResult(QDataStream &inDataStream); // Метод обработает результат удаления контакта
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод считает строку из потока
 
@@ -34,6 +35,7 @@ signals:
     void sig_FindUsersResult(const QList<TUserInfo> &inUsers);
     void sig_AddContactResult(qint32 inResult);
     void sig_GetContactsResult(const QList<TUserInfo> &inUsers);
+    void sig_DeleteContactResult(qint32 inResult);
 
 
 public slots:

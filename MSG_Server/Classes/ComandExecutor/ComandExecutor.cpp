@@ -122,6 +122,15 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
             sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
             break;
         }
+    case Commands::DeleteContact:
+    {
+        sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
+        qint32 Result = deleteContact(inStream); // Добавляем контакт
+
+        outStream << Command << Result; // Пишем в результат команду и результат обработки
+        sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
+        break;
+    }
 
         default: sig_LogMessage(inClientSender->peerAddress(), "Получена неизвестная команда");
     }
@@ -311,6 +320,36 @@ QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Ме
                 if (!FindRes.isNull())
                     Result.push_back(getUserInfo(FindRes));
             }
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+qint32 TComandExecutor::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю
+{
+    quint32 Result = Res::rUnknown;
+
+    QUuid Owner; // Владелец контакта
+    QUuid Contact; // Сам контакт
+
+    inDataStream >> Owner >> Contact; // Читаем из потока Uuid'ы контактов
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM delete_contacts(:in_owner,:in_contact)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_owner", Owner);
+        Query.bindValue(":in_contact", Contact);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result = Query.value("delete_contacts").toInt();
         }
     }
 

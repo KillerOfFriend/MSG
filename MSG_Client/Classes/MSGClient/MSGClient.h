@@ -27,6 +27,7 @@ public:
     bool findUsers(QString inUserName); // Метод отправит команду на поиск пользователей
     bool addContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на добавление контакта
     bool getContacts(QUuid inSelfUuid); // Метод отправит команду на на возвращение списка контактов
+    bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
 
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;

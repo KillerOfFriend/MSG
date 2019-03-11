@@ -11,6 +11,7 @@ namespace Commands
     const quint8 FindUsers =        3; // Поиск пользователей
     const quint8 AddContact =       4; // Добавление контакта
     const quint8 GetContacts =      5; // Запрос списка контактов
+    const quint8 DeleteContact =    6; // Удаление контакта
 }
 
 #endif // COMANDES_H
