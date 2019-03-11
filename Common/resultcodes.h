@@ -1,7 +1,7 @@
 #ifndef RESULTCODES_H
 #define RESULTCODES_H
 
-#include <qglobal.h>
+#include <QtGlobal>
 #include <limits>
 
 namespace Res

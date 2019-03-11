@@ -1,7 +1,7 @@
 #ifndef OTHERTYPES_H
 #define OTHERTYPES_H
 
-#include <qglobal.h>
+#include <QtGlobal>
 
 namespace OtherTypes
 {

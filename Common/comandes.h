@@ -1,7 +1,7 @@
 #ifndef COMANDES_H
 #define COMANDES_H
 
-#include <qglobal.h>
+#include <QtGlobal>
 
 namespace Commands
 {

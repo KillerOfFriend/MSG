@@ -10,7 +10,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = MSG_Server
 TEMPLATE = app
+
 CONFIG += c++14
+#win32: DEFINES += __cpp_constexpr=201304 __cpp_variable_templates=201304
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings

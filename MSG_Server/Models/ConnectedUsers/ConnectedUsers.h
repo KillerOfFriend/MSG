@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <array>
 
 #include <QAbstractTableModel>
 #include <QTcpSocket>

@@ -2,6 +2,7 @@
 #define SERVERLOGMODEL_H
 
 #include <list>
+#include <array>
 
 #include <QAbstractTableModel>
 #include <QHostAddress>

@@ -1,6 +1,7 @@
 #include "ConnectDialog.h"
 #include "ui_ConnectDialog.h"
 
+#include <QtGlobal>
 #include <QMessageBox>
 #include <QRegExpValidator>
 

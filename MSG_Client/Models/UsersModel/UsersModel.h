@@ -1,8 +1,9 @@
 #ifndef USERSMODEL_H
 #define USERSMODEL_H
 
-#include <QList>
+#include <array>
 
+#include <QList>
 #include <QAbstractTableModel>
 
 #include "Classes/UserInfo/UserInfo.h"
