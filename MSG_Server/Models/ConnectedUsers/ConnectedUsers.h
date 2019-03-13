@@ -8,10 +8,10 @@
 #include <QAbstractTableModel>
 #include <QTcpSocket>
 
-#include "Classes/UserInfo/UserInfo.h"
+#include "Classes/UserAccount/UserAccount.h"
 #include "Models/UsersTypeModel/UsersTypeModel.h"
 
-class TConnectedUsersModel : public QAbstractTableModel, public std::map<QTcpSocket*, TUserInfo>
+class TConnectedUsersModel : public QAbstractTableModel, public std::map<QTcpSocket*, TUserAccount>
 {
 public:
     enum eColumns { cUserAddres = 0, cUserLogin = 1, cUserName = 2, cUserType = 3, cUserUuid = 4 };
@@ -28,8 +28,8 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
-    std::pair<std::map<QTcpSocket*, TUserInfo>::iterator, bool> insert(std::pair<QTcpSocket*, TUserInfo> inItem);
-    void erase(std::map<QTcpSocket*, TUserInfo>::iterator inIt);
+    std::pair<std::map<QTcpSocket*, TUserAccount>::iterator, bool> insert(std::pair<QTcpSocket*, TUserAccount> inItem);
+    void erase(std::map<QTcpSocket*, TUserAccount>::iterator inIt);
     void clear();
 
 private:

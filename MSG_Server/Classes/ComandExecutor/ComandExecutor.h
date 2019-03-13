@@ -10,7 +10,7 @@
 #include <QDataStream>
 #include <QHostAddress>
 
-#include "Classes/UserInfo/UserInfo.h"
+#include "Classes/UserAccount/UserAccount.h"
 
 class TComandExecutor : public QObject
 {
@@ -36,7 +36,8 @@ signals:
     void sigSocketError();
     void sigTimeOut();
 
-    void sig_SetUserInfo(QTcpSocket* Client, TUserInfo &inUserInfo);
+    void sig_SetUserInfo(QTcpSocket* Client, TUserAccount &inUserInfo);
+    void sig_SetUserContacts(QTcpSocket* Client, QList<TUserInfo> &inUserContacts);
 public slots:
 };
 

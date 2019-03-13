@@ -9,6 +9,7 @@
 
 #include "Classes/DB/DB.h"
 #include "Classes/DataModule/DataModule.h"
+#include "Classes/UserAccount/UserAccount.h"
 
 //-----------------------------------------------------------------------------
 TComandExecutor::TComandExecutor(QObject *inParent) : QObject(inParent)
@@ -63,7 +64,7 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                 }
                 case Res::CanAut::caAuthorizationTrue: // Вользователь найден (авторизация возможна)
                 {
-                    TUserInfo UserInfo = getUserInfo(Resuslt.second);
+                    TUserInfo UserInfo = getUserInfo(Resuslt.second); // Получаем информацию о пользователе из БД
 
                     if (UserInfo.userUuid() != Resuslt.second)
                     {
@@ -72,8 +73,11 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                     }
                     else
                     {
+                        TUserAccount UserAccount(this);
+                        UserAccount.slot_SetUserInfo(UserInfo);
+
                         outStream << Command << Resuslt.first << UserInfo; // Пишем в результат команду и результат обработки
-                        sig_SetUserInfo(inClientSender, UserInfo); // Авторизируем пользователя
+                        sig_SetUserInfo(inClientSender, UserAccount); // Авторизируем пользователя
                         sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
                     break;
@@ -117,7 +121,10 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
             if (Resuslt.isEmpty()) // Если список пуст
                 outStream << Command << Res::GetContacts::gcUsersFound; // Возвращаем результат (Контакты не найдены)
             else
+            {
+                sig_SetUserContacts(inClientSender, Resuslt); // Задаём пользователю список контактов
                 outStream << Command << Res::GetContacts::gcUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+            }
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
             break;

@@ -11,7 +11,6 @@
 #include <QtNetwork/QTcpSocket>
 
 #include "Classes/ComandExecutor/ComandExecutor.h"
-#include "Classes/UserInfo/UserInfo.h"
 #include "Models/ConnectedUsers/ConnectedUsers.h"
 
 class TMSGServer : public QObject
@@ -48,8 +47,8 @@ private slots:
     void slot_ClientChangeState(QAbstractSocket::SocketState inState); // Слот, реагирующий на изменение состояния клиента
     void slot_ClientError(QAbstractSocket::SocketError inError); // Слот, реагирующий на ошибку клиента
 
-    void slot_SetAutClient(QTcpSocket* inClient, TUserInfo &inUserInfo); // Слот, задающий авториированного пользователя
-
+    void slot_SetAutClient(QTcpSocket* inClient, TUserAccount &inUserInfo); // Слот, задающий авториированного пользователя
+    void slot_SetClientContacts(QTcpSocket* inClient, QList<TUserInfo> &inUserContacts); // Слот, задающий контакты пользователя
 };
 
 #endif // MSGSERVER_H

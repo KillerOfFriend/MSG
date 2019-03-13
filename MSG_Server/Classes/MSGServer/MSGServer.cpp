@@ -58,7 +58,7 @@ void TMSGServer::disconnectClient(QTcpSocket* inClient)
  */
 void TMSGServer::disconnectAll()
 {
-    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, TUserInfo> &Client)
+    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, TUserAccount> &Client)
     {
         disconnectClient(Client.first);
     });
@@ -135,6 +135,7 @@ void TMSGServer::Link()
     connect(fServer.get(), &QTcpServer::newConnection, this, &TMSGServer::slot_NewConnection);
     connect(fComandExecutor.get(), &TComandExecutor::sig_LogMessage, this, &TMSGServer::sig_LogMessage);
     connect(fComandExecutor.get(), &TComandExecutor::sig_SetUserInfo, this, &TMSGServer::slot_SetAutClient);
+    connect(fComandExecutor.get(), &TComandExecutor::sig_SetUserContacts, this, &TMSGServer::slot_SetClientContacts);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -143,13 +144,16 @@ void TMSGServer::Link()
 void TMSGServer::slot_NewConnection()
 {
     QTcpSocket* NewConnection = fServer->nextPendingConnection();
-    TUserInfo NewClient(this);
-    NewClient.setUserType(0);
-    NewClient.setUserUuid(QUuid());
-    NewClient.setUserLogin("Anonimus");
-    NewClient.setUserName("Anonimus");
+    TUserAccount NewAccount(this);
+    TUserInfo AnonimusInfo(this);
 
-    auto InsertRes = fClients.insert(std::make_pair(NewConnection, NewClient));  // Получаем сокет подключаемого клиента
+    AnonimusInfo.setUserType(0);
+    AnonimusInfo.setUserUuid(QUuid());
+    AnonimusInfo.setUserLogin("Anonimus");
+    AnonimusInfo.setUserName("Anonimus");
+    NewAccount.slot_SetUserInfo(AnonimusInfo);
+
+    auto InsertRes = fClients.insert(std::make_pair(NewConnection, NewAccount));  // Получаем сокет подключаемого клиента
 
     if (!InsertRes.second)
     {
@@ -249,15 +253,23 @@ void TMSGServer::slot_ClientError(QAbstractSocket::SocketError inError)
  * @param Client - Сокет клиента
  * @param inUserInfo - Данные клиента
  */
-void TMSGServer::slot_SetAutClient(QTcpSocket* inClient, TUserInfo &inUserInfo)
+void TMSGServer::slot_SetAutClient(QTcpSocket* inClient, TUserAccount &inUserInfo)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
-    if (It != fClients.end()) // Если сокет найлен
+    if (It != fClients.end()) // Если сокет найден
     {
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
         It->second = inUserInfo; // Задаём личные данные пользователя
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
     }
+}
+//-----------------------------------------------------------------------------
+void TMSGServer::slot_SetClientContacts(QTcpSocket* inClient, QList<TUserInfo> &inUserContacts) // Слот, задающий контакты пользователя
+{
+    auto It = fClients.find(inClient); // Ищим сокет
+
+    if (It != fClients.end()) // Если сокет найден
+        It->second.slot_SetContacts(inUserContacts);
 }
 //-----------------------------------------------------------------------------

@@ -49,12 +49,12 @@ QVariant TConnectedUsersModel::data(const QModelIndex &index, int role) const
             switch (index.column())
             {
                 case cUserAddres: { Result = It->first->peerAddress().toString(); break; }
-                case cUserLogin: { Result = It->second.userLogin(); break; }
-                case cUserName: { Result = It->second.userName(); break; }
-                case cUserUuid: { Result = It->second.userUuid(); break; }
+                case cUserLogin: { Result =  It->second.UserInfo.userLogin(); break; }
+                case cUserName: { Result =  It->second.UserInfo.userName(); break; }
+                case cUserUuid: { Result =  It->second.UserInfo.userUuid(); break; }
                 case cUserType:
                 {
-                    OtherTypes::TUserType ForSeach(It->second.userType(), "");
+                    OtherTypes::TUserType ForSeach(It->second.UserInfo.userType(), "");
                     auto TypeIt = fUserTypes->find(ForSeach);
 
                     if (TypeIt != fUserTypes->end())
@@ -101,9 +101,9 @@ QVariant TConnectedUsersModel::headerData(int section, Qt::Orientation orientati
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::map<QTcpSocket*, TUserInfo>::iterator, bool> TConnectedUsersModel::insert(std::pair<QTcpSocket*, TUserInfo> inItem)
+std::pair<std::map<QTcpSocket*, TUserAccount>::iterator, bool> TConnectedUsersModel::insert(std::pair<QTcpSocket *, TUserAccount> inItem)
 {
-    auto It = std::map<QTcpSocket*, TUserInfo>::insert(inItem);
+    auto It = std::map<QTcpSocket*, TUserAccount>::insert(inItem);
 
     if (It.second)
     {
@@ -115,18 +115,18 @@ std::pair<std::map<QTcpSocket*, TUserInfo>::iterator, bool> TConnectedUsersModel
     return It;
 }
 //-----------------------------------------------------------------------------
-void TConnectedUsersModel::erase(std::map<QTcpSocket*, TUserInfo>::iterator inIt)
+void TConnectedUsersModel::erase(std::map<QTcpSocket*, TUserAccount>::iterator inIt)
 {
     std::size_t Row = std::distance(this->begin(), inIt);
     beginRemoveRows(QModelIndex(), Row, Row);
-    std::map<QTcpSocket*, TUserInfo>::erase(inIt);
+    std::map<QTcpSocket*, TUserAccount>::erase(inIt);
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------
 void TConnectedUsersModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());
-    std::map<QTcpSocket*, TUserInfo>::clear();
+    std::map<QTcpSocket*, TUserAccount>::clear();
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------

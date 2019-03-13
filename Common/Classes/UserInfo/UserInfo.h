@@ -13,6 +13,9 @@ public:
     TUserInfo(const TUserInfo &inOther);
     ~TUserInfo();
 
+    TUserInfo& operator = (const TUserInfo &inOther);
+    bool operator == (const TUserInfo &inOther) const;
+
     void setUserUuid(QUuid inUuid);
     QUuid userUuid() const;
 
@@ -24,9 +27,6 @@ public:
 
     void setUserName(QString inName);
     QString userName() const;
-
-    TUserInfo& operator = (const TUserInfo &inOther);
-    bool operator == (const TUserInfo &inOther) const;
 
     friend QDataStream& operator <<(QDataStream&, const TUserInfo&);
     friend QDataStream& operator >>(QDataStream&, TUserInfo&);
