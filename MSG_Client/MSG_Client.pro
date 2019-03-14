@@ -35,13 +35,13 @@ SOURCES += \
     Classes/Settings/Settings.cpp \
     Classes/ComandExecutor/ComandExecutor.cpp \
     ../Common/Classes/UserInfo/UserInfo.cpp \
-    Classes/UserAccount/UserAccount.cpp \
     Frames/MainFrame.cpp \
     Classes/FrameController/FrameController.cpp \
-    Models/UsersModel/UsersModel.cpp \
     Models.cpp \
     Dialogs/UserViewDialog/UserViewDialog.cpp \
-    Dialogs/ConnectDialog/ConnectDialog.cpp
+    Dialogs/ConnectDialog/ConnectDialog.cpp \
+    ../Common/Classes/UserAccount/UserAccount.cpp \
+    ../Common/Models/UsersModel/UsersModel.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -52,13 +52,13 @@ HEADERS += \
     ../Common/comandes.h \
     ../Common/resultcodes.h \
     ../Common/Classes/UserInfo/UserInfo.h \
-    Classes/UserAccount/UserAccount.h \
     Frames/MainFrame.h \
     Classes/FrameController/FrameController.h \
-    Models/UsersModel/UsersModel.h \
     Models.h \
     Dialogs/UserViewDialog/UserViewDialog.h \
-    Dialogs/ConnectDialog/ConnectDialog.h
+    Dialogs/ConnectDialog/ConnectDialog.h \
+    ../Common/Classes/UserAccount/UserAccount.h \
+    ../Common/Models/UsersModel/UsersModel.h
 
 FORMS += \
         ClientMainWindow.ui \

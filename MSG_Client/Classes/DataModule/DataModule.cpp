@@ -35,6 +35,6 @@ void TDM::init() /// Мотод инициализирует классы мод
     fFrameController = std::make_shared<TFrameController>(this);
 
     connect(fClient.get()->ComandExecutor.get(), &TComandExecutor::sig_SetUserInfo, fUserAccount.get(), &TUserAccount::slot_SetUserInfo); // Передача информации о пользователе
-    connect(fClient.get()->ComandExecutor.get(), &TComandExecutor::sig_GetContactsResult, fUserAccount.get(), &TUserAccount::slot_SetContacts); // Передача контактов пользователя
+    connect(fClient.get()->ComandExecutor.get(), &TComandExecutor::sig_SetContacts, fUserAccount.get(), &TUserAccount::slot_SetContacts); // Передача контактов пользователя
 }
 //-----------------------------------------------------------------------------

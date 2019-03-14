@@ -1,5 +1,7 @@
 #include "UsersModel.h"
 
+#include <QDebug>
+
 //-----------------------------------------------------------------------------
 TUsersModel::TUsersModel(QObject *inParent) : QAbstractTableModel(inParent)
 {
@@ -97,6 +99,8 @@ std::pair<std::map<QUuid, TUserInfo>::iterator, bool> TUsersModel::insert(const 
         beginInsertRows(QModelIndex(), Row, Row);
         endInsertRows();
    }
+   else
+       qDebug() << "Дубликат вставки! " << inValue.second.userLogin();
 
    return It;
 }

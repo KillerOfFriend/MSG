@@ -46,15 +46,18 @@ QVariant TConnectedUsersModel::data(const QModelIndex &index, int role) const
     {
         case Qt::DisplayRole:
         {
+        auto a = It->second;
+        auto b = a.userInfo();
+        auto c = b->userName();
             switch (index.column())
             {
                 case cUserAddres: { Result = It->first->peerAddress().toString(); break; }
-                case cUserLogin: { Result =  It->second.UserInfo.userLogin(); break; }
-                case cUserName: { Result =  It->second.UserInfo.userName(); break; }
-                case cUserUuid: { Result =  It->second.UserInfo.userUuid(); break; }
+                case cUserLogin: { Result =  It->second.userInfo()->userLogin(); break; }
+                case cUserName: { Result =  It->second.userInfo()->userName(); break; }
+                case cUserUuid: { Result =  It->second.userInfo()->userUuid(); break; }
                 case cUserType:
                 {
-                    OtherTypes::TUserType ForSeach(It->second.UserInfo.userType(), "");
+                    OtherTypes::TUserType ForSeach(It->second.userInfo()->userType(), "");
                     auto TypeIt = fUserTypes->find(ForSeach);
 
                     if (TypeIt != fUserTypes->end())

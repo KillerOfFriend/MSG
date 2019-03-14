@@ -5,13 +5,14 @@
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
 {
-
+    fUserInfo = std::make_shared<TUserInfo>();
+    fContacts = std::make_shared<TUsersModel>();
 }
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent())
 {
-    this->UserInfo = inOther.UserInfo; // Копируем инфо пользователя
-    this->Contscts = inOther.Contscts; // Копируем контейнер контактов
+    this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
+    this->fContacts = inOther.fContacts; // Копируем контейнер контактов
 }
 //-----------------------------------------------------------------------------
 TUserAccount::~TUserAccount()
@@ -24,11 +25,17 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
     if (this == &inOther)
          return *this;
 
-    this->UserInfo = inOther.UserInfo; // Копируем инфо пользователя
-    this->Contscts = inOther.Contscts; // Копируем контейнер контактов
+    this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
+    this->fContacts = inOther.fContacts; // Копируем контейнер контактов
 
     return *this;
 }
+//-----------------------------------------------------------------------------
+std::shared_ptr<TUserInfo> TUserAccount::userInfo() const // Метод вернёт информацию о пользователе
+{ return fUserInfo; }
+//-----------------------------------------------------------------------------
+std::shared_ptr<TUsersModel> TUserAccount::contacts() const // Метод вернёт список контактов
+{ return fContacts; }
 //-----------------------------------------------------------------------------
 /**
  * @brief TUserAccount::slot_SetUserInfo - Слот задаст данные пользователя
@@ -36,8 +43,8 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
  */
 void TUserAccount::slot_SetUserInfo(const TUserInfo &inUserInfo)
 {
-    UserInfo = inUserInfo;
-    Contscts.clear();
+    fUserInfo = std::make_shared<TUserInfo>(inUserInfo);
+    fContacts->clear();
 }
 //-----------------------------------------------------------------------------
 /**
@@ -46,12 +53,13 @@ void TUserAccount::slot_SetUserInfo(const TUserInfo &inUserInfo)
  */
 void TUserAccount::slot_SetContacts(const QList<TUserInfo> &inContacts)
 {
-    Contscts.clear();
+    fContacts->clear();
 
     std::for_each(inContacts.begin(), inContacts.end(), [&](const TUserInfo &Info)
     {
-       // auto a = std::make_pair(Info.userUuid(), Info);
-        Contscts.insert(std::make_pair(Info.userUuid(), Info));
+        auto InsertRes = fContacts->insert(std::make_pair(Info.userUuid(), Info));
+        if (!InsertRes.second)
+            qDebug() << "Не удалось вставить контакт: " + Info.userLogin();
     });
 }
 //-----------------------------------------------------------------------------

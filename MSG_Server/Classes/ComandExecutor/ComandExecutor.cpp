@@ -73,10 +73,13 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                     }
                     else
                     {
+                        QList<TUserInfo> Contacts = getContacts(UserInfo.userUuid()); // Получаем список контактов пользователя
+
                         TUserAccount UserAccount(this);
                         UserAccount.slot_SetUserInfo(UserInfo);
+                        UserAccount.slot_SetContacts(Contacts);
 
-                        outStream << Command << Resuslt.first << UserInfo; // Пишем в результат команду и результат обработки
+                        outStream << Command << Resuslt.first << UserInfo << Contacts; // Пишем в результат команду и результат обработки
                         sig_SetUserInfo(inClientSender, UserAccount); // Авторизируем пользователя
                         sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
@@ -300,20 +303,16 @@ qint32 TComandExecutor::addContact(QDataStream &inDataStream) // Метод до
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов по указанного пользователя
+QList<TUserInfo> TComandExecutor::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
 {
     QList<TUserInfo> Result;
-    QUuid OwnerUuid;
-
-    inDataStream >> OwnerUuid; // Получаем владельца контактов
-
     QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM get_contacts(:in_owner)"))
         qDebug() << "[ОШИБКА]: " + Query.lastError().text();
     else
     {
-        Query.bindValue(":in_owner", OwnerUuid);
+        Query.bindValue(":in_owner", inOwnerUuid);
 
         if (!Query.exec())
             qDebug() << "[ОШИБКА]: " + Query.lastError().text();
@@ -331,6 +330,14 @@ QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Ме
     }
 
     return Result;
+}
+//-----------------------------------------------------------------------------
+QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
+{
+    QUuid OwnerUuid;
+
+    inDataStream >> OwnerUuid; // Получаем владельца контактов
+    return getContacts(OwnerUuid);
 }
 //-----------------------------------------------------------------------------
 qint32 TComandExecutor::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю

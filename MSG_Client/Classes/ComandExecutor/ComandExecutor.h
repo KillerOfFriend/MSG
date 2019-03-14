@@ -21,7 +21,7 @@ private:
     void userAuthorization(QDataStream &inDataStream); // Метод обработает результат авторизации
     void findUsersResult(QDataStream &inDataStream); // Метод обработает результат поика пользователей
     void addContactResult(QDataStream &inDataStream); // Метод обработает результат добавления контакта
-    void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
+//    void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
     void deleteContactResult(QDataStream &inDataStream); // Метод обработает результат удаления контакта
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод считает строку из потока
@@ -29,12 +29,12 @@ private:
 signals:
     void sig_LogMessage(QString inMessage);
     void sig_SetUserInfo(const TUserInfo &inUserInfo);
+    void sig_SetContacts(const QList<TUserInfo> &inUsers);
 
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);
     void sig_FindUsersResult(const QList<TUserInfo> &inUsers);
-    void sig_AddContactResult(qint32 inResult);
-    void sig_GetContactsResult(const QList<TUserInfo> &inUsers);
+    void sig_AddContactResult(qint32 inResult);   
     void sig_DeleteContactResult(qint32 inResult);
 
 

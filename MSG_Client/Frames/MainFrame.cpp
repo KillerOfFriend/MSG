@@ -29,10 +29,11 @@ TfmeMainFrame::~TfmeMainFrame()
 void TfmeMainFrame::init()
 {
     TDM& DM = TDM::Instance();
-    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->UserInfo.userLogin() + "</span></p></body></html>");
-    ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + DM.UserAccount()->UserInfo.userName() + "</span></p></body></html>");
+    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->userInfo()->userLogin() + "</span></p></body></html>");
+    ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + DM.UserAccount()->userInfo()->userName() + "</span></p></body></html>");
 
-    ui->ContactsListView->setModel(DM.UserAccount()->Contacts().get());
+    ui->ContactsListView->setModel(DM.UserAccount()->contacts().get());
+
     fFoundUsers.reset(new TUsersModel(this));
     ui->ContactsFindListView->setModel(fFoundUsers.get());
 }
@@ -64,13 +65,13 @@ void TfmeMainFrame::slot_UserViewDialogResult(const TUserInfo &inUserInfo, qint3
     {
         case TUserViewDialog::rbAdd:
     {
-        if (!DM.Client()->addContact(DM.UserAccount()->UserInfo.userUuid(), inUserInfo.userUuid()))
+        if (!DM.Client()->addContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo.userUuid()))
             QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось добавить контакт!"));
         break;
     };
         case TUserViewDialog::rbRemove:
         {
-            if (!DM.Client()->deleteContact(DM.UserAccount()->UserInfo.userUuid(), inUserInfo.userUuid()))
+            if (!DM.Client()->deleteContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo.userUuid()))
                 QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось удалить контакт!"));
             break;
         };
@@ -103,7 +104,12 @@ void TfmeMainFrame::slot_FindUsers()
 void TfmeMainFrame::slot_FindUsersRes(const QList<TUserInfo> &inUsers)
 {
     fFoundUsers->clear();
-    (*fFoundUsers) << inUsers;
+
+    std::for_each(inUsers.begin(), inUsers.end(), [&](const TUserInfo &Info)
+    {
+        fFoundUsers->insert(std::make_pair(Info.userUuid(), Info));
+    });
+
     fFoundUsers->dataChanged(fFoundUsers->index(0,0), fFoundUsers->index(fFoundUsers->rowCount(),0));
 }
 //-----------------------------------------------------------------------------
@@ -119,8 +125,8 @@ void TfmeMainFrame::slot_AddContactRes(qint32 inResult)
         {
             QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно добавлен"));
             TDM &DM = TDM::Instance();
-            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
-                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
+//            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
+//                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
             break;
         };
         case Res::AddContact::acAlredyExist: { QMessageBox::warning(this, tr("Предупреждение"), tr("Контакт уже существует!")); break; };
@@ -140,8 +146,8 @@ void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult)
         {
             QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно удалён"));
             TDM &DM = TDM::Instance();
-            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
-                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
+//            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
+//                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
             break;
         };
         case Res::DeleteContact::dcContactNotFound: {QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось найти пользователя!")); break; }
@@ -156,13 +162,13 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
     auto OtherUserIt = fFoundUsers->begin();
     std::advance(OtherUserIt, index.row()); // Получаем итератор на выбранного пользователя
 
-    TUserViewDialog UserViewDialog((*OtherUserIt), this); // Инициализируем диалог просмотра пользователя
+    TUserViewDialog UserViewDialog(OtherUserIt->second, this); // Инициализируем диалог просмотра пользователя
     UserViewDialog.setModal(true); // Задаём подальность
 
-    auto ContactsPtr = TDM::Instance().UserAccount()->Contacts();
-    auto FindRes = std::find(ContactsPtr->begin(), ContactsPtr->end(), (*OtherUserIt)); // Ищим пользователя в списке контактов
+    TDM& DM = TDM::Instance();
+    auto FindRes = DM.UserAccount()->contacts()->find(OtherUserIt->second.userUuid()); // Ищим пользователя в списке контактов
 
-    if (FindRes != ContactsPtr->end()) // Если найден
+    if (FindRes != DM.UserAccount()->contacts()->end()) // Если найден
         UserViewDialog.setButtons(TUserViewDialog::eResButtons(TUserViewDialog::rbRemove | TUserViewDialog::rbSendMsg)); // Разрешаем удалить и написать
     else // Если не найден
         UserViewDialog.setButtons(TUserViewDialog::rbAdd); // Разрешаем добавить
@@ -174,10 +180,10 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
 {
-    auto OtherUserIt = TDM::Instance().UserAccount()->Contacts()->begin();
+    auto OtherUserIt = TDM::Instance().UserAccount()->contacts()->begin();
     std::advance(OtherUserIt, index.row()); // Получаем итератор на выбранного пользователя
 
-    TUserViewDialog UserViewDialog((*OtherUserIt), this); // Инициализируем диалог просмотра пользователя
+    TUserViewDialog UserViewDialog(OtherUserIt->second, this); // Инициализируем диалог просмотра пользователя
     UserViewDialog.setModal(true); // Задаём подальность
 
     UserViewDialog.setButtons(TUserViewDialog::eResButtons(TUserViewDialog::rbRemove | TUserViewDialog::rbSendMsg)); // Разрешаем удалить и написать

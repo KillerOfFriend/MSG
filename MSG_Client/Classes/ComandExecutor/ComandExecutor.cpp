@@ -54,12 +54,12 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
             addContactResult(inStream); // Обработать результат добавления контакта
             break;
         }
-        case Commands::GetContacts: // Запрос списка контактов
-        {
-            sig_LogMessage("Получен ответ на запрос списка контактов" + inClientSender->peerAddress().toString());
-            getContactsResult(inStream); // Обработать результат запроса списка контактов
-            break;
-        }
+//        case Commands::GetContacts: // Запрос списка контактов
+//        {
+//            sig_LogMessage("Получен ответ на запрос списка контактов" + inClientSender->peerAddress().toString());
+//            getContactsResult(inStream); // Обработать результат запроса списка контактов
+//            break;
+//        }
         case Commands::DeleteContact:
         {
             sig_LogMessage("Получен ответ на удаление контакта" + inClientSender->peerAddress().toString());
@@ -90,12 +90,15 @@ void TComandExecutor::userAuthorization(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     TUserInfo UserInfo;
+    QList<TUserInfo> Contacts;
 
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
     {
         inDataStream >> UserInfo; // Получаем информацию о пользователе
+        inDataStream >> Contacts; // Получаем список контактов
         sig_SetUserInfo(UserInfo); // Шлём сигнал с данными пользователя
+        sig_SetContacts(Contacts); // Шлём сигнал со списком контактов пользователей
     }
 
     sig_AuthorizationResult(Result); // Шлём сигнал с результатом авторизации
@@ -133,18 +136,18 @@ void TComandExecutor::addContactResult(QDataStream &inDataStream)
  * @brief TComandExecutor::getContactsResult - Метод обработает результат запроса списка контактов
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::getContactsResult(QDataStream &inDataStream)
-{
-    qint32 Result = Res::rUnknown;
-    QList<TUserInfo> FoundContacts;
+//void TComandExecutor::getContactsResult(QDataStream &inDataStream)
+//{
+//    qint32 Result = Res::rUnknown;
+//    QList<TUserInfo> FoundContacts;
 
-    inDataStream >> Result; // Получаем результат поиска
+//    inDataStream >> Result; // Получаем результат поиска
 
-    if (Result == Res::GetContacts::gcUsersFound) // Если контакты найдены
-        inDataStream >> FoundContacts; // Получаем информацию о контактах
+//    if (Result == Res::GetContacts::gcUsersFound) // Если контакты найдены
+//        inDataStream >> FoundContacts; // Получаем информацию о контактах
 
-    sig_GetContactsResult(FoundContacts);
-}
+//    sig_GetContactsResult(FoundContacts);
+//}
 //-----------------------------------------------------------------------------
 /**
  * @brief TComandExecutor::deleteContactResult - Метод обработает результат удаления контакта

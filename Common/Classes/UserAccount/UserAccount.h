@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QList>
+#include <QAbstractTableModel>
 
 #include "Classes/UserInfo/UserInfo.h"
 #include "Models/UsersModel/UsersModel.h"
@@ -19,8 +20,12 @@ public:
 
     TUserAccount &operator =(const TUserAccount &inOther);
 
-    TUserInfo UserInfo; // Данные о пользователе
-    TUsersModel Contscts; // Список контактов
+    std::shared_ptr<TUserInfo> userInfo() const; // Метод вернёт информацию о пользователе
+    std::shared_ptr<TUsersModel> contacts() const; // Метод вернёт список контактов
+
+private:
+    std::shared_ptr<TUserInfo> fUserInfo = nullptr; // Данные о пользователе
+    std::shared_ptr<TUsersModel> fContacts = nullptr; // Список контактов
 
 signals:
 
