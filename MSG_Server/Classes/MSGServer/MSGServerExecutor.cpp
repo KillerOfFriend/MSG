@@ -70,11 +70,14 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                     {
                         QList<TUserInfo> Contacts = getContacts(UserInfo.userUuid()); // Получаем список контактов пользователя
 
+                        checkContactsStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
+
                         TUserAccount UserAccount(this);
                         UserAccount.slot_SetUserInfo(UserInfo);
                         UserAccount.slot_SetContacts(Contacts);
 
                         slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
+
                         outStream << Command << Resuslt.first << UserInfo << Contacts; // Пишем в результат команду и результат обработки
                         sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
@@ -394,5 +397,20 @@ QString TMSGServer::ReadStringFromStream(QDataStream &inDataStream)
     inDataStream >> ByteBuf;
 
     return QString::fromUtf8(ByteBuf); // Помещаем буфер в результат (с раскодировкой из UTF8)
+}
+//-----------------------------------------------------------------------------
+void TMSGServer::checkContactsStatus(QList<TUserInfo> &inContacts) // Метод проверит наличие контактов и онлайн и установит их статус
+{
+    std::for_each(inContacts.begin(), inContacts.end(), [&](TUserInfo &UserInfo) // Перебираем все контакты полученного клиента
+    {
+        auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, TUserAccount> &Item) // Ищим контакт в списке подключённых клиентов
+        {
+            return Item.second.userInfo()->userUuid() == UserInfo.userUuid(); // Сравнение по Uuid
+        });
+
+        if (FindRes != fClients.end()) // Если клиент онлайн
+            UserInfo.setUserStatus(TUserInfo::eUserStatus::usOnline);
+        else UserInfo.setUserStatus(TUserInfo::eUserStatus::usOffline);
+    });
 }
 //-----------------------------------------------------------------------------

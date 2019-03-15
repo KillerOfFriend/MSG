@@ -12,6 +12,7 @@ TUserInfo::TUserInfo(const TUserInfo &inOther) : QObject(inOther.parent())
     this->fType = inOther.fType;
     this->fLogin = inOther.fLogin;
     this->fName = inOther.fName;
+    this->fUserStatus = inOther.fUserStatus;
 }
 //-----------------------------------------------------------------------------
 TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
@@ -23,6 +24,7 @@ TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
     this->fType = inOther.fType;
     this->fLogin = inOther.fLogin;
     this->fName = inOther.fName;
+    this->fUserStatus = inOther.fUserStatus;
 
     return *this;
 }
@@ -60,12 +62,19 @@ void TUserInfo::setUserName(QString inName)
 QString TUserInfo::userName() const
 { return fName; }
 //-----------------------------------------------------------------------------
+void TUserInfo::setUserStatus(quint8 inStatus)
+{ fUserStatus = inStatus; }
+//-----------------------------------------------------------------------------
+quint8 TUserInfo::userStatus() const
+{ return fUserStatus; }
+//-----------------------------------------------------------------------------
 QDataStream &operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
 {
     outStream << UserInfo.fUuid;
     outStream << UserInfo.fType;
     outStream << UserInfo.fLogin;
     outStream << UserInfo.fName;
+    outStream << UserInfo.fUserStatus;
 
     return outStream;
 }
@@ -76,6 +85,7 @@ QDataStream &operator >>(QDataStream &inStream, TUserInfo &UserInfo)
     inStream >> UserInfo.fType;
     inStream >> UserInfo.fLogin;
     inStream >> UserInfo.fName;
+    inStream >> UserInfo.fUserStatus;
 
     return inStream;
 }

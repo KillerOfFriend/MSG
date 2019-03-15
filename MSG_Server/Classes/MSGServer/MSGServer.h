@@ -49,6 +49,8 @@ private:
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
+    void checkContactsStatus(QList<TUserInfo> &inContacts); // Метод проверит наличие контактов и онлайн и установит их статус
+
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
     void sigSocketError();
