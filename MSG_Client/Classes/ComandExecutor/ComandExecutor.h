@@ -34,8 +34,8 @@ signals:
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);
     void sig_FindUsersResult(const QList<TUserInfo> &inUsers);
-    void sig_AddContactResult(qint32 inResult);   
-    void sig_DeleteContactResult(qint32 inResult);
+    void sig_AddContactResult(qint32 inResult, TUserInfo &inContactInfo);
+    void sig_DeleteContactResult(qint32 inResult, QUuid &inContactUuid);
 
 
 public slots:

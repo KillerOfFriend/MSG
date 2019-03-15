@@ -32,7 +32,6 @@ SOURCES += \
         ServerMainWindow.cpp \
     Classes/DataModule/DataModule.cpp \
     Classes/MSGServer/MSGServer.cpp \
-    Classes/ComandExecutor/ComandExecutor.cpp \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Models/ConnectedUsers/ConnectedUsers.cpp \
     Models/ServerLogModel/ServerLogModel.cpp \
@@ -40,13 +39,13 @@ SOURCES += \
     Classes/DB/DB.cpp \
     Classes/Settings/Settings.cpp \
     ../Common/Classes/UserAccount/UserAccount.cpp \
-    ../Common/Models/UsersModel/UsersModel.cpp
+    ../Common/Models/UsersModel/UsersModel.cpp \
+    Classes/MSGServer/MSGServerExecutor.cpp
 
 HEADERS += \
         ServerMainWindow.h \
     Classes/DataModule/DataModule.h \
     Classes/MSGServer/MSGServer.h \
-    Classes/ComandExecutor/ComandExecutor.h \
     ../Common/comandes.h \
     ../Common/resultcodes.h \
     ../Common/Classes/UserInfo/UserInfo.h \

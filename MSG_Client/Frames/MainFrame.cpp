@@ -117,16 +117,14 @@ void TfmeMainFrame::slot_FindUsersRes(const QList<TUserInfo> &inUsers)
  * @brief TfmeMainFrame::slot_AddContactRes - Слот, получающий результат добавления контакта
  * @param inResult - Результат выполнения
  */
-void TfmeMainFrame::slot_AddContactRes(qint32 inResult)
+void TfmeMainFrame::slot_AddContactRes(qint32 inResult, TUserInfo &inContactInfo)
 {
     switch (inResult)
     {
         case Res::AddContact::acCreated:
         {
+            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(inContactInfo.userUuid(), inContactInfo)); // Добавляем контакт в список
             QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно добавлен"));
-            TDM &DM = TDM::Instance();
-//            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
-//                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
             break;
         };
         case Res::AddContact::acAlredyExist: { QMessageBox::warning(this, tr("Предупреждение"), tr("Контакт уже существует!")); break; };
@@ -138,16 +136,14 @@ void TfmeMainFrame::slot_AddContactRes(qint32 inResult)
  * @brief TfmeMainFrame::slot_DeleteContactRes - Слот, получающий результат удаления контакта
  * @param inResult - Результат выполнения
  */
-void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult)
+void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid)
 {
     switch (inResult)
     {
         case Res::DeleteContact::dcContactRemove:
         {
+            TDM::Instance().UserAccount()->contacts()->erase(inContactUuid);
             QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно удалён"));
-            TDM &DM = TDM::Instance();
-//            if (!DM.Client()->getContacts(DM.UserAccount()->UserInfo.userUuid())) // Запрашиваем список контактов
-//                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось запросить список контактов!"));
             break;
         };
         case Res::DeleteContact::dcContactNotFound: {QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось найти пользователя!")); break; }

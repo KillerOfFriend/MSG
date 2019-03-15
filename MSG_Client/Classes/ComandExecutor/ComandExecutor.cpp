@@ -128,8 +128,13 @@ void TComandExecutor::findUsersResult(QDataStream &inDataStream)
 void TComandExecutor::addContactResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
+    TUserInfo ContactInfo;
     inDataStream >> Result;
-    sig_AddContactResult(Result);
+
+    if (Result = Res::AddContact::acCreated)
+        inDataStream >> ContactInfo;
+
+    sig_AddContactResult(Result, ContactInfo);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -156,8 +161,13 @@ void TComandExecutor::addContactResult(QDataStream &inDataStream)
 void TComandExecutor::deleteContactResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
+    QUuid ContactUuid;
     inDataStream >> Result;
-    sig_DeleteContactResult(Result);
+
+    if (Result = Res::DeleteContact::dcContactRemove)
+        inDataStream >> ContactUuid;
+
+    sig_DeleteContactResult(Result, ContactUuid);
 }
 //-----------------------------------------------------------------------------
 /**

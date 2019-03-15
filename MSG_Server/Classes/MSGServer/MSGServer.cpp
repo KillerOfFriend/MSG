@@ -101,7 +101,6 @@ QAbstractTableModel* TMSGServer::clientsModel()
 void TMSGServer::init()
 {
     fServer.reset(new QTcpServer(this));
-    fComandExecutor.reset(new TComandExecutor(this));
 
     if (!QFile::exists(QApplication::applicationDirPath() + "/Settings.ini"))
     {
@@ -133,9 +132,6 @@ void TMSGServer::init()
 void TMSGServer::Link()
 {
     connect(fServer.get(), &QTcpServer::newConnection, this, &TMSGServer::slot_NewConnection);
-    connect(fComandExecutor.get(), &TComandExecutor::sig_LogMessage, this, &TMSGServer::sig_LogMessage);
-    connect(fComandExecutor.get(), &TComandExecutor::sig_SetUserInfo, this, &TMSGServer::slot_SetAutClient);
-    connect(fComandExecutor.get(), &TComandExecutor::sig_SetUserContacts, this, &TMSGServer::slot_SetClientContacts);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -199,12 +195,7 @@ void TMSGServer::slot_ClientReadData()
         sig_LogMessage(Client->peerAddress(), "Ошибка получения сокета!");
     else
     {
-        if (!fComandExecutor)
-            sig_LogMessage(Client->peerAddress(), "Невозможно выполнить команду");
-        else
-        {
-            fComandExecutor->executCommand(Client);
-        }
+        executCommand(Client);
     }
 }
 //-----------------------------------------------------------------------------
@@ -253,23 +244,49 @@ void TMSGServer::slot_ClientError(QAbstractSocket::SocketError inError)
  * @param Client - Сокет клиента
  * @param inUserInfo - Данные клиента
  */
-void TMSGServer::slot_SetAutClient(QTcpSocket* inClient, TUserAccount &inUserInfo)
+void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, TUserAccount &inUserAccount)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
     if (It != fClients.end()) // Если сокет найден
     {
+        It->second = inUserAccount; // Задаём личные данные пользователя
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
-        It->second = inUserInfo; // Задаём личные данные пользователя
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
+    }
+    else // Если сокет не найден (НЕ ДОЛЖНО ТАКОГО БЫТЬ)
+    {
+        fClients.insert(std::make_pair(inClient, inUserAccount)); // Добавляем новый аккаунт
+        qDebug() << "Некорректно добавленый пользователь " + inUserAccount.userInfo()->userLogin();
     }
 }
 //-----------------------------------------------------------------------------
-void TMSGServer::slot_SetClientContacts(QTcpSocket* inClient, QList<TUserInfo> &inUserContacts) // Слот, задающий контакты пользователя
+void TMSGServer::slot_AddContact(QTcpSocket* inClient, TUserInfo &inContactInfo) // Слот, добавляющйи контакт пользователю
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
     if (It != fClients.end()) // Если сокет найден
-        It->second.slot_SetContacts(inUserContacts);
+    {
+        It->second.contacts()->insert(std::make_pair(inContactInfo.userUuid(), inContactInfo)); // Добавляем контакт
+        qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
+        fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
+    }
+}
+//-----------------------------------------------------------------------------
+void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid) // Слот, добавляющйи контакт пользователю
+{
+    auto It = fClients.find(inClient); // Ищим сокет
+
+    if (It != fClients.end()) // Если сокет найден
+    {
+        auto FindRes = It->second.contacts()->find(inContactUuid); // Ищим этот контакт
+
+        if (FindRes != It->second.contacts()->end())
+        {
+            It->second.contacts()->erase(FindRes); // Удаляем пользователя
+            qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
+            fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
+        }
+    }
 }
 //-----------------------------------------------------------------------------

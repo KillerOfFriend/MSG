@@ -1,4 +1,4 @@
-#include "ComandExecutor.h"
+#include "MSGServer.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -12,12 +12,7 @@
 #include "Classes/UserAccount/UserAccount.h"
 
 //-----------------------------------------------------------------------------
-TComandExecutor::TComandExecutor(QObject *inParent) : QObject(inParent)
-{
-
-}
-//-----------------------------------------------------------------------------
-void TComandExecutor::executCommand(QTcpSocket* inClientSender)
+void TMSGServer::executCommand(QTcpSocket* inClientSender)
 {
     if (!inClientSender)
         return;
@@ -79,8 +74,8 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
                         UserAccount.slot_SetUserInfo(UserInfo);
                         UserAccount.slot_SetContacts(Contacts);
 
+                        slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
                         outStream << Command << Resuslt.first << UserInfo << Contacts; // Пишем в результат команду и результат обработки
-                        sig_SetUserInfo(inClientSender, UserAccount); // Авторизируем пользователя
                         sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
                     break;
@@ -110,37 +105,51 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
         case Commands::AddContact: // Добавление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
-            qint32 Result = addContact(inStream); // Добавляем контакт
+            std::pair<qint32, TUserInfo> Result = addContact(inStream); // Добавляем контакт
 
-            outStream << Command << Result; // Пишем в результат команду и результат обработки
+            if (Result.first != Res::AddContact::acCreated) // Если пользователь не был добавлен
+                outStream << Command << Result.first; // Пишем в результат команду и результат обработки
+            else // Если добавление прошло успешно
+            {
+                slot_AddContact(inClientSender, Result.second);
+                outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и информацию о контакте
+            }
+
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата добавления контакта");
             break;
         }
-        case Commands::GetContacts: // Запрос списка контактов
-        {
-            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка контактов");
-            QList<TUserInfo> Resuslt = getContacts(inStream); // Поиск контактов
+//        case Commands::GetContacts: // Запрос списка контактов
+//        {
+//            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка контактов");
+//            QList<TUserInfo> Resuslt = getContacts(inStream); // Поиск контактов
 
-            if (Resuslt.isEmpty()) // Если список пуст
-                outStream << Command << Res::GetContacts::gcUsersFound; // Возвращаем результат (Контакты не найдены)
+//            if (Resuslt.isEmpty()) // Если список пуст
+//                outStream << Command << Res::GetContacts::gcUsersFound; // Возвращаем результат (Контакты не найдены)
+//            else
+//            {
+//                sig_SetUserContacts(inClientSender, Resuslt); // Задаём пользователю список контактов
+//                outStream << Command << Res::GetContacts::gcUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+//            }
+
+//            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
+//            break;
+//        }
+        case Commands::DeleteContact:
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
+            std::pair<qint32, QUuid> Result = deleteContact(inStream); // Удаляем контакт
+
+            if (Result.first != Res::DeleteContact::dcContactRemove) // Если контакт не удалён
+                outStream << Command << Result.first; // Пишем в результат команду и результат обработки
             else
             {
-                sig_SetUserContacts(inClientSender, Resuslt); // Задаём пользователю список контактов
-                outStream << Command << Res::GetContacts::gcUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+                slot_DelContact(inClientSender, Result.second);
+                outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и Uuid удалённого контакта
             }
 
-            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
             break;
         }
-    case Commands::DeleteContact:
-    {
-        sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
-        qint32 Result = deleteContact(inStream); // Добавляем контакт
-
-        outStream << Command << Result; // Пишем в результат команду и результат обработки
-        sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
-        break;
-    }
 
         default: sig_LogMessage(inClientSender->peerAddress(), "Получена неизвестная команда");
     }
@@ -149,7 +158,7 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
     //inClientSender->waitForBytesWritten();
 }
 //-----------------------------------------------------------------------------
-qint32 TComandExecutor::creteUser(QDataStream &inDataStream)
+qint32 TMSGServer::creteUser(QDataStream &inDataStream)
 {
     quint32 Result = Res::rUnknown;
 
@@ -180,7 +189,7 @@ qint32 TComandExecutor::creteUser(QDataStream &inDataStream)
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, QUuid> TComandExecutor::canAuthorization(QDataStream &inDataStream) // Метод авторизирует пользователя
+std::pair<qint32, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream) // Метод авторизирует пользователя
 {
     std::pair<qint32, QUuid> Result;
 
@@ -213,7 +222,7 @@ std::pair<qint32, QUuid> TComandExecutor::canAuthorization(QDataStream &inDataSt
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TComandExecutor::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
+QList<TUserInfo> TMSGServer::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
 {
     QList<TUserInfo> Result;
     QString UserNameLogin = '%' + ReadStringFromStream(inDataStream) + '%'; // Получаем фильтр поиска
@@ -244,7 +253,7 @@ QList<TUserInfo> TComandExecutor::findUsers(QDataStream &inDataStream) // Мет
     return Result;
 }
 //-----------------------------------------------------------------------------
-TUserInfo TComandExecutor::getUserInfo(QUuid inUserUuid)
+TUserInfo TMSGServer::getUserInfo(QUuid inUserUuid)
 {
     TUserInfo Result;
 
@@ -273,9 +282,10 @@ TUserInfo TComandExecutor::getUserInfo(QUuid inUserUuid)
     return Result;
 }
 //-----------------------------------------------------------------------------
-qint32 TComandExecutor::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
+std::pair<qint32, TUserInfo> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
 {
-    qint32 Result = Res::rUnknown;
+    std::pair<qint32, TUserInfo> Result;
+    Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец нового контакта
     QUuid NewContact; // Сам новый контакт
@@ -296,14 +306,17 @@ qint32 TComandExecutor::addContact(QDataStream &inDataStream) // Метод до
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result = Query.value("create_contact").toInt();
+                Result.first = Query.value("create_contact").toInt();
+
+            if (Result.first == Res::AddContact::acCreated) // Если контакт был добавлен
+                Result.second = getUserInfo(NewContact); // Получаем информацию об это контакте
         }
     }
 
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TComandExecutor::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
+QList<TUserInfo> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
 {
     QList<TUserInfo> Result;
     QSqlQuery Query(TDB::Instance().DB());
@@ -332,7 +345,7 @@ QList<TUserInfo> TComandExecutor::getContacts(const QUuid &inOwnerUuid) // Ме�
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
+QList<TUserInfo> TMSGServer::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
 {
     QUuid OwnerUuid;
 
@@ -340,9 +353,10 @@ QList<TUserInfo> TComandExecutor::getContacts(QDataStream &inDataStream) // Ме
     return getContacts(OwnerUuid);
 }
 //-----------------------------------------------------------------------------
-qint32 TComandExecutor::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю
+std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю
 {
-    quint32 Result = Res::rUnknown;
+    std::pair<qint32, QUuid> Result;
+    Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец контакта
     QUuid Contact; // Сам контакт
@@ -363,14 +377,18 @@ qint32 TComandExecutor::deleteContact(QDataStream &inDataStream) // Метод �
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result = Query.value("delete_contacts").toInt();
+                Result.first = Query.value("delete_contacts").toInt();
+
+            if (Result.first == Res::DeleteContact::dcContactRemove) // Если контакт был удалён
+                Result.second = Contact; // Запоминаем его Uuid
+
         }
     }
 
     return Result;
 }
 //-----------------------------------------------------------------------------
-QString TComandExecutor::ReadStringFromStream(QDataStream &inDataStream)
+QString TMSGServer::ReadStringFromStream(QDataStream &inDataStream)
 {
     QByteArray ByteBuf;
     inDataStream >> ByteBuf;
