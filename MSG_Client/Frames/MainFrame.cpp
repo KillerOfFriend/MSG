@@ -43,9 +43,9 @@ void TfmeMainFrame::init()
  */
 void TfmeMainFrame::Link()
 {
-    connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes);
-    connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_AddContactResult, this, &TfmeMainFrame::slot_AddContactRes);
-    connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_DeleteContactResult, this, &TfmeMainFrame::slot_DeleteContactRes);
+    connect(TDM::Instance().Client().get(), &TMSGClient::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes);
+    connect(TDM::Instance().Client().get(), &TMSGClient::sig_AddContactResult, this, &TfmeMainFrame::slot_AddContactRes);
+    connect(TDM::Instance().Client().get(), &TMSGClient::sig_DeleteContactResult, this, &TfmeMainFrame::slot_DeleteContactRes);
 
     connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers);
 }

@@ -30,7 +30,6 @@ TMSGClient::~TMSGClient()
 void TMSGClient::init()
 {
     fClient.reset(new QTcpSocket(this));
-    ComandExecutor.reset(new TComandExecutor(this));
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::Link()
@@ -183,7 +182,7 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_ReadyRead()
 {
-    ComandExecutor->executCommand(fClient.get());
+    executCommand(fClient.get());
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_hostFound()

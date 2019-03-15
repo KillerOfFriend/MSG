@@ -1,4 +1,4 @@
-#include "ComandExecutor.h"
+#include "MSGClient.h"
 
 #include <QCryptographicHash>
 #include <QHostAddress>
@@ -8,16 +8,11 @@
 #include "Classes/UserInfo/UserInfo.h"
 
 //-----------------------------------------------------------------------------
-TComandExecutor::TComandExecutor(QObject *inParent) : QObject(inParent)
-{
-
-}
-//-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::executCommand - Метод исполняющий команды
+ * @brief TMSGClient::executCommand - Метод исполняющий команды
  * @param inClientSender - Сокет - получаетль
  */
-void TComandExecutor::executCommand(QTcpSocket* inClientSender)
+void TMSGClient::executCommand(QTcpSocket* inClientSender)
 {
     if (!inClientSender)
         return;
@@ -72,10 +67,10 @@ void TComandExecutor::executCommand(QTcpSocket* inClientSender)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::creteUserResult - Мтод обработает результат регистрации
+ * @brief TMSGClient::creteUserResult - Мтод обработает результат регистрации
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::creteUserResult(QDataStream &inDataStream)
+void TMSGClient::creteUserResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     inDataStream >> Result; // Получаем результат выполнения
@@ -83,10 +78,10 @@ void TComandExecutor::creteUserResult(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::userAuthorization - Метод обработает результат авторизации
+ * @brief TMSGClient::userAuthorization - Метод обработает результат авторизации
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::userAuthorization(QDataStream &inDataStream)
+void TMSGClient::userAuthorization(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     TUserInfo UserInfo;
@@ -105,10 +100,10 @@ void TComandExecutor::userAuthorization(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::findUsersResult - Метод обработает результат поика пользователей
+ * @brief TMSGClient::findUsersResult - Метод обработает результат поика пользователей
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::findUsersResult(QDataStream &inDataStream)
+void TMSGClient::findUsersResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     QList<TUserInfo> FoundUsers;
@@ -122,10 +117,10 @@ void TComandExecutor::findUsersResult(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::addContact - Метод обработает результат добавления контакта
+ * @brief TMSGClient::addContact - Метод обработает результат добавления контакта
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::addContactResult(QDataStream &inDataStream)
+void TMSGClient::addContactResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     TUserInfo ContactInfo;
@@ -138,10 +133,10 @@ void TComandExecutor::addContactResult(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::getContactsResult - Метод обработает результат запроса списка контактов
+ * @brief TMSGClient::getContactsResult - Метод обработает результат запроса списка контактов
  * @param inDataStream - Входящий поток
  */
-//void TComandExecutor::getContactsResult(QDataStream &inDataStream)
+//void TMSGClient::getContactsResult(QDataStream &inDataStream)
 //{
 //    qint32 Result = Res::rUnknown;
 //    QList<TUserInfo> FoundContacts;
@@ -155,10 +150,10 @@ void TComandExecutor::addContactResult(QDataStream &inDataStream)
 //}
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::deleteContactResult - Метод обработает результат удаления контакта
+ * @brief TMSGClient::deleteContactResult - Метод обработает результат удаления контакта
  * @param inDataStream - Входящий поток
  */
-void TComandExecutor::deleteContactResult(QDataStream &inDataStream)
+void TMSGClient::deleteContactResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
     QUuid ContactUuid;
@@ -171,11 +166,11 @@ void TComandExecutor::deleteContactResult(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TComandExecutor::ReadStringFromStream - Метод считает строку из потока
+ * @brief TMSGClient::ReadStringFromStream - Метод считает строку из потока
  * @param inDataStream - Входящий поток
  * @return Воернёт считанную строку
  */
-QString TComandExecutor::ReadStringFromStream(QDataStream &inDataStream)
+QString TMSGClient::ReadStringFromStream(QDataStream &inDataStream)
 {
     QByteArray ByteBuf;
     inDataStream >> ByteBuf;

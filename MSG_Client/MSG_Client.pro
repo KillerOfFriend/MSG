@@ -33,7 +33,6 @@ SOURCES += \
     Classes/DataModule/DataModule.cpp \
     Classes/MSGClient/MSGClient.cpp \
     Classes/Settings/Settings.cpp \
-    Classes/ComandExecutor/ComandExecutor.cpp \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Frames/MainFrame.cpp \
     Classes/FrameController/FrameController.cpp \
@@ -41,14 +40,14 @@ SOURCES += \
     Dialogs/UserViewDialog/UserViewDialog.cpp \
     Dialogs/ConnectDialog/ConnectDialog.cpp \
     ../Common/Classes/UserAccount/UserAccount.cpp \
-    ../Common/Models/UsersModel/UsersModel.cpp
+    ../Common/Models/UsersModel/UsersModel.cpp \
+    Classes/MSGClient/MSGClientExecutor.cpp
 
 HEADERS += \
         ClientMainWindow.h \
     Classes/DataModule/DataModule.h \
     Classes/MSGClient/MSGClient.h \
     Classes/Settings/Settings.h \
-    Classes/ComandExecutor/ComandExecutor.h \
     ../Common/comandes.h \
     ../Common/resultcodes.h \
     ../Common/Classes/UserInfo/UserInfo.h \

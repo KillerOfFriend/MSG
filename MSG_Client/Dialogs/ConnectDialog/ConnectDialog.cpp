@@ -122,7 +122,7 @@ void TConnectDialog::slot_LinkEnterPress(bool inEnabled)
 //-----------------------------------------------------------------------------
 void TConnectDialog::slot_RegistrationResult(qint32 inRes)
 {
-    disconnect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult); // Разрываем связь
+    disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult); // Разрываем связь
 
     TDM::Instance().Client()->disconnect(); // Закрываем соединение
 
@@ -162,7 +162,7 @@ void TConnectDialog::slot_RegistrationResult(qint32 inRes)
 //-----------------------------------------------------------------------------
 void TConnectDialog::slot_AuthorizationResult(qint32 Result)
 {
-    disconnect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
+    disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
 
     if (Result != Res::CanAut::caAuthorizationTrue) // Если не удалось авторизоваться
         TDM::Instance().Client()->disconnect(); // Закрываем соединение
@@ -235,14 +235,14 @@ void TConnectDialog::on_btnConnect_clicked()
         QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось соединиться с сервером! Проверьте настройки и подключение к сети."));
     else // Соединение установлено
     {
-        connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
+        connect(TDM::Instance().Client().get(), &TMSGClient::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
         connect(TDM::Instance().Client().get(), &TMSGClient::sig_TimeOut, this, &TConnectDialog::slot_AuthorizationResult);
 
         slot_SetUiEnabled(false);
 
         if (!DM.Client()->authorization(ui->LoginLineEdit->text(), ui->PasswordLineEdit->text()))
         {
-            disconnect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
+            disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
             disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_TimeOut, this, &TConnectDialog::slot_AuthorizationResult);
 
             QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось авторизироваться!"));
@@ -271,12 +271,12 @@ void TConnectDialog::on_btnRegistrationUser_clicked()
         QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось соединиться с сервером! Проверьте настройки и подключение к сети."));
     else // Соединение установлено
     {
-        connect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
+        connect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
         slot_SetUiEnabled(false);
 
         if (!DM.Client()->createUser(ui->NewLoginLineEdit->text(), ui->NewPassword1LineEdit->text()))
         {
-            disconnect(TDM::Instance().Client()->ComandExecutor.get(), &TComandExecutor::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
+            disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
 
             QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось создать пользователя!"));
             slot_SetUiEnabled(true);
