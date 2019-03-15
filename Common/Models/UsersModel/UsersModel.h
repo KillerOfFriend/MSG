@@ -13,7 +13,7 @@ class TUsersModel : public QAbstractTableModel, public std::map<QUuid, TUserInfo
 {
     Q_OBJECT
 public:
-    enum eColumns { cStatusIco = 0, cUserLogin = 1, cUserName = 2, cUserType = 3, cUserUuid = 4 };
+    enum eColumns { cUserLogin = 0, cUserName = 1, cUserType = 2, cUserUuid = 3 };
 
     TUsersModel(QObject* inParent = nullptr);
     ~TUsersModel();
@@ -31,7 +31,7 @@ public:
     void clear();
 
 private:
-    static const quint8 fColumnCount = 5;
+    static const quint8 fColumnCount = 4;
     std::array<QString, fColumnCount> fColumns;
 
     void initColumns();

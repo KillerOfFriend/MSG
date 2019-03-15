@@ -126,7 +126,7 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
     TUserInfo ContactInfo;
     inDataStream >> Result;
 
-    if (Result = Res::AddContact::acCreated)
+    if (Result == Res::AddContact::acCreated)
         inDataStream >> ContactInfo;
 
     sig_AddContactResult(Result, ContactInfo);
@@ -159,7 +159,7 @@ void TMSGClient::deleteContactResult(QDataStream &inDataStream)
     QUuid ContactUuid;
     inDataStream >> Result;
 
-    if (Result = Res::DeleteContact::dcContactRemove)
+    if (Result == Res::DeleteContact::dcContactRemove)
         inDataStream >> ContactUuid;
 
     sig_DeleteContactResult(Result, ContactUuid);

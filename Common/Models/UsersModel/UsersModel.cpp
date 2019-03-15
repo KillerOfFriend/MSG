@@ -69,27 +69,6 @@ QVariant TUsersModel::data(const QModelIndex &index, int role) const
             }
             break; // case Qt::DisplayRole:
         }
-        case Qt::DecorationRole:
-        {
-            switch (It->second.userStatus())
-            {
-                case TUserInfo::eUserStatus::usOffline:
-                {
-                    QPixmap Icon(":/Images/UserStatus/UserOffline.png");
-                    Result = Icon;
-                    break;
-                }
-                case TUserInfo::eUserStatus::usOnline:
-                {
-                    QPixmap Icon(":/Images/UserStatus/UserOnline.png");
-                    Result = Icon;
-                    break;
-                }
-                default: { Result = QVariant(); break; }
-            }
-
-            break; // case Qt::DecorationRole:
-        }
     }
 
     return Result;
@@ -135,7 +114,6 @@ void TUsersModel::clear()
 //-----------------------------------------------------------------------------
 void TUsersModel::initColumns()
 {
-    fColumns[cStatusIco] = "";
     fColumns[cUserLogin] = tr("Логин");
     fColumns[cUserName] = tr("Имя");
     fColumns[cUserType] = tr("Тип");
