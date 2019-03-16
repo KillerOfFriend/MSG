@@ -40,8 +40,8 @@ private:
     Ui::TUserViewDialog *ui; 
     Users::TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
 
-    std::unique_ptr<QGraphicsScene> scene = nullptr;
-    std::unique_ptr<QGraphicsPixmapItem> item = nullptr;
+    std::unique_ptr<QGraphicsScene> fAvatarScene = nullptr;
+    std::unique_ptr<QGraphicsPixmapItem> fGItem = nullptr;
 
 signals:
     void sig_Result(const Users::TUserInfo &inUserInfo, qint32 inResult);

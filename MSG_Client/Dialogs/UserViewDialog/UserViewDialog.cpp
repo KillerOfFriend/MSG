@@ -11,21 +11,21 @@ TUserViewDialog::TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent
     setResult(eResButtons::rbNoRes);
 
     QSize AvatarSize(ui->UserAvatarView->size().width() - 2, ui->UserAvatarView->size().height() - 2);
-    scene.reset(new QGraphicsScene(ui->UserAvatarView));
-    ui->UserAvatarView->setScene(scene.get());
+    fAvatarScene.reset(new QGraphicsScene(ui->UserAvatarView));
+    ui->UserAvatarView->setScene(fAvatarScene.get());
 
-    QImage AvatarImage = fUserInfo.userAvatar().scaled(AvatarSize);
+    QImage AvatarImage = fUserInfo.userAvatar().scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
     if (AvatarImage.isNull())
     {
         if (fUserInfo.userIsMale())
-            AvatarImage = QImage(QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(AvatarSize));
+            AvatarImage = QImage(QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)); // Загружаем дефолтный мужской аватар
         else
-            AvatarImage = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(AvatarSize); // Загружаем дефолтный женский аватар
+            AvatarImage = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный женский аватар
     }
 
-    item.reset(new QGraphicsPixmapItem(QPixmap::fromImage(AvatarImage)));
-    scene->addItem(item.get());
+    fGItem.reset(new QGraphicsPixmapItem(QPixmap::fromImage(AvatarImage)));
+    fAvatarScene->addItem(fGItem.get());
 
     ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + fUserInfo.userName() + "</span></p></body></html>");
     ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + fUserInfo.userLogin() + "</span></p></body></html>");
