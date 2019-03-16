@@ -27,6 +27,9 @@ TConnectDialog::~TConnectDialog()
 //-----------------------------------------------------------------------------
 void TConnectDialog::init() /// Метод инициализирует диалог
 {
+    ui->ConnectTabWidget->setCurrentIndex(tbAutorization); // Устанавливаем отображение вкладки авторизации
+
+
     TSettings &Settings = TSettings::Instance();
 
     QRegularExpression EMailRegExp("^([a-z0-9_-]+\\.)*[a-z0-9_-]+@[a-z0-9_-]+(\\.[a-z0-9_-]+)*\\.[a-z]{2,6}$", QRegularExpression::CaseInsensitiveOption);
@@ -47,14 +50,17 @@ void TConnectDialog::init() /// Метод инициализирует диал
 
     ui->SaveLoginCheckBox->setChecked(Settings.SaveLogin());
 
-    if (Settings.SaveLogin())
-        ui->LoginLineEdit->setText(Settings.Login());
+    if (Settings.SaveLogin() && !Settings.Login().isEmpty()) // Если логин запоминается и логин не пуст
+    {
+        ui->LoginLineEdit->setText(Settings.Login()); // Заплняем логин
+        ui->PasswordLineEdit->setFocus(); // Устанавливаем курсор в поле ввода пароля
+    }
+    else // В противном случаи
+        ui->LoginLineEdit->setFocus(); // Устанавливаем курсор в поле ввода курсора
 
     slot_connCheck();
     slot_regCheck();
     slot_confCheck();
-
-    ui->ConnectTabWidget->setCurrentIndex(tbAutorization);
 }
 //-----------------------------------------------------------------------------
 void TConnectDialog::Link() /// Метод соединит сигналы\слоты
@@ -62,6 +68,7 @@ void TConnectDialog::Link() /// Метод соединит сигналы\сл�
     connect(ui->LoginLineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_connCheck);
     connect(ui->PasswordLineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_connCheck);
 
+    connect(ui->NewLoginLineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_regCheck);
     connect(ui->NewLoginLineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_regCheck);
     connect(ui->NewPassword1LineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_regCheck);
     connect(ui->NewPassword2LineEdit, &QLineEdit::textChanged, this, &TConnectDialog::slot_regCheck);
@@ -107,6 +114,7 @@ void TConnectDialog::slot_LinkEnterPress(bool inEnabled)
         connect(ui->PasswordLineEdit, &QLineEdit::returnPressed, ui->btnConnect, &QPushButton::click);
 
         connect(ui->NewLoginLineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
+        connect(ui->NewNameLineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
         connect(ui->NewPassword1LineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
         connect(ui->NewPassword2LineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
     }
@@ -116,6 +124,7 @@ void TConnectDialog::slot_LinkEnterPress(bool inEnabled)
         disconnect(ui->PasswordLineEdit, &QLineEdit::returnPressed, ui->btnConnect, &QPushButton::click);
 
         disconnect(ui->NewLoginLineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
+        disconnect(ui->NewNameLineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
         disconnect(ui->NewPassword1LineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
         disconnect(ui->NewPassword2LineEdit, &QLineEdit::returnPressed, ui->btnRegistrationUser, &QPushButton::click);
     }
@@ -135,7 +144,6 @@ void TConnectDialog::slot_RegistrationResult(qint32 inRes)
             QMessageBox::warning(this, tr("Предупреждение"), tr("Пользователь c таким логином уже существует!"));
 
             ui->NewPassword1LineEdit->clear();
-            ui->NewNameLineEdit->clear();
             ui->NewPassword2LineEdit->clear();
             ui->NewLoginLineEdit->setFocus();
 
@@ -146,6 +154,7 @@ void TConnectDialog::slot_RegistrationResult(qint32 inRes)
             QMessageBox::information(this, tr("Сообщение"), tr("Пользователь успешно создан."));
 
             ui->NewLoginLineEdit->clear();
+            ui->NewNameLineEdit->clear();
             ui->NewPassword1LineEdit->clear();
             ui->NewPassword2LineEdit->clear();
 

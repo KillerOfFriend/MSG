@@ -18,6 +18,7 @@ public:
  
 private:
     const QSize fAvatarSize = QSize(64, 64); // Размеры картинки аватара
+    const QSize fStatusSize = QSize(32, 32); // Размеры картинки статуса
     const int fIndent = 5; // Отступ
 };
  
