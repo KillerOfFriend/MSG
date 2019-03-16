@@ -32,14 +32,18 @@ QSize TUserItemDelegate::sizeHint(const QStyleOptionViewItem &  option, const QM
      * what we want.
      */
 
+    // Устанавливаем позицию отрисовки аватара
+    QPoint AvatarStartDraw(option.rect.left(), option.rect.top());
+    QRect AvatarRect(AvatarStartDraw, fAvatarSize);
+
     // Инициализируем размеры надписи имени пользователя
-    QRect UserNameRect = FMUserName.boundingRect(option.rect.left() + fAvatarSize.width(), option.rect.top() + fIndent,
-                                  option.rect.width() - fAvatarSize.width(), 0,
-                                  Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserName);
+    QRect UserNameRect = FMUserName.boundingRect(AvatarRect.left() + AvatarRect.width() + 1, option.rect.top() + fIndent,
+                                                 option.rect.width() - (fAvatarSize.width() + fStatusSize.width()), 0,
+                                                 Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserName);
     // Инициализируем размеры надписи логина пользователя
     QRect UserLoginRect = FMUserLogin.boundingRect(UserNameRect.left(), UserNameRect.bottom() + fIndent,
-                                     option.rect.width() - fAvatarSize.width(), 0,
-                                     Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
+                                                 UserNameRect.width(), 0,
+                                                 Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
  
     // Опциональная ширина, Высотанадписи именю пользоваьеля + Высота надписи логина пользователя
     QSize Size(option.rect.width(), UserNameRect.height() + UserLoginRect.height() +  fIndent * 3);
@@ -62,16 +66,25 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     QString UserName = index.sibling(index.row(), TUsersModel::cUserName).data().toString(); // Получаем имя пользователя из модели
     QString UserLogin = '<' + index.sibling(index.row(), TUsersModel::cUserLogin).data().toString() + '>'; // Получаем логин пользователя из модели
-    QImage UserAvatar(index.sibling(index.row(), TUsersModel::cUserAvatar).data().toByteArray()); // Получаем аватар пользователя из модели
+    QImage UserAvatar = QImage::fromData(index.sibling(index.row(), TUsersModel::cUserAvatar).data().toByteArray()); // Получаем аватар пользователя из модели
+    QImage UserStatus; // Отображение статуса пользователя (Инициализируется позже)
 
     if (UserAvatar.isNull()) // Если аватар не инициализирован (пуст)
     {
         bool IsMale = index.sibling(index.row(), TUsersModel::cUserIsMale).data().toBool(); // Проверяем половую пренадлежность
 
         if (IsMale)
-            UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(fAvatarSize); // Загружаем дефолтный мужской аватар
+            UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(fAvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный мужской аватар
         else
-            UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(fAvatarSize); // Загружаем дефолтный женский аватар
+            UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(fAvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный женский аватар
+    }
+
+    switch (index.sibling(index.row(), TUsersModel::cUserStatus).data().toInt())
+    {
+        case Users::UserStatus::usOffline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOffline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
+        case Users::UserStatus::usOnline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOnline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
+
+        default: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserUnknown.png").scaled(fStatusSize); break; };
     }
 
 
@@ -91,17 +104,23 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
      * what we want.
      */    
 
-    // Инициализируем размеры надписи имени пользователя
-    QRect UserNameRect = FMUserName.boundingRect(option.rect.left() + fAvatarSize.width(), option.rect.top() + fIndent,
-                                  option.rect.width() - fAvatarSize.width(), 0,
-                                  Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserName);
-    // Инициализируем размеры надписи логина пользователя
-    QRect UserLoginRect = FMUserLogin.boundingRect(UserNameRect.left(), UserNameRect.bottom() + fIndent,
-                                     option.rect.width() - fAvatarSize.width(), 0,
-                                     Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
- 
+    // Устанавливаем позицию отрисовки аватара
     QPoint AvatarStartDraw(option.rect.left(), option.rect.top());
     QRect AvatarRect(AvatarStartDraw, fAvatarSize);
+
+    // Инициализируем размеры надписи имени пользователя
+    QRect UserNameRect = FMUserName.boundingRect(AvatarRect.left() + AvatarRect.width() + 1, option.rect.top() + fIndent,
+                                                 option.rect.width() - (fAvatarSize.width() + fStatusSize.width()), 0,
+                                                 Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserName);
+    // Инициализируем размеры надписи логина пользователя
+    QRect UserLoginRect = FMUserLogin.boundingRect(UserNameRect.left(), UserNameRect.bottom() + fIndent,
+                                                 UserNameRect.width(), 0,
+                                                 Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
+
+    // Устанавливаем позицию отрисовки статуса
+    QPoint StatusDrawStart(option.rect.width() - (fStatusSize.width() + fIndent), option.rect.top() + (option.rect.height() / 2.0 - fStatusSize.height() / 2.0));
+    QRect StatusRect(StatusDrawStart, fStatusSize);
+
     painter->drawImage(AvatarRect, UserAvatar);
  
     painter->setPen(Qt::black);
@@ -111,6 +130,8 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->setPen(Qt::gray);
     painter->setFont(UserLoginFont);
     painter->drawText(UserLoginRect, Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
+
+    painter->drawImage(StatusRect, UserStatus);
 
     painter->restore();
 }

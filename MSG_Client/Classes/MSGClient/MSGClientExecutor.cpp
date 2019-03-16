@@ -55,10 +55,16 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
 //            getContactsResult(inStream); // Обработать результат запроса списка контактов
 //            break;
 //        }
-        case Commands::DeleteContact:
+        case Commands::DeleteContact: // Удаление контакта
         {
             sig_LogMessage("Получен ответ на удаление контакта" + inClientSender->peerAddress().toString());
             deleteContactResult(inStream); // Обработать результат удаления контака
+            break;
+        }
+        case Commands::ContactChangeStatus: // Контакт изменил свой статус
+        {
+            sig_LogMessage("Получено сообщение о смене статуса" + inClientSender->peerAddress().toString());
+            contactChangeStatus(inStream);  // Обрабатываем изменение статуса контакта
             break;
         }
 
@@ -84,8 +90,8 @@ void TMSGClient::creteUserResult(QDataStream &inDataStream)
 void TMSGClient::userAuthorization(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
-    TUserInfo UserInfo;
-    QList<TUserInfo> Contacts;
+    Users::TUserInfo UserInfo;
+    QList<Users::TUserInfo> Contacts;
 
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
@@ -106,7 +112,7 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
 void TMSGClient::findUsersResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
-    QList<TUserInfo> FoundUsers;
+    QList<Users::TUserInfo> FoundUsers;
 
     inDataStream >> Result; // Получаем результат поиска
 
@@ -123,7 +129,7 @@ void TMSGClient::findUsersResult(QDataStream &inDataStream)
 void TMSGClient::addContactResult(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
-    TUserInfo ContactInfo;
+    Users::TUserInfo ContactInfo;
     inDataStream >> Result;
 
     if (Result == Res::AddContact::acCreated)
@@ -163,6 +169,19 @@ void TMSGClient::deleteContactResult(QDataStream &inDataStream)
         inDataStream >> ContactUuid;
 
     sig_DeleteContactResult(Result, ContactUuid);
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::contactChangeStatus - Метод обработает сообщение о смене статуса контакта
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::contactChangeStatus(QDataStream &inDataStream)
+{
+    QUuid ContactUuid;
+    quint8 ContactStatus;
+
+    inDataStream >> ContactUuid >> ContactStatus;
+    sig_ContactChangeStatus(ContactUuid, ContactStatus);
 }
 //-----------------------------------------------------------------------------
 /**

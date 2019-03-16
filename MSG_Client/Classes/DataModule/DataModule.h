@@ -17,7 +17,7 @@ public:
     static TDM& Instance();
 
     std::shared_ptr<TMSGClient> Client();
-    std::shared_ptr<TUserAccount> UserAccount();
+    std::shared_ptr<Users::TUserAccount> UserAccount();
     std::shared_ptr<TFrameController> FrameController();
 
 private:
@@ -25,7 +25,7 @@ private:
     ~TDM();
 
     std::shared_ptr<TMSGClient> fClient = nullptr;
-    std::shared_ptr<TUserAccount> fUserAccount = nullptr;
+    std::shared_ptr<Users::TUserAccount> fUserAccount = nullptr;
     std::shared_ptr<TFrameController> fFrameController = nullptr;
 
 

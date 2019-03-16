@@ -1,5 +1,7 @@
 #include "UserInfo.h"
 
+using namespace Users;
+
 //-----------------------------------------------------------------------------
 TUserInfo::TUserInfo(QObject *inParent) : QObject(inParent)
 {
@@ -102,33 +104,37 @@ void TUserInfo::setUserAvatar(QImage &inAvatar)
 QImage TUserInfo::userAvatar() const
 { return fAvatar; }
 //-----------------------------------------------------------------------------
-QDataStream &operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
-{
-    outStream << UserInfo.fUuid;
-    outStream << UserInfo.fType;
-    outStream << UserInfo.fLogin;
-    outStream << UserInfo.fName;
-    outStream << UserInfo.fStatus;
-    outStream << UserInfo.fRegistrationDate;
-    outStream << UserInfo.fBirthday;
-    outStream << UserInfo.fIsMale;
-    outStream << UserInfo.fAvatar;
 
-    return outStream;
-}
-//-----------------------------------------------------------------------------
-QDataStream &operator >>(QDataStream &inStream, TUserInfo &UserInfo)
-{
-    inStream >> UserInfo.fUuid;
-    inStream >> UserInfo.fType;
-    inStream >> UserInfo.fLogin;
-    inStream >> UserInfo.fName;
-    inStream >> UserInfo.fStatus;
-    inStream >> UserInfo.fRegistrationDate;
-    inStream >> UserInfo.fBirthday;
-    inStream >> UserInfo.fIsMale;
-    inStream >> UserInfo.fAvatar;
+namespace Users
+{   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
+    QDataStream& operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
+    {
+        outStream << UserInfo.fUuid;
+        outStream << UserInfo.fType;
+        outStream << UserInfo.fLogin;
+        outStream << UserInfo.fName;
+        outStream << UserInfo.fStatus;
+        outStream << UserInfo.fRegistrationDate;
+        outStream << UserInfo.fBirthday;
+        outStream << UserInfo.fIsMale;
+        outStream << UserInfo.fAvatar;
 
-    return inStream;
+        return outStream;
+    }
+    //-----------------------------------------------------------------------------
+    QDataStream& operator >>(QDataStream &inStream, TUserInfo &UserInfo)
+    {
+        inStream >> UserInfo.fUuid;
+        inStream >> UserInfo.fType;
+        inStream >> UserInfo.fLogin;
+        inStream >> UserInfo.fName;
+        inStream >> UserInfo.fStatus;
+        inStream >> UserInfo.fRegistrationDate;
+        inStream >> UserInfo.fBirthday;
+        inStream >> UserInfo.fIsMale;
+        inStream >> UserInfo.fAvatar;
+
+        return inStream;
+    }
+    //-----------------------------------------------------------------------------
 }
-//-----------------------------------------------------------------------------

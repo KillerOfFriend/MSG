@@ -26,7 +26,7 @@ public:
         rbSendMsg =  0x4
     };
 
-    explicit TUserViewDialog(TUserInfo &inUserInfo, QWidget *inParent = nullptr);
+    explicit TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent = nullptr);
     ~TUserViewDialog();
 
     void setButtons(eResButtons inButtons);
@@ -38,13 +38,13 @@ private slots:
 
 private:
     Ui::TUserViewDialog *ui; 
-    TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
+    Users::TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
 
     std::unique_ptr<QGraphicsScene> scene = nullptr;
     std::unique_ptr<QGraphicsPixmapItem> item = nullptr;
 
 signals:
-    void sig_Result(const TUserInfo &inUserInfo, qint32 inResult);
+    void sig_Result(const Users::TUserInfo &inUserInfo, qint32 inResult);
 
 };
 

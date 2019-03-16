@@ -57,9 +57,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                     sig_LogMessage(inClientSender->peerAddress(), "Отказ в авторизации, не верный пароль");
                     break;
                 }
-                case Res::CanAut::caAuthorizationTrue: // Вользователь найден (авторизация возможна)
+                case Res::CanAut::caAuthorizationTrue: // Пользователь найден (авторизация возможна)
                 {
-                    TUserInfo UserInfo = getUserInfo(Resuslt.second); // Получаем информацию о пользователе из БД
+                    Users::TUserInfo UserInfo = getUserInfo(Resuslt.second); // Получаем информацию о пользователе из БД
 
                     if (UserInfo.userUuid() != Resuslt.second)
                     {
@@ -68,11 +68,11 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                     }
                     else
                     {
-                        QList<TUserInfo> Contacts = getContacts(UserInfo.userUuid()); // Получаем список контактов пользователя
+                        QList<Users::TUserInfo> Contacts = getContacts(UserInfo.userUuid()); // Получаем список контактов пользователя
 
-                        checkContactsStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
+                        checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
 
-                        TUserAccount UserAccount(this);
+                        Users::TUserAccount UserAccount(this);
                         UserAccount.slot_SetUserInfo(UserInfo);
                         UserAccount.slot_SetContacts(Contacts);
 
@@ -95,12 +95,15 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::FindUsers: // Поиск пользователей
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на поиск пользователя");
-            QList<TUserInfo> Resuslt = findUsers(inStream); // Поиск пользователя
+            QList<Users::TUserInfo> Resuslt = findUsers(inStream); // Поиск пользователя
 
             if (Resuslt.isEmpty()) // Если список пуст
                 outStream << Command << Res::FindUsers::fuUsersNotFound; // Возвращаем результат (Пользователи не найдены)
             else
+            {
+                checkUsersStatus(Resuslt); // Проверяем контакты онлайн и устанавливаем им статус
                 outStream << Command << Res::FindUsers::fuUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+            }
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
             break;
@@ -108,7 +111,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::AddContact: // Добавление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
-            std::pair<qint32, TUserInfo> Result = addContact(inStream); // Добавляем контакт
+            std::pair<qint32, Users::TUserInfo> Result = addContact(inStream); // Добавляем контакт
 
             if (Result.first != Res::AddContact::acCreated) // Если пользователь не был добавлен
                 outStream << Command << Result.first; // Пишем в результат команду и результат обработки
@@ -231,9 +234,9 @@ std::pair<qint32, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream)
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TMSGServer::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
+QList<Users::TUserInfo> TMSGServer::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
 {
-    QList<TUserInfo> Result;
+    QList<Users::TUserInfo> Result;
     QString UserNameLogin = '%' + ReadStringFromStream(inDataStream) + '%'; // Получаем фильтр поиска
 
     QSqlQuery Query(TDB::Instance().DB());
@@ -262,9 +265,9 @@ QList<TUserInfo> TMSGServer::findUsers(QDataStream &inDataStream) // Метод 
     return Result;
 }
 //-----------------------------------------------------------------------------
-TUserInfo TMSGServer::getUserInfo(QUuid inUserUuid)
+Users::TUserInfo TMSGServer::getUserInfo(QUuid inUserUuid)
 {
-    TUserInfo Result;
+    Users::TUserInfo Result;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -297,9 +300,9 @@ TUserInfo TMSGServer::getUserInfo(QUuid inUserUuid)
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, TUserInfo> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
+std::pair<qint32, Users::TUserInfo> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
 {
-    std::pair<qint32, TUserInfo> Result;
+    std::pair<qint32, Users::TUserInfo> Result;
     Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец нового контакта
@@ -331,9 +334,9 @@ std::pair<qint32, TUserInfo> TMSGServer::addContact(QDataStream &inDataStream) /
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
+QList<Users::TUserInfo> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
 {
-    QList<TUserInfo> Result;
+    QList<Users::TUserInfo> Result;
     QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM get_contacts(:in_owner)"))
@@ -360,7 +363,7 @@ QList<TUserInfo> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<TUserInfo> TMSGServer::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
+QList<Users::TUserInfo> TMSGServer::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
 {
     QUuid OwnerUuid;
 
@@ -409,20 +412,5 @@ QString TMSGServer::ReadStringFromStream(QDataStream &inDataStream)
     inDataStream >> ByteBuf;
 
     return QString::fromUtf8(ByteBuf); // Помещаем буфер в результат (с раскодировкой из UTF8)
-}
-//-----------------------------------------------------------------------------
-void TMSGServer::checkContactsStatus(QList<TUserInfo> &inContacts) // Метод проверит наличие контактов и онлайн и установит их статус
-{
-    std::for_each(inContacts.begin(), inContacts.end(), [&](TUserInfo &UserInfo) // Перебираем все контакты полученного клиента
-    {
-        auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, TUserAccount> &Item) // Ищим контакт в списке подключённых клиентов
-        {
-            return Item.second.userInfo()->userUuid() == UserInfo.userUuid(); // Сравнение по Uuid
-        });
-
-        if (FindRes != fClients.end()) // Если клиент онлайн
-            UserInfo.setUserStatus(TUserInfo::eUserStatus::usOnline);
-        else UserInfo.setUserStatus(TUserInfo::eUserStatus::usOffline);
-    });
 }
 //-----------------------------------------------------------------------------

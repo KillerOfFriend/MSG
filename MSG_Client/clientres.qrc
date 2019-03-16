@@ -10,6 +10,7 @@
         <file>Images/UserStatus/UserAFK.png</file>
         <file>Images/UserStatus/UserMute.png</file>
         <file>Images/UserStatus/UserBanned.png</file>
+        <file>Images/UserStatus/UserUnknown.png</file>
     </qresource>
     <qresource prefix="/Resurse/Other">
         <file>Images/Other/AvaMale.png</file>

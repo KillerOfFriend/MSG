@@ -2,7 +2,7 @@
 #include "ui_UserViewDialog.h"
 
 //-----------------------------------------------------------------------------
-TUserViewDialog::TUserViewDialog(TUserInfo &inUserInfo, QWidget *inParent) :
+TUserViewDialog::TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent) :
     QDialog(inParent), ui(new Ui::TUserViewDialog), fUserInfo(inUserInfo)
 {
     ui->setupUi(this);

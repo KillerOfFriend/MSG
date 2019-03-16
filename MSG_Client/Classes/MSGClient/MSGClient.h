@@ -41,6 +41,7 @@ private:
     void addContactResult(QDataStream &inDataStream); // Метод обработает результат добавления контакта
 //    void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
     void deleteContactResult(QDataStream &inDataStream); // Метод обработает результат удаления контакта
+    void contactChangeStatus(QDataStream &inDataStream); // Метод обработает сообщение о смене статуса контакта
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод считает строку из потока
 
@@ -55,14 +56,15 @@ signals:
     void sig_LogMessage(QString inMessage);
     void sig_TimeOut(qint32 inResult);
 
-    void sig_SetUserInfo(const TUserInfo &inUserInfo);
-    void sig_SetContacts(const QList<TUserInfo> &inUsers);
+    void sig_SetUserInfo(const Users::TUserInfo &inUserInfo);
+    void sig_SetContacts(const QList<Users::TUserInfo> &inUsers);
 
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);
-    void sig_FindUsersResult(const QList<TUserInfo> &inUsers);
-    void sig_AddContactResult(qint32 inResult, TUserInfo &inContactInfo);
+    void sig_FindUsersResult(const QList<Users::TUserInfo> &inUsers);
+    void sig_AddContactResult(qint32 inResult, Users::TUserInfo &inContactInfo);
     void sig_DeleteContactResult(qint32 inResult, QUuid &inContactUuid);
+    void sig_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus);
 };
 
 #endif // MSGCLIENT_H

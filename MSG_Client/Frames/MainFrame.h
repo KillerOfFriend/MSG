@@ -29,11 +29,11 @@ private:
     void Link(); // Метод слинкует сигналы со слотами
 
 private slots:
-    void slot_UserViewDialogResult(const TUserInfo &inUserInfo, qint32 inResult); // Слот, реагирует на результат диалога просмотра пользователя
+    void slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo, qint32 inResult); // Слот, реагирует на результат диалога просмотра пользователя
 
     void slot_FindUsers(); // Слот реагирует на запрос поиска пользователей
-    void slot_FindUsersRes(const QList<TUserInfo> &inUsers); // Слот, получающий результат поиска пользователей
-    void slot_AddContactRes(qint32 inResult, TUserInfo &inContactInfo); // Слот, получающий результат добавления контакта
+    void slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers); // Слот, получающий результат поиска пользователей
+    void slot_AddContactRes(qint32 inResult, Users::TUserInfo &inContactInfo); // Слот, получающий результат добавления контакта
     void slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid); // Слот, получающий результат удаления контакта
 
     void on_ContactsFindListView_doubleClicked(const QModelIndex &index);

@@ -9,11 +9,12 @@
 
 #include "Classes/UserInfo/UserInfo.h"
 
-class TUsersModel : public QAbstractTableModel, public std::map<QUuid, TUserInfo>
+class TUsersModel : public QAbstractTableModel, public std::map<QUuid, Users::TUserInfo>
 {
     Q_OBJECT
 public:
-    enum eColumns { cUserLogin = 0, cUserName = 1, cUserType = 2, cUserUuid = 3, cUserRegDate = 4, cUserBirthday = 5, cUserIsMale = 6, cUserAvatar = 7 };
+    enum eColumns { cUserLogin = 0, cUserName = 1, cUserStatus = 2, cUserType = 3, cUserUuid = 4, cUserRegDate = 5,
+                    cUserBirthday = 6, cUserIsMale = 7, cUserAvatar = 8 };
 
     TUsersModel(QObject* inParent = nullptr);
     ~TUsersModel();
@@ -27,11 +28,11 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
-    std::pair<std::map<QUuid, TUserInfo>::iterator, bool> insert(const std::pair<QUuid, TUserInfo> &inValue);
+    std::pair<std::map<QUuid, Users::TUserInfo>::iterator, bool> insert(const std::pair<QUuid, Users::TUserInfo> &inValue);
     void clear();
 
 private:
-    static const quint8 fColumnCount = 8;
+    static const quint8 fColumnCount = 9;
     std::array<QString, fColumnCount> fColumns;
 
     void initColumns();

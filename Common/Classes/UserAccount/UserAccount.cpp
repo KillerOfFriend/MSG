@@ -2,6 +2,8 @@
 
 #include "Classes/DataModule/DataModule.h"
 
+using namespace Users;
+
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
 {
@@ -61,5 +63,18 @@ void TUserAccount::slot_SetContacts(const QList<TUserInfo> &inContacts)
         if (!InsertRes.second)
             qDebug() << "Не удалось вставить контакт: " + Info.userLogin();
     });
+}
+//-----------------------------------------------------------------------------
+void TUserAccount::slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus) // Сот установит контакту указанный статус
+{
+    auto FindRes = fContacts->find(inContactUuid);
+
+    if (FindRes != fContacts->end())
+    {
+        auto Row = std::distance(fContacts->begin(), FindRes);
+
+        FindRes->second.setUserStatus(inNewStatus);
+        fContacts->dataChanged(fContacts->index(Row, TUsersModel::cUserStatus), fContacts->index(Row, TUsersModel::cUserStatus));
+    }
 }
 //-----------------------------------------------------------------------------

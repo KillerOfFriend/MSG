@@ -22,7 +22,7 @@ TUsersModel& TUsersModel::operator = (const TUsersModel &inOther)
     this->fColumns = inOther.fColumns;
     this->clear();
 
-    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, TUserInfo> &Item)
+    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::TUserInfo> &Item)
     {
         this->insert(Item);
     });
@@ -61,13 +61,14 @@ QVariant TUsersModel::data(const QModelIndex &index, int role) const
         {
             switch (index.column())
             {
-                case cUserLogin: { Result = It->second.userLogin(); break; }
-                case cUserName: { Result = It->second.userName(); break; }
-                case cUserUuid: { Result = It->second.userUuid(); break; }
-                case cUserType: { Result = It->second.userType(); break; }
-                case cUserRegDate: { Result = It->second.userRegistrationDate(); break; }
+                case cUserLogin:    { Result = It->second.userLogin(); break; }
+                case cUserName:     { Result = It->second.userName(); break; }
+                case cUserStatus:   {Result = It->second.userStatus(); break; }
+                case cUserUuid:     { Result = It->second.userUuid(); break; }
+                case cUserType:     { Result = It->second.userType(); break; }
+                case cUserRegDate:  { Result = It->second.userRegistrationDate(); break; }
                 case cUserBirthday: { Result = It->second.userBirthday(); break; }
-                case cUserIsMale: { Result = It->second.userIsMale(); break; }
+                case cUserIsMale:   { Result = It->second.userIsMale(); break; }
 
                 case cUserAvatar: { Result = It->second.userAvatar(); break; }
                 default: { Result = QVariant(); break; }
@@ -94,9 +95,9 @@ QVariant TUsersModel::headerData(int section, Qt::Orientation orientation, int r
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::map<QUuid, TUserInfo>::iterator, bool> TUsersModel::insert(const std::pair<QUuid, TUserInfo> &inValue)
+std::pair<std::map<QUuid, Users::TUserInfo>::iterator, bool> TUsersModel::insert(const std::pair<QUuid, Users::TUserInfo> &inValue)
 {
-   auto It = std::map<QUuid, TUserInfo>::insert(inValue);
+   auto It = std::map<QUuid, Users::TUserInfo>::insert(inValue);
 
    if (It.second)
    {
@@ -113,7 +114,7 @@ std::pair<std::map<QUuid, TUserInfo>::iterator, bool> TUsersModel::insert(const 
 void TUsersModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());
-    std::map<QUuid, TUserInfo>::clear();
+    std::map<QUuid, Users::TUserInfo>::clear();
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------
@@ -121,6 +122,7 @@ void TUsersModel::initColumns()
 {
     fColumns[cUserLogin] = tr("Логин");
     fColumns[cUserName] = tr("Имя");
+    fColumns[cUserStatus] = tr("Статус");
     fColumns[cUserType] = tr("Тип");
     fColumns[cUserUuid] = tr("Uuid");
     fColumns[cUserRegDate] = tr("Дата регистрации");

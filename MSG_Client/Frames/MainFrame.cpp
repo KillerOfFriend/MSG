@@ -62,7 +62,7 @@ void TfmeMainFrame::Link()
  * @param inUserInfo - Просматриваемый пользователь
  * @param inResult - результат работы диалога
  */
-void TfmeMainFrame::slot_UserViewDialogResult(const TUserInfo &inUserInfo, qint32 inResult)
+void TfmeMainFrame::slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo, qint32 inResult)
 {
     TDM& DM = TDM::Instance();
 
@@ -106,11 +106,11 @@ void TfmeMainFrame::slot_FindUsers()
  * @brief TfmeMainFrame::slot_FindUsersRes - Слот, получающий результат поиска пользователей
  * @param inUsers - Найденые пользователи
  */
-void TfmeMainFrame::slot_FindUsersRes(const QList<TUserInfo> &inUsers)
+void TfmeMainFrame::slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers)
 {
     fFoundUsers->clear();
 
-    std::for_each(inUsers.begin(), inUsers.end(), [&](const TUserInfo &Info)
+    std::for_each(inUsers.begin(), inUsers.end(), [&](const Users::TUserInfo &Info)
     {
         fFoundUsers->insert(std::make_pair(Info.userUuid(), Info));
     });
@@ -122,7 +122,7 @@ void TfmeMainFrame::slot_FindUsersRes(const QList<TUserInfo> &inUsers)
  * @brief TfmeMainFrame::slot_AddContactRes - Слот, получающий результат добавления контакта
  * @param inResult - Результат выполнения
  */
-void TfmeMainFrame::slot_AddContactRes(qint32 inResult, TUserInfo &inContactInfo)
+void TfmeMainFrame::slot_AddContactRes(qint32 inResult, Users::TUserInfo &inContactInfo)
 {
     switch (inResult)
     {

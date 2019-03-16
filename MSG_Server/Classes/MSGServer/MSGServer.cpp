@@ -5,6 +5,7 @@
 #include <QApplication>
 
 #include "Classes/DataModule/DataModule.h"
+#include "comandes.h"
 
 //-----------------------------------------------------------------------------
 /**
@@ -58,7 +59,7 @@ void TMSGServer::disconnectClient(QTcpSocket* inClient)
  */
 void TMSGServer::disconnectAll()
 {
-    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, TUserAccount> &Client)
+    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client)
     {
         disconnectClient(Client.first);
     });
@@ -135,13 +136,65 @@ void TMSGServer::Link()
 }
 //-----------------------------------------------------------------------------
 /**
+ * @brief TMSGServer::checkUsersStatus - Метод проверит наличие контактов и онлайн и установит их статус
+ * @param inContacts - Список проверяемых пользователей
+ */
+void TMSGServer::checkUsersStatus(QList<Users::TUserInfo> &inUsers)
+{
+    std::for_each(inUsers.begin(), inUsers.end(), [&](Users::TUserInfo &UserInfo) // Перебираем все контакты полученного клиента
+    {
+        auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
+        {
+            return Client.second.userInfo()->userUuid() == UserInfo.userUuid(); // Сравнение по Uuid
+        });
+
+        if (FindRes != fClients.end()) // Если клиент онлайн
+            UserInfo.setUserStatus(Users::UserStatus::usOnline);
+        else UserInfo.setUserStatus(Users::UserStatus::usOffline);
+    });
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::userChangeStatus - Метод отправит контактам пользователя сообщение об изменении его статуса
+ * @param inSender - Сокет клиента
+ * @param inNewStatus - Новый статус
+ */
+void TMSGServer::userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus)
+{
+    auto SenderFindRes = fClients.find(inClientSender); // Ищим пользователя (Меняющего статус) в списке подключённых клиентов
+
+    if (SenderFindRes != fClients.end()) // Если найден
+    {
+        sig_LogMessage(inClientSender->peerAddress(), "Отправка данных о смене своего состояния");
+
+        std::for_each(SenderFindRes->second.contacts()->begin(), SenderFindRes->second.contacts()->end(), [&](const std::pair<QUuid, Users::TUserInfo> &Contact) // Перебираем все контакты пользователя
+        {
+            auto ContactFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
+            {
+                return Client.second.userInfo()->userUuid() == Contact.second.userUuid(); // Сравнение по Uuid
+            });
+
+            if (ContactFindRes != fClients.end()) // Если клиент онлайн
+            {
+                QByteArray StatusData; // Отправляемый статус пользователя
+                QDataStream outStream(&StatusData, QIODevice::WriteOnly);
+                // Отправляем команду "Статус контакта изменён" + Uuid этого контакта + новый статус
+                outStream << Commands::ContactChangeStatus << SenderFindRes->second.userInfo()->userUuid()  << inNewStatus;
+
+                ContactFindRes->first->write(StatusData); // Отправляем данные
+            }
+        });
+    }
+}
+//-----------------------------------------------------------------------------
+/**
  * @brief TMSGServer::slot_NewConnection - Слот, реагирующий на подключение нового клиента
  */
 void TMSGServer::slot_NewConnection()
 {
     QTcpSocket* NewConnection = fServer->nextPendingConnection();
-    TUserAccount NewAccount(this);
-    TUserInfo AnonimusInfo(this);
+    Users::TUserAccount NewAccount(this);
+    Users::TUserInfo AnonimusInfo(this);
 
     AnonimusInfo.setUserType(0);
     AnonimusInfo.setUserUuid(QUuid());
@@ -176,6 +229,8 @@ void TMSGServer::slot_ClientDisconnect()
 
     if (Client)
     {
+        userChangeStatus(Client, Users::UserStatus::usOffline); // Сообщаем об изменении статуса клиента на "Offline"
+
         auto FindRes = fClients.find(Client); // Ищим клиента среди авторизированных пользователей
         if (FindRes != fClients.end()) // Если находим
             fClients.erase(FindRes); // Удаляем
@@ -244,7 +299,7 @@ void TMSGServer::slot_ClientError(QAbstractSocket::SocketError inError)
  * @param Client - Сокет клиента
  * @param inUserInfo - Данные клиента
  */
-void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, TUserAccount &inUserAccount)
+void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAccount &inUserAccount)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
@@ -253,6 +308,8 @@ void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, TUserAccount &in
         It->second = inUserAccount; // Задаём личные данные пользователя
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
+
+        userChangeStatus(inClient, Users::UserStatus::usOnline); // Сообщаем об изменении статуса клиента на "Online"
     }
     else // Если сокет не найден (НЕ ДОЛЖНО ТАКОГО БЫТЬ)
     {
@@ -261,7 +318,12 @@ void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, TUserAccount &in
     }
 }
 //-----------------------------------------------------------------------------
-void TMSGServer::slot_AddContact(QTcpSocket* inClient, TUserInfo &inContactInfo) // Слот, добавляющйи контакт пользователю
+/**
+ * @brief TMSGServer::slot_AddContact - Слот, добавляющйи контакт пользователю
+ * @param inClient - Сокет клиента
+ * @param inContactInfo - Данные добавляемого контакта
+ */
+void TMSGServer::slot_AddContact(QTcpSocket* inClient, Users::TUserInfo &inContactInfo)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
@@ -273,7 +335,12 @@ void TMSGServer::slot_AddContact(QTcpSocket* inClient, TUserInfo &inContactInfo)
     }
 }
 //-----------------------------------------------------------------------------
-void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid) // Слот, добавляющйи контакт пользователю
+/**
+ * @brief TMSGServer::slot_DelContact - Слот, добавляющйи контакт пользователю
+ * @param inClient - Сокет клиента
+ * @param inContactUuid - Uuid удаляемого контакта
+ */
+void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
@@ -290,3 +357,4 @@ void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid) // 
     }
 }
 //-----------------------------------------------------------------------------
+

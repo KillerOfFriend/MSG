@@ -40,16 +40,17 @@ private:
 
     qint32 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
     std::pair<qint32, QUuid> canAuthorization(QDataStream &inDataStream); // Метод авторизирует пользователя
-    TUserInfo getUserInfo(QUuid inUserUuid); // Метод вернёт инфо пользователя по Uuid
-    QList<TUserInfo> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
-    std::pair<qint32, TUserInfo> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
-    QList<TUserInfo> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
-    QList<TUserInfo> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
+    Users::TUserInfo getUserInfo(QUuid inUserUuid); // Метод вернёт инфо пользователя по Uuid
+    QList<Users::TUserInfo> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
+    std::pair<qint32, Users::TUserInfo> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
+    QList<Users::TUserInfo> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
+    QList<Users::TUserInfo> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
     std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
-    void checkContactsStatus(QList<TUserInfo> &inContacts); // Метод проверит наличие контактов и онлайн и установит их статус
+    void checkUsersStatus(QList<Users::TUserInfo> &inUsers); // Метод проверит наличие контактов и онлайн и установит их статус
+    void userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus); // Метод отправит контактам пользователя сообщение об изменении его статуса
 
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
@@ -63,8 +64,8 @@ private slots:
     void slot_ClientChangeState(QAbstractSocket::SocketState inState); // Слот, реагирующий на изменение состояния клиента
     void slot_ClientError(QAbstractSocket::SocketError inError); // Слот, реагирующий на ошибку клиента
 
-    void slot_SetAuthorizedClient(QTcpSocket* inClient, TUserAccount &inUserAccount); // Слот, задающий авториированного пользователя
-    void slot_AddContact(QTcpSocket* inClient, TUserInfo &inContactInfo); // Слот, добавляющйи контакт пользователю
+    void slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAccount &inUserAccount); // Слот, задающий авториированного пользователя
+    void slot_AddContact(QTcpSocket* inClient, Users::TUserInfo &inContactInfo); // Слот, добавляющйи контакт пользователю
     void slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid); // Слот, удаляющий контакт пользователя
 };
 
