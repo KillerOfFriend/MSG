@@ -29,13 +29,18 @@ TfmeMainFrame::~TfmeMainFrame()
 void TfmeMainFrame::init()
 {
     TDM& DM = TDM::Instance();
-    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->userInfo()->userLogin() + "</span></p></body></html>");
+
     ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + DM.UserAccount()->userInfo()->userName() + "</span></p></body></html>");
+    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->userInfo()->userLogin() + "</span></p></body></html>");
 
-    ui->ContactsListView->setModel(DM.UserAccount()->contacts().get());
+    UserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения
+    fFoundUsers.reset(new TUsersModel(this)); // Инициализируем модель найденых юзеров
 
-    fFoundUsers.reset(new TUsersModel(this));
-    ui->ContactsFindListView->setModel(fFoundUsers.get());
+    ui->ContactsListView->setItemDelegate(UserListDelegate.get()); // Задаём делегат отображения
+    ui->ContactsFindListView->setItemDelegate(UserListDelegate.get()); // Задаём делегат отображения
+
+    ui->ContactsListView->setModel(DM.UserAccount()->contacts().get()); // Задаём модель сонтактов
+    ui->ContactsFindListView->setModel(fFoundUsers.get()); // Задаём модель найденых пользователей
 }
 //-----------------------------------------------------------------------------
 /**

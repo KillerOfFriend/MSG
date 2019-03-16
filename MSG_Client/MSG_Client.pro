@@ -41,7 +41,8 @@ SOURCES += \
     Dialogs/ConnectDialog/ConnectDialog.cpp \
     ../Common/Classes/UserAccount/UserAccount.cpp \
     ../Common/Models/UsersModel/UsersModel.cpp \
-    Classes/MSGClient/MSGClientExecutor.cpp
+    Classes/MSGClient/MSGClientExecutor.cpp \
+    Delegates/UserItemDelegate/UserItemDelegate.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -57,7 +58,8 @@ HEADERS += \
     Dialogs/UserViewDialog/UserViewDialog.h \
     Dialogs/ConnectDialog/ConnectDialog.h \
     ../Common/Classes/UserAccount/UserAccount.h \
-    ../Common/Models/UsersModel/UsersModel.h
+    ../Common/Models/UsersModel/UsersModel.h \
+    Delegates/UserItemDelegate/UserItemDelegate.h
 
 FORMS += \
         ClientMainWindow.ui \

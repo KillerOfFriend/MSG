@@ -11,4 +11,8 @@
         <file>Images/UserStatus/UserMute.png</file>
         <file>Images/UserStatus/UserBanned.png</file>
     </qresource>
+    <qresource prefix="/Resurse/Other">
+        <file>Images/Other/AvaMale.png</file>
+        <file>Images/Other/AvaFemale.png</file>
+    </qresource>
 </RCC>

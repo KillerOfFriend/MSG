@@ -19,7 +19,7 @@ public:
     void disconnect();
     bool isConnected();
 
-    bool createUser(QString inLogin, QString inPassword); // Метод отправит команду на создание пользователья
+    bool createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale); // Метод отправит команду на создание пользователья
     bool authorization(QString inLogin, QString inPassword); // Метод отправит номанду на авторизацию пользователя
 
     bool findUsers(QString inUserName); // Метод отправит команду на поиск пользователей

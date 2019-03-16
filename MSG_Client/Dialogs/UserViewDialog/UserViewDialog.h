@@ -1,7 +1,12 @@
 #ifndef USERVIEWDIALOG_H
 #define USERVIEWDIALOG_H
 
+#include <memory>
+
 #include <QDialog>
+#include <QPixmap>
+#include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
 
 #include "Classes/UserInfo/UserInfo.h"
 
@@ -34,6 +39,9 @@ private slots:
 private:
     Ui::TUserViewDialog *ui; 
     TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
+
+    std::unique_ptr<QGraphicsScene> scene = nullptr;
+    std::unique_ptr<QGraphicsPixmapItem> item = nullptr;
 
 signals:
     void sig_Result(const TUserInfo &inUserInfo, qint32 inResult);

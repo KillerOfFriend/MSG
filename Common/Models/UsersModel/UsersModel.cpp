@@ -65,6 +65,11 @@ QVariant TUsersModel::data(const QModelIndex &index, int role) const
                 case cUserName: { Result = It->second.userName(); break; }
                 case cUserUuid: { Result = It->second.userUuid(); break; }
                 case cUserType: { Result = It->second.userType(); break; }
+                case cUserRegDate: { Result = It->second.userRegistrationDate(); break; }
+                case cUserBirthday: { Result = It->second.userBirthday(); break; }
+                case cUserIsMale: { Result = It->second.userIsMale(); break; }
+
+                case cUserAvatar: { Result = It->second.userAvatar(); break; }
                 default: { Result = QVariant(); break; }
             }
             break; // case Qt::DisplayRole:
@@ -118,5 +123,9 @@ void TUsersModel::initColumns()
     fColumns[cUserName] = tr("Имя");
     fColumns[cUserType] = tr("Тип");
     fColumns[cUserUuid] = tr("Uuid");
+    fColumns[cUserRegDate] = tr("Дата регистрации");
+    fColumns[cUserBirthday] = tr("Дата рождения");
+    fColumns[cUserIsMale] = tr("Мужик? =)");
+    fColumns[cUserAvatar] = tr("Аватар");
 }
 //-----------------------------------------------------------------------------

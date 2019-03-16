@@ -66,7 +66,7 @@ void TMSGClient::disconnect()
 bool TMSGClient::isConnected()
 { return fClient->state() == QAbstractSocket::ConnectedState; }
 //-----------------------------------------------------------------------------
-bool TMSGClient::createUser(QString inLogin, QString inPassword) /// Метод отправит команду на создание пользователья
+bool TMSGClient::createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale) /// Метод отправит команду на создание пользователья
 {
     bool Result = true;
 
@@ -78,7 +78,7 @@ bool TMSGClient::createUser(QString inLogin, QString inPassword) /// Метод 
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
 
         QByteArray PasswordHash = QCryptographicHash::hash(inPassword.toUtf8(), QCryptographicHash::Md5);
-        Stream << Commands::CreateUser << inLogin.toLower().toUtf8() << PasswordHash;
+        Stream << Commands::CreateUser << inLogin.toLower().toUtf8() << PasswordHash << inName.toUtf8() << inIsMale;
 
         fClient->write(SendingData);
         //Result = fClient->waitForBytesWritten();

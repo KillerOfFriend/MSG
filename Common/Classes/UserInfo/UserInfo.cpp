@@ -12,7 +12,11 @@ TUserInfo::TUserInfo(const TUserInfo &inOther) : QObject(inOther.parent())
     this->fType = inOther.fType;
     this->fLogin = inOther.fLogin;
     this->fName = inOther.fName;
-    this->fUserStatus = inOther.fUserStatus;
+    this->fStatus = inOther.fStatus;
+    this->fRegistrationDate = inOther.fRegistrationDate;
+    this->fBirthday = inOther.fBirthday;
+    this->fIsMale = inOther.fIsMale;
+    this->fAvatar = inOther.fAvatar;
 }
 //-----------------------------------------------------------------------------
 TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
@@ -24,7 +28,11 @@ TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
     this->fType = inOther.fType;
     this->fLogin = inOther.fLogin;
     this->fName = inOther.fName;
-    this->fUserStatus = inOther.fUserStatus;
+    this->fStatus = inOther.fStatus;
+    this->fRegistrationDate = inOther.fRegistrationDate;
+    this->fBirthday = inOther.fBirthday;
+    this->fIsMale = inOther.fIsMale;
+    this->fAvatar = inOther.fAvatar;
 
     return *this;
 }
@@ -63,10 +71,36 @@ QString TUserInfo::userName() const
 { return fName; }
 //-----------------------------------------------------------------------------
 void TUserInfo::setUserStatus(quint8 inStatus)
-{ fUserStatus = inStatus; }
+{ fStatus = inStatus; }
 //-----------------------------------------------------------------------------
 quint8 TUserInfo::userStatus() const
-{ return fUserStatus; }
+{ return fStatus; }
+//-----------------------------------------------------------------------------
+void TUserInfo::setUserRegistrationDate(QDate inRegDate)
+{ fRegistrationDate = inRegDate; }
+//-----------------------------------------------------------------------------
+QDate TUserInfo::userRegistrationDate() const
+{ return fRegistrationDate; }
+//-----------------------------------------------------------------------------
+void TUserInfo::setUserBirthday(QDate inBirthday)
+{ fBirthday = inBirthday; }
+//-----------------------------------------------------------------------------
+QDate TUserInfo::userBirthday() const
+{ return fBirthday; }
+//-----------------------------------------------------------------------------
+void TUserInfo::setUserIsMale(bool inIsMale)
+{ fIsMale = inIsMale; }
+//-----------------------------------------------------------------------------
+bool TUserInfo::userIsMale() const
+{ return fIsMale; }
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+void TUserInfo::setUserAvatar(QImage &inAvatar)
+{ fAvatar = inAvatar; }
+//-----------------------------------------------------------------------------
+QImage TUserInfo::userAvatar() const
+{ return fAvatar; }
 //-----------------------------------------------------------------------------
 QDataStream &operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
 {
@@ -74,7 +108,11 @@ QDataStream &operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
     outStream << UserInfo.fType;
     outStream << UserInfo.fLogin;
     outStream << UserInfo.fName;
-    outStream << UserInfo.fUserStatus;
+    outStream << UserInfo.fStatus;
+    outStream << UserInfo.fRegistrationDate;
+    outStream << UserInfo.fBirthday;
+    outStream << UserInfo.fIsMale;
+    outStream << UserInfo.fAvatar;
 
     return outStream;
 }
@@ -85,7 +123,11 @@ QDataStream &operator >>(QDataStream &inStream, TUserInfo &UserInfo)
     inStream >> UserInfo.fType;
     inStream >> UserInfo.fLogin;
     inStream >> UserInfo.fName;
-    inStream >> UserInfo.fUserStatus;
+    inStream >> UserInfo.fStatus;
+    inStream >> UserInfo.fRegistrationDate;
+    inStream >> UserInfo.fBirthday;
+    inStream >> UserInfo.fIsMale;
+    inStream >> UserInfo.fAvatar;
 
     return inStream;
 }

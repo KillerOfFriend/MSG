@@ -7,6 +7,7 @@
 #include <QList>
 
 #include "Models/UsersModel/UsersModel.h"
+#include "Delegates/UserItemDelegate/UserItemDelegate.h"
 
 namespace Ui {
 class TfmeMainFrame;
@@ -21,6 +22,7 @@ public:
     ~TfmeMainFrame();
 
 private:
+    std::unique_ptr<TUserItemDelegate> UserListDelegate = nullptr;
     std::unique_ptr<TUsersModel> fFoundUsers = nullptr;
 
     void init(); // Метод инициализирует фрейм

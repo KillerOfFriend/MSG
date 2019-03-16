@@ -10,8 +10,26 @@ TUserViewDialog::TUserViewDialog(TUserInfo &inUserInfo, QWidget *inParent) :
     setButtons(eResButtons::rbNoRes);
     setResult(eResButtons::rbNoRes);
 
-    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + fUserInfo.userLogin() + "</span></p></body></html>");
+    QSize AvatarSize(ui->UserAvatarView->size().width() - 2, ui->UserAvatarView->size().height() - 2);
+    scene.reset(new QGraphicsScene(ui->UserAvatarView));
+    ui->UserAvatarView->setScene(scene.get());
+
+    QImage AvatarImage = fUserInfo.userAvatar().scaled(AvatarSize);
+
+    if (AvatarImage.isNull())
+    {
+        if (fUserInfo.userIsMale())
+            AvatarImage = QImage(QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(AvatarSize));
+        else
+            AvatarImage = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(AvatarSize); // Загружаем дефолтный женский аватар
+    }
+
+    item.reset(new QGraphicsPixmapItem(QPixmap::fromImage(AvatarImage)));
+    scene->addItem(item.get());
+
     ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + fUserInfo.userName() + "</span></p></body></html>");
+    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + fUserInfo.userLogin() + "</span></p></body></html>");
+
 }
 //-----------------------------------------------------------------------------
 TUserViewDialog::~TUserViewDialog()

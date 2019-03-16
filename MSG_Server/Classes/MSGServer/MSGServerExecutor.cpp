@@ -165,20 +165,26 @@ qint32 TMSGServer::creteUser(QDataStream &inDataStream)
 {
     quint32 Result = Res::rUnknown;
 
-    QString Login = ReadStringFromStream(inDataStream);
+    QString Login = ReadStringFromStream(inDataStream); // Читаем логин
 
     QByteArray PasswordHash;
-    inDataStream >> PasswordHash;
+    inDataStream >> PasswordHash; // Читаем хеш пароля
+
+    QString Name = ReadStringFromStream(inDataStream); // Читаем имя
+
+    bool IsMale;
+    inDataStream >> IsMale; // Читаем половую пренадлежность
 
     QSqlQuery Query(TDB::Instance().DB());
 
-    if(!Query.prepare("SELECT * FROM create_user(:in_login, :in_password, :in_name)"))
+    if(!Query.prepare("SELECT * FROM create_user(:in_login, :in_password, :in_name, :in_is_male)"))
         qDebug() << "[ОШИБКА]: " + Query.lastError().text();
     else
     {
         Query.bindValue(":in_login", Login.toUtf8());
         Query.bindValue(":in_password", QString(PasswordHash).toUtf8());
-        Query.bindValue(":in_name", Login.toUtf8());
+        Query.bindValue(":in_name", Name.toUtf8());
+        Query.bindValue(":in_is_male", IsMale);
 
         if (!Query.exec())
             qDebug() << "[ОШИБКА]: " + Query.lastError().text();
@@ -274,10 +280,16 @@ TUserInfo TMSGServer::getUserInfo(QUuid inUserUuid)
         {
             while (Query.next()) // Читаем все записи
             {
-                Result.setUserUuid(Query.value("found_user_uuid").toUuid());
-                Result.setUserType(Query.value("found_user_type").toUInt());
-                Result.setUserLogin(QString::fromUtf8(Query.value("found_user_login").toByteArray()));
-                Result.setUserName(QString::fromUtf8(Query.value("found_user_name").toByteArray()));
+                Result.setUserUuid(Query.value("f_user_uuid").toUuid());
+                Result.setUserType(Query.value("f_user_type").toUInt());
+                Result.setUserLogin(QString::fromUtf8(Query.value("f_user_login").toByteArray()));
+                Result.setUserName(QString::fromUtf8(Query.value("f_user_name").toByteArray()));
+                Result.setUserBirthday(Query.value("f_user_birthday").toDate());
+                Result.setUserRegistrationDate(Query.value("f_user_date_of_registration").toDate());
+                Result.setUserIsMale(Query.value("f_user_is_male").toBool());
+
+                QImage UserAvatar(Query.value("f_user_avatar").toByteArray());
+                Result.setUserAvatar(UserAvatar);
             }
         }
     }

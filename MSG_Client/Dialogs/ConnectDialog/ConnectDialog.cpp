@@ -90,6 +90,7 @@ void TConnectDialog::slot_SetUiEnabled(bool inEnabled)
     ui->LoginLineEdit->setEnabled(inEnabled);
     ui->PasswordLineEdit->setEnabled(inEnabled);
     ui->NewLoginLineEdit->setEnabled(inEnabled);
+    ui->NewNameLineEdit->setEnabled(inEnabled);
     ui->NewPassword1LineEdit->setEnabled(inEnabled);
     ui->NewPassword2LineEdit->setEnabled(inEnabled);
     ui->HostLineEdit->setEnabled(inEnabled);
@@ -134,6 +135,7 @@ void TConnectDialog::slot_RegistrationResult(qint32 inRes)
             QMessageBox::warning(this, tr("Предупреждение"), tr("Пользователь c таким логином уже существует!"));
 
             ui->NewPassword1LineEdit->clear();
+            ui->NewNameLineEdit->clear();
             ui->NewPassword2LineEdit->clear();
             ui->NewLoginLineEdit->setFocus();
 
@@ -196,6 +198,7 @@ void TConnectDialog::slot_AuthorizationResult(qint32 Result)
 void TConnectDialog::slot_regCheck() /// Метод проверит возможность регистрации
 {
     bool isFull = !ui->NewLoginLineEdit->text().isEmpty()
+            && !ui->NewNameLineEdit->text().isEmpty()
             && !ui->NewPassword1LineEdit->text().isEmpty()
             && !ui->NewPassword2LineEdit->text().isEmpty();
 
@@ -274,7 +277,7 @@ void TConnectDialog::on_btnRegistrationUser_clicked()
         connect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
         slot_SetUiEnabled(false);
 
-        if (!DM.Client()->createUser(ui->NewLoginLineEdit->text(), ui->NewPassword1LineEdit->text()))
+        if (!DM.Client()->createUser(ui->NewLoginLineEdit->text(), ui->NewPassword1LineEdit->text(), ui->NewNameLineEdit->text(), ui->MaleRadioButton->isChecked()))
         {
             disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult);
 
