@@ -7,34 +7,74 @@ TUserViewDialog::TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent
 {
     ui->setupUi(this);
 
+    initFont();
+    initText();
+
     setButtons(eResButtons::rbNoRes);
     setResult(eResButtons::rbNoRes);
-
-    QSize AvatarSize(ui->UserAvatarView->size().width() - 2, ui->UserAvatarView->size().height() - 2);
-    fAvatarScene.reset(new QGraphicsScene(ui->UserAvatarView));
-    ui->UserAvatarView->setScene(fAvatarScene.get());
-
-    QImage AvatarImage = fUserInfo.userAvatar().scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-    if (AvatarImage.isNull())
-    {
-        if (fUserInfo.userIsMale())
-            AvatarImage = QImage(QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)); // Загружаем дефолтный мужской аватар
-        else
-            AvatarImage = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(AvatarSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный женский аватар
-    }
-
-    fGItem.reset(new QGraphicsPixmapItem(QPixmap::fromImage(AvatarImage)));
-    fAvatarScene->addItem(fGItem.get());
-
-    ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + fUserInfo.userName() + "</span></p></body></html>");
-    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + fUserInfo.userLogin() + "</span></p></body></html>");
-
 }
 //-----------------------------------------------------------------------------
 TUserViewDialog::~TUserViewDialog()
 {
     delete ui;
+}
+//-----------------------------------------------------------------------------
+void TUserViewDialog::initFont() // Метод инициализирует стиль текста
+{
+    QString StyleSheet = "QLabel {color : #000000; }";
+    QFont Font = QApplication::font();
+    Font.setBold(true);
+    Font.setPointSize(10);
+
+    ui->UserSexLabel->setFont(Font);
+    ui->UserSexLabel->setStyleSheet(StyleSheet);
+    ui->UserTypeLabel->setFont(Font);
+    ui->UserTypeLabel->setStyleSheet(StyleSheet);
+    ui->UserBirthdayLabel->setFont(Font);
+    ui->UserBirthdayLabel->setStyleSheet(StyleSheet);
+    ui->UserRegistrationDateLabel->setFont(Font);
+    ui->UserRegistrationDateLabel->setStyleSheet(StyleSheet);
+
+    QString ValueStyleSheet = "QLabel {color : #808080; }";
+    QFont ValueFont = QApplication::font();
+    ValueFont.setBold(true);
+    ValueFont.setFixedPitch(true);
+    ValueFont.setPointSize(10);
+
+    ui->UserSexValueLabel->setFont(ValueFont);
+    ui->UserSexValueLabel->setStyleSheet(ValueStyleSheet);
+    ui->UserTypeValueLabel->setFont(ValueFont);
+    ui->UserTypeValueLabel->setStyleSheet(ValueStyleSheet);
+    ui->UserBirthdayValueLabel->setFont(ValueFont);
+    ui->UserBirthdayValueLabel->setStyleSheet(ValueStyleSheet);
+    ui->UserRegistrationDateValueLabel->setFont(ValueFont);
+    ui->UserRegistrationDateValueLabel->setStyleSheet(ValueStyleSheet);
+}
+//-----------------------------------------------------------------------------
+void TUserViewDialog::initText() // Метод инициализирует надписи
+{
+    ui->UserHeaderWidget->slot_SetUserAvatar(fUserInfo.userAvatar(), fUserInfo.userIsMale());
+    ui->UserHeaderWidget->slot_SetUserName(fUserInfo.userName());
+    ui->UserHeaderWidget->slot_SetUserLogin(fUserInfo.userLogin());
+
+    ui->UserSexLabel->setText(tr("Пол:"));
+    ui->UserTypeLabel->setText(tr("Тип:"));
+    ui->UserBirthdayLabel->setText(tr("Дата рождения:"));
+    ui->UserRegistrationDateLabel->setText(tr("Дата регистрации:"));
+
+    //--
+
+    if (fUserInfo.userIsMale()) // Талерасты не пройдут
+        ui->UserSexValueLabel->setText(tr("Мужской"));
+    else ui->UserSexValueLabel->setText(tr("Женский"));
+
+    ui->UserTypeValueLabel->setText("ТУТ БУТЕТ ТИП");
+
+    if (fUserInfo.userBirthday().isNull())
+        ui->UserBirthdayValueLabel->setText(tr("Не указана"));
+    else ui->UserBirthdayValueLabel->setText(fUserInfo.userBirthday().toString("dd.MM.yyyy"));
+
+    ui->UserRegistrationDateValueLabel->setText(fUserInfo.userRegistrationDate().toString("dd.MM.yyyy"));
 }
 //-----------------------------------------------------------------------------
 void TUserViewDialog::setButtons(eResButtons inButtons)

@@ -178,12 +178,31 @@ void TConnectDialog::slot_AuthorizationResult(qint32 Result)
     if (Result != Res::CanAut::caAuthorizationTrue) // Если не удалось авторизоваться
         TDM::Instance().Client()->disconnect(); // Закрываем соединение
 
+    slot_SetUiEnabled(true);
+
     switch (Result)
     {
         case Res::rTimeOut: { QMessageBox::critical(this, tr("Ошибка"), tr("Время ожидания вышло!")); break; };
-        case Res::CanAut::caAuthorizationFalse: { QMessageBox::warning(this, tr("Предупреждение"), tr("Пользователь не найден")); break; }
         case Res::CanAut::caUserInfoError: { QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось прочитать данные пользователя")); break; }
-        case Res::CanAut::caIncorrectPass: { QMessageBox::warning(this, tr("Предупреждение"), tr("Не верный пароль")); break; }
+        case Res::CanAut::caAuthorizationFalse:
+        {
+            QMessageBox::warning(this, tr("Предупреждение"), tr("Пользователь не найден"));
+
+            ui->LoginLineEdit->clear();
+            ui->PasswordLineEdit->clear();
+            ui->LoginLineEdit->setFocus();
+
+            break;
+        }
+        case Res::CanAut::caIncorrectPass:
+        {
+            QMessageBox::warning(this, tr("Предупреждение"), tr("Не верный пароль"));
+
+            ui->PasswordLineEdit->clear();
+            ui->PasswordLineEdit->setFocus();
+
+            break;
+        }
         case Res::CanAut::caAuthorizationTrue:
         {
             qDebug() << "Авторизация прошла успешно";
@@ -201,7 +220,6 @@ void TConnectDialog::slot_AuthorizationResult(qint32 Result)
 
         default: { QMessageBox::critical(this, tr("Ошибка"), tr("Неизвестная ошибка!")); break; };
     }
-    slot_SetUiEnabled(true);
 }
 //-----------------------------------------------------------------------------
 void TConnectDialog::slot_regCheck() /// Метод проверит возможность регистрации

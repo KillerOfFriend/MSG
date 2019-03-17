@@ -7,6 +7,7 @@
 #include <QList>
 #include <QSortFilterProxyModel>
 
+#include "Classes/UserHeaderWidget/UserHeaderWidget.h"
 #include "Models/UsersModel/UsersModel.h"
 #include "Models/UsersModel/UsersProxyModel.h"
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"

@@ -1,12 +1,8 @@
 #ifndef USERVIEWDIALOG_H
 #define USERVIEWDIALOG_H
 
-#include <memory>
-
 #include <QDialog>
-#include <QPixmap>
-#include <QGraphicsScene>
-#include <QGraphicsPixmapItem>
+#include <QFont>
 
 #include "Classes/UserInfo/UserInfo.h"
 
@@ -38,10 +34,11 @@ private slots:
 
 private:
     Ui::TUserViewDialog *ui; 
+
     Users::TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
 
-    std::unique_ptr<QGraphicsScene> fAvatarScene = nullptr;
-    std::unique_ptr<QGraphicsPixmapItem> fGItem = nullptr;
+    void initFont(); // Метод инициализирует стиль текста
+    void initText(); // Метод инициализирует надписи
 
 signals:
     void sig_Result(const Users::TUserInfo &inUserInfo, qint32 inResult);

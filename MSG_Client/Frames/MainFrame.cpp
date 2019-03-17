@@ -30,8 +30,9 @@ void TfmeMainFrame::init()
 {
     TDM& DM = TDM::Instance();
 
-    ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + DM.UserAccount()->userInfo()->userName() + "</span></p></body></html>");
-    ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->userInfo()->userLogin() + "</span></p></body></html>");
+    ui->UserHeaderWidget->slot_SetUserAvatar(DM.UserAccount()->userInfo()->userAvatar(), DM.UserAccount()->userInfo()->userIsMale());
+    ui->UserHeaderWidget->slot_SetUserName(DM.UserAccount()->userInfo()->userName());
+    ui->UserHeaderWidget->slot_SetUserLogin(DM.UserAccount()->userInfo()->userLogin());
 
     fUserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения
     fFoundUsers.reset(new TUsersModel(this)); // Инициализируем модель найденых юзеров

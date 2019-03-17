@@ -43,7 +43,8 @@ SOURCES += \
     ../Common/Models/UsersModel/UsersModel.cpp \
     Classes/MSGClient/MSGClientExecutor.cpp \
     Delegates/UserItemDelegate/UserItemDelegate.cpp \
-    ../Common/Models/UsersModel/UsersProxyModel.cpp
+    ../Common/Models/UsersModel/UsersProxyModel.cpp \
+    Classes/UserHeaderWidget/UserHeaderWidget.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -61,13 +62,15 @@ HEADERS += \
     ../Common/Classes/UserAccount/UserAccount.h \
     ../Common/Models/UsersModel/UsersModel.h \
     Delegates/UserItemDelegate/UserItemDelegate.h \
-    ../Common/Models/UsersModel/UsersProxyModel.h
+    ../Common/Models/UsersModel/UsersProxyModel.h \
+    Classes/UserHeaderWidget/UserHeaderWidget.h
 
 FORMS += \
         ClientMainWindow.ui \
     Frames/MainFrame.ui \
     Dialogs/UserViewDialog/UserViewDialog.ui \
-    Dialogs/ConnectDialog/ConnectDialog.ui
+    Dialogs/ConnectDialog/ConnectDialog.ui \
+    Classes/UserHeaderWidget/UserHeaderWidget.ui
 
 RESOURCES += \
     clientres.qrc
