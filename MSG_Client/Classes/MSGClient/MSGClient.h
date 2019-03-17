@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+#include "othertypes.h"
 #include "Classes/UserInfo/UserInfo.h"
 
 class TMSGClient : public QObject
@@ -21,6 +22,7 @@ public:
 
     bool createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale); // Метод отправит команду на создание пользователья
     bool authorization(QString inLogin, QString inPassword); // Метод отправит номанду на авторизацию пользователя
+    bool getUserTypes(); // Метод отправит запрос получение списка типов пользователей
 
     bool findUsers(QString inUserName); // Метод отправит команду на поиск пользователей
     bool addContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на добавление контакта
@@ -37,6 +39,7 @@ private:
 
     void creteUserResult(QDataStream &inDataStream); // Мтод обработает результат регистрации
     void userAuthorization(QDataStream &inDataStream); // Метод обработает результат авторизации
+    void getUserTypesResult(QDataStream &inDataStream); // Метод обработает результат запроса списка типов пользователей
     void findUsersResult(QDataStream &inDataStream); // Метод обработает результат поика пользователей
     void addContactResult(QDataStream &inDataStream); // Метод обработает результат добавления контакта
 //    void getContactsResult(QDataStream &inDataStream); // Метод обработает результат запроса списка контактов
@@ -61,6 +64,7 @@ signals:
 
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);
+    void sig_GetUserTypesResult(QList<OtherTypes::TUserType> &inUserTypes);
     void sig_FindUsersResult(const QList<Users::TUserInfo> &inUsers);
     void sig_AddContactResult(qint32 inResult, Users::TUserInfo &inContactInfo);
     void sig_DeleteContactResult(qint32 inResult, QUuid &inContactUuid);

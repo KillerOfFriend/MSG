@@ -108,6 +108,24 @@ bool TMSGClient::authorization(QString inLogin, QString inPassword) // Мето�
     return Result;
 }
 //-----------------------------------------------------------------------------
+bool TMSGClient::getUserTypes() // Метод отправит запрос получение списка типов пользователей
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+
+        Stream << Commands::GetUserTypes;
+        fClient->write(SendingData);
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
 bool TMSGClient::findUsers(QString inUserName) // Метод отправит команду на поиск пользователей
 {
     bool Result = true;

@@ -35,12 +35,14 @@ SOURCES += \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Models/ConnectedUsers/ConnectedUsers.cpp \
     Models/ServerLogModel/ServerLogModel.cpp \
-    Models/UsersTypeModel/UsersTypeModel.cpp \
     Classes/DB/DB.cpp \
     Classes/Settings/Settings.cpp \
     ../Common/Classes/UserAccount/UserAccount.cpp \
     ../Common/Models/UsersModel/UsersModel.cpp \
-    Classes/MSGServer/MSGServerExecutor.cpp
+    Classes/MSGServer/MSGServerExecutor.cpp \
+    ../Common/Models/UsersTypeModel/UsersTypeModel.cpp \
+    Models/UsersTypeModelDB/UsersTypeModelDB.cpp \
+    ../Common/othertypes.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -51,12 +53,13 @@ HEADERS += \
     ../Common/Classes/UserInfo/UserInfo.h \
     Models/ConnectedUsers/ConnectedUsers.h \
     Models/ServerLogModel/ServerLogModel.h \
-    Models/UsersTypeModel/UsersTypeModel.h \
     ../Common/othertypes.h \
     Classes/DB/DB.h \
     Classes/Settings/Settings.h \
     ../Common/Classes/UserAccount/UserAccount.h \
-    ../Common/Models/UsersModel/UsersModel.h
+    ../Common/Models/UsersModel/UsersModel.h \
+    ../Common/Models/UsersTypeModel/UsersTypeModel.h \
+    Models/UsersTypeModelDB/UsersTypeModelDB.h
 
 FORMS += \
         ServerMainWindow.ui

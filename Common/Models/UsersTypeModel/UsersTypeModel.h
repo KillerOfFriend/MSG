@@ -1,10 +1,11 @@
 #ifndef USERSTYPEMODEL_H
 #define USERSTYPEMODEL_H
 
-#include <QAbstractListModel>
-
 #include <set>
 #include <map>
+
+#include <QAbstractListModel>
+#include <QList>
 
 #include "othertypes.h"
 
@@ -16,12 +17,14 @@ public:
     TUsersTypeModel(QObject* inParent = nullptr);
     ~TUsersTypeModel();
 
-    bool initFromDB();
+    void fromList(QList<OtherTypes::TUserType> &inList); // Метод инициализирует содержимое из списка
+    QList<OtherTypes::TUserType> toList(); // Метод вернёт содержимое в виде списка
+
     //-- Методы модели
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
-    std::pair<std::set<OtherTypes::TUserType>::iterator, bool> insert(OtherTypes::TUserType &inItem);
+    std::pair<std::set<OtherTypes::TUserType>::iterator, bool> insert(const OtherTypes::TUserType &inItem);
     void erase(std::set<OtherTypes::TUserType>::iterator inIt);
     void clear();
 

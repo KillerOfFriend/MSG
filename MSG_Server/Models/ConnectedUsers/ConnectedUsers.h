@@ -9,7 +9,7 @@
 #include <QTcpSocket>
 
 #include "Classes/UserAccount/UserAccount.h"
-#include "Models/UsersTypeModel/UsersTypeModel.h"
+#include "Models/UsersTypeModelDB/UsersTypeModelDB.h"
 
 class TConnectedUsersModel : public QAbstractTableModel, public std::map<QTcpSocket*, Users::TUserAccount>
 {
@@ -32,11 +32,13 @@ public:
     void erase(std::map<QTcpSocket*, Users::TUserAccount>::iterator inIt);
     void clear();
 
+    std::shared_ptr<TUsersTypeModelDB> userTypes(); // Метод вернёт указатель на модель типов пользователей
+
 private:
     static const quint8 fColumnCount = 5;
     std::array<QString, fColumnCount> fColumns;
 
-    std::shared_ptr<TUsersTypeModel> fUserTypes = nullptr;
+    std::shared_ptr<TUsersTypeModelDB> fUserTypes = nullptr;
 
     void initColumns();
 

@@ -32,11 +32,20 @@ int main(int argc, char *argv[])
         }
         else
         {
-            qDebug() << "[УСПЕХ] Готов к работе.";
+            //Дополнительная инициализация
+            if (!DM.Client()->getUserTypes())
+            {
+                WorkResult = 0;
+                qDebug() << "[ФАТАЛЬНАЯ ОШИБКА] Не удалось запросить списток типов пользователей. Аварийное завершение.";
+            }
+            else
+            {
+                qDebug() << "[УСПЕХ] Готов к работе.";
 
-            TClientMainWindow w;
-            w.show();
-            WorkResult = a.exec();
+                TClientMainWindow w;
+                w.show();
+                WorkResult = a.exec();
+            }
         }
     }
 

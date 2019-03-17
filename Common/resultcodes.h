@@ -23,6 +23,12 @@ namespace Res
         const qint32 caUserInfoError = 4;
     }
 
+    namespace GetUserTypes
+    {
+        const qint32 gtOK = 1;
+        const qint32 gtFail = 2;
+    }
+
     namespace FindUsers
     {
         const qint32 fuUsersFound = 1;
@@ -35,11 +41,11 @@ namespace Res
         const qint32 acAlredyExist = 2;
     }
 
-    namespace GetContacts
-    {
-        const qint32 gcUsersFound = 1;
-        const qint32 gcUsersNotFound = 2;
-    }
+//    namespace GetContacts
+//    {
+//        const qint32 gcUsersFound = 1;
+//        const qint32 gcUsersNotFound = 2;
+//    }
 
     namespace DeleteContact
     {

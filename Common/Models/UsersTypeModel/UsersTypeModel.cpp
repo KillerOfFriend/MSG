@@ -1,16 +1,11 @@
 #include "UsersTypeModel.h"
 
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QSqlRecord>
 #include <QDebug>
-
-#include "Classes/DB/DB.h"
 
 //-----------------------------------------------------------------------------
 TUsersTypeModel::TUsersTypeModel(QObject *inParent) : QAbstractListModel(inParent)
 {
-    initFromDB();
+
 }
 //-----------------------------------------------------------------------------
 TUsersTypeModel::~TUsersTypeModel()
@@ -18,41 +13,32 @@ TUsersTypeModel::~TUsersTypeModel()
     this->clear();
 }
 //-----------------------------------------------------------------------------
-bool TUsersTypeModel::initFromDB()
-{
-    bool Result = true;
-    this->clear();
-
-    QSqlQuery Query(TDB::Instance().DB());
-
-    if (!Query.exec("SELECT * FROM get_users_types()"))
-    {
-        Result = false;
-        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
-    }
-    else
-    {
-        if (!Query.record().count())
-            Result = false;
-        else
-            while (Query.next()) // Вернётся только 1 запись
-            {
-                OtherTypes::TUserType NewType;
-
-                NewType.TypeCode = Query.value("out_type_code").toInt();
-                NewType.TypeName = QString::fromUtf8(Query.value("out_type_name").toByteArray());
-
-                this->insert(NewType);
-            }
-    }
-
-    return Result;
-}
-//-----------------------------------------------------------------------------
 int TUsersTypeModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
     return this->size();
+}
+//-----------------------------------------------------------------------------
+void TUsersTypeModel::fromList(QList<OtherTypes::TUserType> &inList) // Метод инициализирует содержимое из списка
+{
+    this->clear();
+
+    std::for_each(inList.begin(), inList.end(), [&](const OtherTypes::TUserType& Item)
+    {
+        this->insert(Item);
+    });
+}
+//-----------------------------------------------------------------------------
+QList<OtherTypes::TUserType> TUsersTypeModel::toList() // Метод вернёт содержимое в виде списка
+{
+    QList<OtherTypes::TUserType> Result;
+
+    std::for_each(this->begin(), this->end(), [&](const OtherTypes::TUserType& Item)
+    {
+        Result.push_back(Item);
+    });
+
+    return Result;
 }
 //-----------------------------------------------------------------------------
 QVariant TUsersTypeModel::data(const QModelIndex &index, int role) const
@@ -78,7 +64,7 @@ QVariant TUsersTypeModel::data(const QModelIndex &index, int role) const
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::set<OtherTypes::TUserType>::iterator, bool> TUsersTypeModel::insert(OtherTypes::TUserType &inItem)
+std::pair<std::set<OtherTypes::TUserType>::iterator, bool> TUsersTypeModel::insert(const OtherTypes::TUserType &inItem)
 {
     auto It = std::set<OtherTypes::TUserType, OtherTypes::TUserType>::insert(inItem);
 

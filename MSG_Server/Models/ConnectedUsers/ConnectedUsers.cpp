@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 TConnectedUsersModel::TConnectedUsersModel(QObject *inParent) : QAbstractTableModel(inParent)
 {
-    fUserTypes = std::make_shared<TUsersTypeModel>(this);
+    fUserTypes = std::make_shared<TUsersTypeModelDB>(this);
     initColumns();
 }
 //-----------------------------------------------------------------------------
@@ -132,6 +132,9 @@ void TConnectedUsersModel::clear()
     std::map<QTcpSocket*, Users::TUserAccount>::clear();
     endRemoveRows();
 }
+//-----------------------------------------------------------------------------
+std::shared_ptr<TUsersTypeModelDB> TConnectedUsersModel::userTypes() // Метод вернёт указатель на модель типов пользователей
+{ return fUserTypes; }
 //-----------------------------------------------------------------------------
 void TConnectedUsersModel::initColumns()
 {

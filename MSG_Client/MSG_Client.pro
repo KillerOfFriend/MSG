@@ -36,7 +36,6 @@ SOURCES += \
     ../Common/Classes/UserInfo/UserInfo.cpp \
     Frames/MainFrame.cpp \
     Classes/FrameController/FrameController.cpp \
-    Models.cpp \
     Dialogs/UserViewDialog/UserViewDialog.cpp \
     Dialogs/ConnectDialog/ConnectDialog.cpp \
     ../Common/Classes/UserAccount/UserAccount.cpp \
@@ -44,7 +43,10 @@ SOURCES += \
     Classes/MSGClient/MSGClientExecutor.cpp \
     Delegates/UserItemDelegate/UserItemDelegate.cpp \
     ../Common/Models/UsersModel/UsersProxyModel.cpp \
-    Classes/UserHeaderWidget/UserHeaderWidget.cpp
+    Classes/UserHeaderWidget/UserHeaderWidget.cpp \
+    ../Common/Models/UsersTypeModel/UsersTypeModel.cpp \
+    ../Common/othertypes.cpp \
+    Classes/Models/Models.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -56,14 +58,15 @@ HEADERS += \
     ../Common/Classes/UserInfo/UserInfo.h \
     Frames/MainFrame.h \
     Classes/FrameController/FrameController.h \
-    Models.h \
     Dialogs/UserViewDialog/UserViewDialog.h \
     Dialogs/ConnectDialog/ConnectDialog.h \
     ../Common/Classes/UserAccount/UserAccount.h \
     ../Common/Models/UsersModel/UsersModel.h \
     Delegates/UserItemDelegate/UserItemDelegate.h \
     ../Common/Models/UsersModel/UsersProxyModel.h \
-    Classes/UserHeaderWidget/UserHeaderWidget.h
+    Classes/UserHeaderWidget/UserHeaderWidget.h \
+    ../Common/Models/UsersTypeModel/UsersTypeModel.h \
+    Classes/Models/Models.h
 
 FORMS += \
         ClientMainWindow.ui \

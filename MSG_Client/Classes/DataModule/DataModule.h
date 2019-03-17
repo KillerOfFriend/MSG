@@ -9,6 +9,7 @@
 #include "Classes/MSGClient/MSGClient.h"
 #include "Classes/UserAccount/UserAccount.h"
 #include "Classes/FrameController/FrameController.h"
+#include "Classes/Models/Models.h"
 
 class TDM : public QObject
 {
@@ -19,6 +20,7 @@ public:
     std::shared_ptr<TMSGClient> Client();
     std::shared_ptr<Users::TUserAccount> UserAccount();
     std::shared_ptr<TFrameController> FrameController();
+    std::shared_ptr<TModels> Models();
 
 private:
     explicit TDM(QObject *inParent = nullptr);
@@ -27,7 +29,7 @@ private:
     std::shared_ptr<TMSGClient> fClient = nullptr;
     std::shared_ptr<Users::TUserAccount> fUserAccount = nullptr;
     std::shared_ptr<TFrameController> fFrameController = nullptr;
-
+    std::shared_ptr<TModels> fModels = nullptr;
 
     TDM(TDM const&) = delete;
     TDM& operator= (TDM const&) = delete;

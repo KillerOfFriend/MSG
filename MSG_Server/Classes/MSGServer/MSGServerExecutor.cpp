@@ -92,20 +92,40 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             }
             break;
         }
+        case Commands::GetUserTypes: // Запрос списка типов пользователей
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка типов пользователей");
+
+            if (!fClients.userTypes() || fClients.userTypes()->size() == 0) // Если не инициализирово нили пусто
+            {
+                outStream << Command << Res::GetUserTypes::gtFail;
+                sig_LogMessage(inClientSender->peerAddress(), "Не удалось передать типы пользователей");
+            }
+            else
+            {
+                outStream << Command << Res::GetUserTypes::gtOK << fClients.userTypes()->toList();
+                sig_LogMessage(inClientSender->peerAddress(), "Отправлен список типов пользователей");
+            }
+
+            break;
+        }
         case Commands::FindUsers: // Поиск пользователей
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на поиск пользователя");
             QList<Users::TUserInfo> Resuslt = findUsers(inStream); // Поиск пользователя
 
             if (Resuslt.isEmpty()) // Если список пуст
+            {
                 outStream << Command << Res::FindUsers::fuUsersNotFound; // Возвращаем результат (Пользователи не найдены)
+                sig_LogMessage(inClientSender->peerAddress(), "Пользователи не найдены");
+            }
             else
             {
                 checkUsersStatus(Resuslt); // Проверяем контакты онлайн и устанавливаем им статус
                 outStream << Command << Res::FindUsers::fuUsersFound << Resuslt; // Пишем в результат команду и результат обработки
+                sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
             }
 
-            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
             break;
         }
         case Commands::AddContact: // Добавление контакта

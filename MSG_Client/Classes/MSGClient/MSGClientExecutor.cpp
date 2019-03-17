@@ -37,6 +37,12 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
             userAuthorization(inStream); // Обработать результат авторизации
             break;
         }
+        case Commands::GetUserTypes: // Возврат списка типов пользователей
+        {
+            sig_LogMessage("Получен ответ на запрос списка типов пользователей" + inClientSender->peerAddress().toString());
+            getUserTypesResult(inStream); // Обрабатываем результат возврата списка пользователей
+            break;
+        }
         case Commands::FindUsers: // Поиск пользователей
         {
             sig_LogMessage("Получен ответ на поиск пользователей" + inClientSender->peerAddress().toString());
@@ -103,6 +109,22 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
     }
 
     sig_AuthorizationResult(Result); // Шлём сигнал с результатом авторизации
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::getUserTypesResult - Метод обработает результат запроса списка типов пользователей
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::getUserTypesResult(QDataStream &inDataStream)
+{
+    qint32 Result = Res::rUnknown;
+    QList<OtherTypes::TUserType> UserTypes;
+
+    inDataStream >> Result; // Получаем результат выполнения
+    if (Result == Res::GetUserTypes::gtOK) // Если авторизация прошла успешно
+        inDataStream >> UserTypes;
+
+    sig_GetUserTypesResult(UserTypes);
 }
 //-----------------------------------------------------------------------------
 /**

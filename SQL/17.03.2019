@@ -1,0 +1,157 @@
+CREATE TABLE data.user_types
+(
+  type_id serial NOT NULL,
+  type_code integer NOT NULL,
+  type_name bytea NOT NULL,
+  CONSTRAINT user_types_type_code_key UNIQUE (type_code)
+)
+
+CREATE TABLE data.users
+(
+  user_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_type integer NOT NULL,
+  user_login bytea NOT NULL,
+  user_password bytea NOT NULL,
+  user_name bytea NOT NULL,
+  user_is_male boolean NOT NULL,
+  user_birthday date,
+  user_date_of_registration date DEFAULT CURRENT_DATE,
+  user_avatar bytea,
+  CONSTRAINT users_user_login_key UNIQUE (user_login),
+  CONSTRAINT users_user_uuid_key UNIQUE (user_uuid)
+)
+
+CREATE TABLE data.friend_list
+(
+  fl_id serial NOT NULL,
+  fl_owner_uuid uuid NOT NULL,
+  fl_friend_uuid uuid NOT NULL
+)
+
+
+
+CREATE OR REPLACE FUNCTION public.can_user_authorization(
+    in_login bytea,
+    in_password bytea)
+  RETURNS type_authorization_result AS
+$BODY$
+DECLARE
+ authorization_result type_authorization_result;
+ found_uuid uuid;
+BEGIN
+
+SELECT user_uuid INTO found_uuid FROM data.users WHERE user_login = in_login AND user_password = in_password;
+
+IF (found_uuid IS NOT NULL) THEN
+   SELECT 1, found_uuid INTO authorization_result; -- Пользователь с таким логином  и паролем существует 
+ELSE 
+   IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+	SELECT 2, NULL INTO authorization_result; -- Пользователь существует, но пароль не верный
+   ELSE
+	SELECT 3, NULL INTO authorization_result; -- Нет такого пользователя
+   END IF;
+END IF;
+
+RETURN authorization_result;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+CREATE OR REPLACE FUNCTION public.create_contact(
+    in_owner uuid,
+    in_contact uuid)
+  RETURNS integer AS
+$BODY$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact) THEN
+   RETURN 2; -- Уже существует
+ELSE 
+   INSERT INTO data.friend_list(fl_owner_uuid, fl_friend_uuid) VALUES(in_owner, in_contact); -- Добавляем связь хозяин - контакт
+   INSERT INTO data.friend_list(fl_owner_uuid, fl_friend_uuid) VALUES(in_contact, in_owner); -- Добавляем связь контакт - хозяин
+   RETURN 1; -- Создан
+END IF;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+CREATE OR REPLACE FUNCTION public.create_user(
+    in_login bytea,
+    in_password bytea,
+    in_name bytea,
+    in_is_male boolean)
+  RETURNS integer AS
+$BODY$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+   RETURN 2;
+ELSE 
+   INSERT INTO data.users(user_type, user_login, user_password, user_name, user_is_male) VALUES(2, in_login, in_password, in_name, in_is_male);
+   RETURN 1;
+END IF;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+CREATE OR REPLACE FUNCTION public.delete_contacts(
+    in_owner uuid,
+    in_contact uuid)
+  RETURNS integer AS
+$BODY$
+BEGIN
+	IF EXISTS (SELECT 1 FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact) THEN
+		DELETE FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact; -- Удаляем связь
+		DELETE FROM data.friend_list WHERE fl_owner_uuid = in_contact AND fl_friend_uuid = in_owner; -- Удаляем обратную связь
+		RETURN 1; -- Удаление успешно
+	ELSE 
+	   RETURN 2; -- Нечего удалять
+	END IF;
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+CREATE OR REPLACE FUNCTION public.find_users(IN in_user bytea)
+  RETURNS TABLE(found_user_uuid uuid) AS
+$BODY$
+BEGIN
+     RETURN QUERY SELECT user_uuid FROM data.users WHERE user_login LIKE in_user OR user_name LIKE in_user;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+
+CREATE OR REPLACE FUNCTION public.get_contacts(IN in_owner_uuid uuid)
+  RETURNS TABLE(found_friend_uuid uuid) AS
+$BODY$
+BEGIN
+     RETURN QUERY SELECT fl_friend_uuid FROM data.friend_list WHERE fl_owner_uuid = in_owner_uuid;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+
+CREATE OR REPLACE FUNCTION public.get_user_info(IN in_user_uuid uuid)
+  RETURNS TABLE(f_user_uuid uuid, f_user_type integer, f_user_login bytea, f_user_name bytea, f_user_birthday date, f_user_date_of_registration date, f_user_is_male boolean, f_user_avatar bytea) AS
+$BODY$
+BEGIN
+     RETURN QUERY SELECT user_uuid, user_type, user_login, user_name, user_birthday, user_date_of_registration, user_is_male, user_avatar FROM data.users WHERE user_uuid = in_user_uuid;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+
+
+
+CREATE OR REPLACE FUNCTION public.get_users_types()
+  RETURNS TABLE(out_type_code integer, out_type_name bytea) AS
+$BODY$
+BEGIN
+     RETURN QUERY SELECT type_code, type_name FROM data.user_types;
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
