@@ -6,6 +6,7 @@
 
 #include "Classes/DataModule/DataModule.h"
 #include "comandes.h"
+#include "resultcodes.h"
 
 //-----------------------------------------------------------------------------
 /**
@@ -310,6 +311,7 @@ void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAcco
 
     if (It != fClients.end()) // Если сокет найден
     {
+        inUserAccount.userInfo()->setUserStatus(Users::UserStatus::usOnline); // Задаём статус "Онлайн"
         It->second = inUserAccount; // Задаём личные данные пользователя
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
@@ -362,4 +364,51 @@ void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid)
     }
 }
 //-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::syncAddedUser - Метод синхранизирует список контактов после добавления пользователя
+ * @param inContactUuid - Uuid пользователя, которого нужно синхронизировать
+ * @param inOwnerInfo - Данные пользователя, добавившего контакт
+ */
+void TMSGServer::syncAddedUser(QUuid inContactUuid, Users::TUserInfo &inOwnerInfo)
+{
+    // Ищим контакт в списке подключённых клиентов
+    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Item)
+    {
+        return Item.second.userInfo()->userUuid() == inContactUuid;
+    });
 
+    if (ContactIt != fClients.end()) // Если контакт найден
+    {
+        QByteArray Data;
+        QDataStream outStream(&Data, QIODevice::WriteOnly); // Создаём выходной поток
+
+        // Шлём команду на добавление пользоваеля вместе с информацией о добовившем (добавляемом) юзере
+        outStream << Commands::AddContact << Res::AddContact::acCreated << inOwnerInfo;
+        ContactIt->first->write(Data);
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::syncDeletedUser - Метод синхранизирует список контактов после удаления пользователя
+ * @param inContactUuid - Uuid пользователя, которого нужно синхронизировать
+ * @param inOwnerUuid - Uuid пользователя, удалившего контакт
+ */
+void TMSGServer::syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid)
+{
+    // Ищим контакт в списке подключённых клиентов
+    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Item)
+    {
+        return Item.second.userInfo()->userUuid() == inContactUuid;
+    });
+
+    if (ContactIt != fClients.end()) // Если контакт найден
+    {
+        QByteArray Data;
+        QDataStream outStream(&Data, QIODevice::WriteOnly); // Создаём выходной поток
+
+        // Шлём команду на удаление пользоваеля вместе с информацией о удалившем (удаляемом) юзере
+        outStream << Commands::DeleteContact << Res::DeleteContact::dcContactRemove << inOwnerUuid;
+        ContactIt->first->write(Data);
+    }
+}
+//-----------------------------------------------------------------------------

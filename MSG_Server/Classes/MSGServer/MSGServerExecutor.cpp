@@ -119,6 +119,11 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             {
                 slot_AddContact(inClientSender, Result.second); // Добавляем контакт клиенту
                 checkUserStatus(Result.second); // Проверяем его статус
+
+                auto SenderIt = fClients.find(inClientSender); // Получаем данные о пославшем команду клиенте
+                if (SenderIt != fClients.end()) // Если пославший найден
+                    syncAddedUser(Result.second.userUuid(), *SenderIt->second.userInfo()); // Синхронизируем добовление контакта (с этим самым контактом)
+
                 outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и информацию о контакте
             }
 
@@ -151,6 +156,11 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             else
             {
                 slot_DelContact(inClientSender, Result.second);
+
+                auto SenderIt = fClients.find(inClientSender); // Получаем данные о пославшем команду клиенте
+                if (SenderIt != fClients.end()) // Если пославший найден
+                     syncDeletedUser(Result.second, SenderIt->second.userInfo()->userUuid()); // Синхронизируем удаление контакта (с этим самым контактом)
+
                 outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и Uuid удалённого контакта
             }
 

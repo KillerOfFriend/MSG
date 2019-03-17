@@ -53,6 +53,9 @@ private:
     void checkUserStatus(Users::TUserInfo &inUsers); // Метод проверит наличие контакта онлайнт и установит их статус
     void userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus); // Метод отправит контактам пользователя сообщение об изменении его статуса
 
+    void syncAddedUser(QUuid inContactUuid, Users::TUserInfo &inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
+    void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
+
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
     void sigSocketError();
