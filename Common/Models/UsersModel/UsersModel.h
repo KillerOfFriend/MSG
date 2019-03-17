@@ -29,6 +29,8 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
     std::pair<std::map<QUuid, Users::TUserInfo>::iterator, bool> insert(const std::pair<QUuid, Users::TUserInfo> &inValue);
+    std::map<QUuid, Users::TUserInfo>::iterator erase(std::map<QUuid, Users::TUserInfo>::iterator inIt);
+    std::map<QUuid, Users::TUserInfo>::size_type erase(const QUuid &inUuid);
     void clear();
 
 private:

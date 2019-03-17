@@ -49,7 +49,8 @@ private:
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
-    void checkUsersStatus(QList<Users::TUserInfo> &inUsers); // Метод проверит наличие контактов и онлайн и установит их статус
+    void checkUsersStatus(QList<Users::TUserInfo> &inUsers); // Метод проверит наличие контактов онлайн и установит их статус
+    void checkUserStatus(Users::TUserInfo &inUsers); // Метод проверит наличие контакта онлайнт и установит их статус
     void userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus); // Метод отправит контактам пользователя сообщение об изменении его статуса
 
 signals:

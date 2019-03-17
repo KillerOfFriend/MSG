@@ -143,15 +143,20 @@ void TMSGServer::checkUsersStatus(QList<Users::TUserInfo> &inUsers)
 {
     std::for_each(inUsers.begin(), inUsers.end(), [&](Users::TUserInfo &UserInfo) // Перебираем все контакты полученного клиента
     {
-        auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
-        {
-            return Client.second.userInfo()->userUuid() == UserInfo.userUuid(); // Сравнение по Uuid
-        });
-
-        if (FindRes != fClients.end()) // Если клиент онлайн
-            UserInfo.setUserStatus(Users::UserStatus::usOnline);
-        else UserInfo.setUserStatus(Users::UserStatus::usOffline);
+        checkUserStatus(UserInfo);
     });
+}
+//-----------------------------------------------------------------------------
+void TMSGServer::checkUserStatus(Users::TUserInfo &inUsers) // Метод проверит наличие контакта онлайнт и установит их статус
+{
+    auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&inUsers](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
+    {
+        return Client.second.userInfo()->userUuid() == inUsers.userUuid(); // Сравнение по Uuid
+    });
+
+    if (FindRes != fClients.end()) // Если клиент онлайн
+        inUsers.setUserStatus(Users::UserStatus::usOnline);
+    else inUsers.setUserStatus(Users::UserStatus::usOffline);
 }
 //-----------------------------------------------------------------------------
 /**

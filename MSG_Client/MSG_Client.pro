@@ -42,7 +42,8 @@ SOURCES += \
     ../Common/Classes/UserAccount/UserAccount.cpp \
     ../Common/Models/UsersModel/UsersModel.cpp \
     Classes/MSGClient/MSGClientExecutor.cpp \
-    Delegates/UserItemDelegate/UserItemDelegate.cpp
+    Delegates/UserItemDelegate/UserItemDelegate.cpp \
+    ../Common/Models/UsersModel/UsersProxyModel.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -59,7 +60,8 @@ HEADERS += \
     Dialogs/ConnectDialog/ConnectDialog.h \
     ../Common/Classes/UserAccount/UserAccount.h \
     ../Common/Models/UsersModel/UsersModel.h \
-    Delegates/UserItemDelegate/UserItemDelegate.h
+    Delegates/UserItemDelegate/UserItemDelegate.h \
+    ../Common/Models/UsersModel/UsersProxyModel.h
 
 FORMS += \
         ClientMainWindow.ui \

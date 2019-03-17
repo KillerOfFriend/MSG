@@ -117,7 +117,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 outStream << Command << Result.first; // Пишем в результат команду и результат обработки
             else // Если добавление прошло успешно
             {
-                slot_AddContact(inClientSender, Result.second);
+                slot_AddContact(inClientSender, Result.second); // Добавляем контакт клиенту
+                checkUserStatus(Result.second); // Проверяем его статус
                 outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и информацию о контакте
             }
 

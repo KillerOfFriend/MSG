@@ -33,14 +33,23 @@ void TfmeMainFrame::init()
     ui->UserNameLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#ffaa00;\">" + DM.UserAccount()->userInfo()->userName() + "</span></p></body></html>");
     ui->UserLoginLabel->setText("<html><head/><body><p><span style=\" font-weight:600; color:#5500ff;\">" + DM.UserAccount()->userInfo()->userLogin() + "</span></p></body></html>");
 
-    UserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения
+    fUserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения
     fFoundUsers.reset(new TUsersModel(this)); // Инициализируем модель найденых юзеров
 
-    ui->ContactsListView->setItemDelegate(UserListDelegate.get()); // Задаём делегат отображения
-    ui->ContactsFindListView->setItemDelegate(UserListDelegate.get()); // Задаём делегат отображения
+    fUserProxyModel.reset(new TUsersProxyModel(this)); // Инициализация фильтров
+    fFounUsersProxyModel.reset(new QSortFilterProxyModel(this));
 
-    ui->ContactsListView->setModel(DM.UserAccount()->contacts().get()); // Задаём модель сонтактов
-    ui->ContactsFindListView->setModel(fFoundUsers.get()); // Задаём модель найденых пользователей
+    fUserProxyModel->setSourceModel(DM.UserAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
+    fFounUsersProxyModel->setSourceModel(fFoundUsers.get()); // Задаём модель-источник фильтру списка найденых пользователей
+
+    ui->ContactsListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения
+    ui->ContactsFindListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения
+
+    ui->ContactsListView->setModel(fUserProxyModel.get()); // Задаём фильтрующую модель контактов
+    ui->ContactsFindListView->setModel(fFounUsersProxyModel.get()); // Задаём модель найденых пользователей
+
+    fUserProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка контактов по имени
+    fFounUsersProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка найденых пользователей по имени
 }
 //-----------------------------------------------------------------------------
 /**
@@ -161,7 +170,8 @@ void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid)
 void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &index)
 {
     auto OtherUserIt = fFoundUsers->begin();
-    std::advance(OtherUserIt, index.row()); // Получаем итератор на выбранного пользователя
+    QModelIndex UserIndex = fFounUsersProxyModel->mapToSource(index); // Полученый индекс фильтрующей модели приводим к индексу модели источника
+    std::advance(OtherUserIt, UserIndex.row()); // Получаем итератор на выбранного пользователя
 
     TUserViewDialog UserViewDialog(OtherUserIt->second, this); // Инициализируем диалог просмотра пользователя
     UserViewDialog.setModal(true); // Задаём подальность
@@ -182,7 +192,8 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
 void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
 {
     auto OtherUserIt = TDM::Instance().UserAccount()->contacts()->begin();
-    std::advance(OtherUserIt, index.row()); // Получаем итератор на выбранного пользователя
+    QModelIndex ContactIndex = fUserProxyModel->mapToSource(index); // Полученый индекс фильтрующей модели приводим к индексу модели источника
+    std::advance(OtherUserIt, ContactIndex.row()); // Получаем итератор на выбраный контакт
 
     TUserViewDialog UserViewDialog(OtherUserIt->second, this); // Инициализируем диалог просмотра пользователя
     UserViewDialog.setModal(true); // Задаём подальность
@@ -192,5 +203,10 @@ void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
     connect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
     UserViewDialog.exec(); // Вызываем диалог
     disconnect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::on_ContactsFilterLineEdit_textChanged(const QString &arg1)
+{
+    fUserProxyModel->setFilter(TUsersModel::eColumns::cUserName, arg1);
 }
 //-----------------------------------------------------------------------------

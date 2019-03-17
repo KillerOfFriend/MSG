@@ -111,6 +111,29 @@ std::pair<std::map<QUuid, Users::TUserInfo>::iterator, bool> TUsersModel::insert
    return It;
 }
 //-----------------------------------------------------------------------------
+std::map<QUuid, Users::TUserInfo>::iterator TUsersModel::erase(std::map<QUuid, Users::TUserInfo>::iterator inIt)
+{
+    qint32 Row = std::distance(this->begin(), inIt);
+
+    beginRemoveRows(QModelIndex(), Row, Row);
+    auto Res =std::map<QUuid, Users::TUserInfo>::erase(inIt);
+    endRemoveRows();
+
+    return Res;
+}
+//-----------------------------------------------------------------------------
+std::map<QUuid, Users::TUserInfo>::size_type TUsersModel::erase(const QUuid &inUuid)
+{
+    auto It = this->find(inUuid);
+    qint32 Row = std::distance(this->begin(), It);
+
+    beginRemoveRows(QModelIndex(), Row, Row);
+    size_type Res = std::map<QUuid, Users::TUserInfo>::erase(inUuid);
+    endRemoveRows();
+
+    return Res;
+}
+//-----------------------------------------------------------------------------
 void TUsersModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());

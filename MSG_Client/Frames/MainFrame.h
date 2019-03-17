@@ -5,8 +5,10 @@
 
 #include <QWidget>
 #include <QList>
+#include <QSortFilterProxyModel>
 
 #include "Models/UsersModel/UsersModel.h"
+#include "Models/UsersModel/UsersProxyModel.h"
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"
 
 namespace Ui {
@@ -22,8 +24,10 @@ public:
     ~TfmeMainFrame();
 
 private:
-    std::unique_ptr<TUserItemDelegate> UserListDelegate = nullptr;
+    std::unique_ptr<TUserItemDelegate> fUserListDelegate = nullptr;
+    std::unique_ptr<TUsersProxyModel> fUserProxyModel = nullptr;
     std::unique_ptr<TUsersModel> fFoundUsers = nullptr;
+    std::unique_ptr<QSortFilterProxyModel> fFounUsersProxyModel = nullptr;
 
     void init(); // Метод инициализирует фрейм
     void Link(); // Метод слинкует сигналы со слотами
@@ -39,6 +43,8 @@ private slots:
     void on_ContactsFindListView_doubleClicked(const QModelIndex &index);
 
     void on_ContactsListView_doubleClicked(const QModelIndex &index);
+
+    void on_ContactsFilterLineEdit_textChanged(const QString &arg1);
 
 private:
     Ui::TfmeMainFrame *ui;
