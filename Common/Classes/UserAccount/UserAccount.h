@@ -2,13 +2,16 @@
 #define USERACCOUNT_H
 
 #include <memory>
+#include <map>
 
 #include <QObject>
 #include <QList>
+#include <QUuid>
 #include <QAbstractTableModel>
 
 #include "Classes/UserInfo/UserInfo.h"
 #include "Models/UsersModel/UsersModel.h"
+#include "Classes/ChatInfo/ChatInfo.h"
 
 namespace Users
 {
@@ -29,6 +32,7 @@ namespace Users
     private:
         std::shared_ptr<TUserInfo> fUserInfo = nullptr; // Данные о пользователе
         std::shared_ptr<TUsersModel> fContacts = nullptr; // Список контактов
+        std::shared_ptr<std::map<QUuid, TChatInfo>> fChats = nullptr; // Список бесед пользователя
 
     signals:
 

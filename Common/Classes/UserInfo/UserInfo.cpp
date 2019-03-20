@@ -7,6 +7,7 @@ TUserInfo::TUserInfo(QObject *inParent) : QObject(inParent)
 {
 
 }
+
 //-----------------------------------------------------------------------------
 TUserInfo::TUserInfo(const TUserInfo &inOther) : QObject(inOther.parent())
 {
@@ -19,6 +20,12 @@ TUserInfo::TUserInfo(const TUserInfo &inOther) : QObject(inOther.parent())
     this->fBirthday = inOther.fBirthday;
     this->fIsMale = inOther.fIsMale;
     this->fAvatar = inOther.fAvatar;
+}
+//-----------------------------------------------------------------------------
+TUserInfo::~TUserInfo()
+{
+    fLogin.clear();
+    fName.clear();
 }
 //-----------------------------------------------------------------------------
 TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
@@ -36,17 +43,13 @@ TUserInfo& TUserInfo::operator =(const TUserInfo &inOther)
     this->fIsMale = inOther.fIsMale;
     this->fAvatar = inOther.fAvatar;
 
+    this->setParent(inOther.parent());
+
     return *this;
 }
 //-----------------------------------------------------------------------------
 bool TUserInfo::operator == (const TUserInfo &inOther) const
 { return this->userUuid() == inOther.userUuid(); }
-//-----------------------------------------------------------------------------
-TUserInfo::~TUserInfo()
-{
-    fLogin.clear();
-    fName.clear();
-}
 //-----------------------------------------------------------------------------
 void TUserInfo::setUserUuid(QUuid inUuid)
 { fUuid = inUuid; }

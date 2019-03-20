@@ -46,7 +46,8 @@ SOURCES += \
     Classes/UserHeaderWidget/UserHeaderWidget.cpp \
     ../Common/Models/UsersTypeModel/UsersTypeModel.cpp \
     ../Common/othertypes.cpp \
-    Classes/Models/Models.cpp
+    Classes/Models/Models.cpp \
+    ../Common/Classes/ChatInfo/ChatInfo.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -66,7 +67,8 @@ HEADERS += \
     ../Common/Models/UsersModel/UsersProxyModel.h \
     Classes/UserHeaderWidget/UserHeaderWidget.h \
     ../Common/Models/UsersTypeModel/UsersTypeModel.h \
-    Classes/Models/Models.h
+    Classes/Models/Models.h \
+    ../Common/Classes/ChatInfo/ChatInfo.h
 
 FORMS += \
         ClientMainWindow.ui \

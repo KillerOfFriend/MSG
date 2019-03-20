@@ -42,7 +42,8 @@ SOURCES += \
     Classes/MSGServer/MSGServerExecutor.cpp \
     ../Common/Models/UsersTypeModel/UsersTypeModel.cpp \
     Models/UsersTypeModelDB/UsersTypeModelDB.cpp \
-    ../Common/othertypes.cpp
+    ../Common/othertypes.cpp \
+    ../Common/Classes/ChatInfo/ChatInfo.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -59,7 +60,8 @@ HEADERS += \
     ../Common/Classes/UserAccount/UserAccount.h \
     ../Common/Models/UsersModel/UsersModel.h \
     ../Common/Models/UsersTypeModel/UsersTypeModel.h \
-    Models/UsersTypeModelDB/UsersTypeModelDB.h
+    Models/UsersTypeModelDB/UsersTypeModelDB.h \
+    ../Common/Classes/ChatInfo/ChatInfo.h
 
 FORMS += \
         ServerMainWindow.ui

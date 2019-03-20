@@ -27,6 +27,8 @@ TUsersModel& TUsersModel::operator = (const TUsersModel &inOther)
         this->insert(Item);
     });
 
+    this->setParent(inOther.parent());
+
     return *this;
 }
 //-----------------------------------------------------------------------------

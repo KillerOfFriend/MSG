@@ -9,17 +9,20 @@ TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
 {
     fUserInfo = std::make_shared<TUserInfo>();
     fContacts = std::make_shared<TUsersModel>();
+    fChats = std::make_shared<std::map<QUuid,TChatInfo>>();
 }
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent())
 {
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     this->fContacts = inOther.fContacts; // Копируем контейнер контактов
+    this->fChats = inOther.fChats; // Копируем контейнер бесед
 }
 //-----------------------------------------------------------------------------
 TUserAccount::~TUserAccount()
 {
-
+    fContacts->clear(); // Очищаем список контактов
+    fChats->clear(); // Очищаем список бесед
 }
 //-----------------------------------------------------------------------------
 TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
@@ -29,6 +32,9 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
 
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     this->fContacts = inOther.fContacts; // Копируем контейнер контактов
+    this->fChats = inOther.fChats; // Копируем контейнер бесед
+
+    this->setParent(inOther.parent());
 
     return *this;
 }
