@@ -14,6 +14,7 @@ namespace Commands
 //    const quint8 GetContacts =          6; // Запрос списка контактов
     const quint8 DeleteContact =        7; // Удаление контакта
     const quint8 ContactChangeStatus =  8; // Контакт изменил свой статус
+    const quint8 CreateChat =           9; // Создание новой беседы
 }
 
 #endif // COMANDES_H

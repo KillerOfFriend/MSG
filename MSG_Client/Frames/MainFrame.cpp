@@ -79,18 +79,43 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo
     switch(inResult)
     {
         case TUserViewDialog::rbAdd:
-    {
-        if (!DM.Client()->addContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo.userUuid()))
-            QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось добавить контакт!"));
-        break;
-    };
+        {
+            if (!DM.Client()->addContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo.userUuid()))
+                QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось добавить контакт!"));
+            break;
+        };
         case TUserViewDialog::rbRemove:
         {
             if (!DM.Client()->deleteContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo.userUuid()))
                 QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось удалить контакт!"));
             break;
         };
-        case TUserViewDialog::rbSendMsg: { break; }
+        case TUserViewDialog::rbSendMsg:
+        {
+            QUuid ChatUuid; // Uuid беседы
+            // Формируем Uuid приватной беседы
+            // Uuid прививатной беседы формируется из суммы байтовых последовательностей самого клиента и клиента, которуму пишется
+            // ВАЖНО! для правильной генерации Uuid с обеих сторон соединения, последовательность должна быть от меньшего к большему
+            if (DM.UserAccount()->userInfo()->userUuid() < inUserInfo.userUuid())
+                ChatUuid = QUuid(DM.UserAccount()->userInfo()->userUuid().toByteArray() + inUserInfo.userUuid().toByteArray());
+            else ChatUuid = QUuid(inUserInfo.userUuid().toByteArray() + DM.UserAccount()->userInfo()->userUuid().toByteArray());
+
+            auto FindCharRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
+            if (FindCharRes == DM.UserAccount()->chats()->end()) // Если беседа не найдена
+            {
+                QList<QUuid> ChatUsers; // Создаём список участников беседы
+                ChatUsers.push_back(DM.UserAccount()->userInfo()->userUuid()); // Добавляем "Себя"
+                ChatUsers.push_back(inUserInfo.userUuid()); // Добавляем пользователя
+
+                DM.Client()->createChat(ChatUuid, ChatUsers); // Шлём команду на создание беседы
+            }
+            else // Если беседа найдена
+            {
+                // !!!
+            }
+
+            break;
+        };
         default: break;
     }
 }

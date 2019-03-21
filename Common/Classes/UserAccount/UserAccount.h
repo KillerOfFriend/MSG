@@ -11,7 +11,7 @@
 
 #include "Classes/UserInfo/UserInfo.h"
 #include "Models/UsersModel/UsersModel.h"
-#include "Classes/ChatInfo/ChatInfo.h"
+#include "Models/ChatsModel/ChatsModel.h"
 
 namespace Users
 {
@@ -28,11 +28,12 @@ namespace Users
 
         std::shared_ptr<TUserInfo> userInfo() const; // Метод вернёт информацию о пользователе
         std::shared_ptr<TUsersModel> contacts() const; // Метод вернёт список контактов
+        std::shared_ptr<TChatsModel> chats() const; // Метод вернёт список бесед
 
     private:
         std::shared_ptr<TUserInfo> fUserInfo = nullptr; // Данные о пользователе
         std::shared_ptr<TUsersModel> fContacts = nullptr; // Список контактов
-        std::shared_ptr<std::map<QUuid, TChatInfo>> fChats = nullptr; // Список бесед пользователя
+        std::shared_ptr<TChatsModel> fChats = nullptr; // Список бесед пользователя
 
     signals:
 

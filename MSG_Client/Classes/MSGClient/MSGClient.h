@@ -29,6 +29,8 @@ public:
 //    bool getContacts(QUuid inSelfUuid); // Метод отправит команду на на возвращение списка контактов
     bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
 
+    bool createChat(QUuid inChatUuid, QList<QUuid> &inUsersList); // Метод отправит команду на создание беседы
+
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;
 

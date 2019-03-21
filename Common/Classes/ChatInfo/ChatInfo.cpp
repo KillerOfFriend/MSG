@@ -46,13 +46,13 @@ QUuid TChatInfo::chatUuid() const // Метод вернёт Uuid беседы
 void TChatInfo::setChatName(QString inName) // Метод задаст имя беседы
 { fName = inName; }
 //-----------------------------------------------------------------------------
-QString TChatInfo::chatName() // Метод вернёт имя беседы
+QString TChatInfo::chatName() const // Метод вернёт имя беседы
 { return fName; }
 //-----------------------------------------------------------------------------
 void TChatInfo::setChatPrivateStatus(bool inPrivateStatus) // Метод задаст статус приватности беседы
 { fPrivateStatus = inPrivateStatus; }
 //-----------------------------------------------------------------------------
-bool TChatInfo::chatPrivateStatus() // Метод вернёт статус приватности беседы
+bool TChatInfo::chatPrivateStatus() const // Метод вернёт статус приватности беседы
 { return fPrivateStatus; }
 //-----------------------------------------------------------------------------
 void TChatInfo::addUser(QUuid inUserUuid) // Метод добавит пользователя в беседу

@@ -24,10 +24,10 @@ namespace Users
         QUuid chatUuid() const; // Метод вернёт Uuid беседы
 
         void setChatName(QString inName); // Метод задаст имя беседы
-        QString chatName(); // Метод вернёт имя беседы
+        QString chatName() const; // Метод вернёт имя беседы
 
         void setChatPrivateStatus(bool inPrivateStatus); // Метод задаст статус приватности беседы
-        bool chatPrivateStatus(); // Метод вернёт статус приватности беседы
+        bool chatPrivateStatus() const; // Метод вернёт статус приватности беседы
 
         void addUser(QUuid inUserUuid); // Метод добавит пользователя в беседу
         void deleteUser(QUuid inUserUuid); // Метод удалит пользователя из беседы

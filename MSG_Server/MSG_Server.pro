@@ -43,7 +43,8 @@ SOURCES += \
     ../Common/Models/UsersTypeModel/UsersTypeModel.cpp \
     Models/UsersTypeModelDB/UsersTypeModelDB.cpp \
     ../Common/othertypes.cpp \
-    ../Common/Classes/ChatInfo/ChatInfo.cpp
+    ../Common/Classes/ChatInfo/ChatInfo.cpp \
+    ../Common/Models/ChatsModel/ChatsModel.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -61,7 +62,8 @@ HEADERS += \
     ../Common/Models/UsersModel/UsersModel.h \
     ../Common/Models/UsersTypeModel/UsersTypeModel.h \
     Models/UsersTypeModelDB/UsersTypeModelDB.h \
-    ../Common/Classes/ChatInfo/ChatInfo.h
+    ../Common/Classes/ChatInfo/ChatInfo.h \
+    ../Common/Models/ChatsModel/ChatsModel.h
 
 FORMS += \
         ServerMainWindow.ui

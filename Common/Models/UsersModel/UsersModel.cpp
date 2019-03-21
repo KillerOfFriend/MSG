@@ -65,7 +65,7 @@ QVariant TUsersModel::data(const QModelIndex &index, int role) const
             {
                 case cUserLogin:    { Result = It->second.userLogin(); break; }
                 case cUserName:     { Result = It->second.userName(); break; }
-                case cUserStatus:   {Result = It->second.userStatus(); break; }
+                case cUserStatus:   { Result = It->second.userStatus(); break; }
                 case cUserUuid:     { Result = It->second.userUuid(); break; }
                 case cUserType:     { Result = It->second.userType(); break; }
                 case cUserRegDate:  { Result = It->second.userRegistrationDate(); break; }

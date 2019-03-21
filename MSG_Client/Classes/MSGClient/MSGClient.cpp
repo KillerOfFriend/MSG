@@ -198,6 +198,24 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
     return Result;
 }
 //-----------------------------------------------------------------------------
+bool TMSGClient::createChat(QUuid inChatUuid, QList<QUuid> &inUsersList) // Метод отправит команду на создание беседы
+{
+    bool Result = true;
+
+    if(!isConnected() || inUsersList.isEmpty())
+        Result = false;
+    else
+    {
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Stream << Commands::CreateChat << inChatUuid << inUsersList;
+
+        fClient->write(SendingData);
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
 void TMSGClient::slot_ReadyRead()
 {
     executCommand(fClient.get());

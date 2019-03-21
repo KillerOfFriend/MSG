@@ -9,7 +9,7 @@ TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
 {
     fUserInfo = std::make_shared<TUserInfo>();
     fContacts = std::make_shared<TUsersModel>();
-    fChats = std::make_shared<std::map<QUuid,TChatInfo>>();
+    fChats = std::make_shared<TChatsModel>();
 }
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent())
@@ -39,11 +39,26 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
     return *this;
 }
 //-----------------------------------------------------------------------------
-std::shared_ptr<TUserInfo> TUserAccount::userInfo() const // Метод вернёт информацию о пользователе
+/**
+ * @brief TUserAccount::userInfo - Метод вернёт информацию о пользователе
+ * @return Вернёт указатель на данные пользователя
+ */
+std::shared_ptr<TUserInfo> TUserAccount::userInfo() const
 { return fUserInfo; }
 //-----------------------------------------------------------------------------
-std::shared_ptr<TUsersModel> TUserAccount::contacts() const // Метод вернёт список контактов
+/**
+ * @brief TUserAccount::contacts - Метод вернёт список контактов
+ * @return Вернёт указатель на список контактов
+ */
+std::shared_ptr<TUsersModel> TUserAccount::contacts() const
 { return fContacts; }
+//-----------------------------------------------------------------------------
+/**
+ * @brief TUserAccount::chats - Метод вернёт список бесед
+ * @return Вернёт указатель на список бесед
+ */
+std::shared_ptr<TChatsModel> TUserAccount::chats() const
+{ return fChats; }
 //-----------------------------------------------------------------------------
 /**
  * @brief TUserAccount::slot_SetUserInfo - Слот задаст данные пользователя
