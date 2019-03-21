@@ -198,7 +198,7 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
     return Result;
 }
 //-----------------------------------------------------------------------------
-bool TMSGClient::createChat(QUuid inChatUuid, QList<QUuid> &inUsersList) // Метод отправит команду на создание беседы
+bool TMSGClient::createChat(QUuid inChatUuid, bool inPrivate, QList<QUuid> &inUsersList) // Метод отправит команду на создание беседы
 {
     bool Result = true;
 
@@ -208,7 +208,7 @@ bool TMSGClient::createChat(QUuid inChatUuid, QList<QUuid> &inUsersList) // Ме
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::CreateChat << inChatUuid << inUsersList;
+        Stream << Commands::CreateChat << inChatUuid << inPrivate << inUsersList;
 
         fClient->write(SendingData);
     }

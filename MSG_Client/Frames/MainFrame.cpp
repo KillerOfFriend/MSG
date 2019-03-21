@@ -107,7 +107,7 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo
                 ChatUsers.push_back(DM.UserAccount()->userInfo()->userUuid()); // Добавляем "Себя"
                 ChatUsers.push_back(inUserInfo.userUuid()); // Добавляем пользователя
 
-                DM.Client()->createChat(ChatUuid, ChatUsers); // Шлём команду на создание беседы
+                DM.Client()->createChat(ChatUuid, true, ChatUsers); // Шлём команду на создание приватной беседы
             }
             else // Если беседа найдена
             {
