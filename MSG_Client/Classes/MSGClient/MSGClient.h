@@ -8,6 +8,7 @@
 
 #include "othertypes.h"
 #include "Classes/UserInfo/UserInfo.h"
+#include "Classes/ChatInfo/ChatInfo.h"
 
 class TMSGClient : public QObject
 {
@@ -29,7 +30,7 @@ public:
 //    bool getContacts(QUuid inSelfUuid); // Метод отправит команду на на возвращение списка контактов
     bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
 
-    bool createChat(QUuid inChatUuid, bool inPrivate, QList<QUuid> &inUsersList); // Метод отправит команду на создание беседы
+    bool createChat(Users::TChatInfo &inChatInfo); // Метод отправит команду на создание беседы
 
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;

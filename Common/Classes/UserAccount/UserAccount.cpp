@@ -86,7 +86,12 @@ void TUserAccount::slot_SetContacts(const QList<TUserInfo> &inContacts)
     });
 }
 //-----------------------------------------------------------------------------
-void TUserAccount::slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus) // Сот установит контакту указанный статус
+/**
+ * @brief TUserAccount::slot_ContactChangeStatus - Слот установит контакту указанный статус
+ * @param inContactUuid - Uuid контакта
+ * @param inNewStatus - Новый статус
+ */
+void TUserAccount::slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus)
 {
     auto FindRes = fContacts->find(inContactUuid);
 
@@ -97,5 +102,21 @@ void TUserAccount::slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewSta
         FindRes->second.setUserStatus(inNewStatus);
         fContacts->dataChanged(fContacts->index(Row, TUsersModel::cUserStatus), fContacts->index(Row, TUsersModel::cUserStatus));
     }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TUserAccount::slot_SetChats - Слот задаст список бесед
+ * @param inChats - Список бесед
+ */
+void TUserAccount::slot_SetChats(const QList<TChatInfo> &inChats)
+{
+    fChats->clear();
+
+    std::for_each(inChats.begin(), inChats.end(), [&](const TChatInfo &Info)
+    {
+        auto InsertRes = fChats->insert(std::make_pair(Info.chatUuid(), Info));
+        if (!InsertRes.second)
+            qDebug() << "Не удалось вставить беседу: " + Info.chatName();
+    });
 }
 //-----------------------------------------------------------------------------

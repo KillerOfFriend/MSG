@@ -52,6 +52,18 @@ namespace Res
         const qint32 dcContactRemove = 1;
         const qint32 dcContactNotFound = 2;
     }
+
+    namespace CreateChat
+    {
+        const qint32 ccCreated = 1;
+        const qint32 ccAlredyExist = 2;
+    }
+
+    namespace AddUsetToChat
+    {
+        const qint32 autcAdded = 1;
+        const qint32 autcAlredyExist = 2;
+    }
 }
 
 #endif // RESULTCODES_H

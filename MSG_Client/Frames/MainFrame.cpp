@@ -102,12 +102,16 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo
 
             auto FindCharRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
             if (FindCharRes == DM.UserAccount()->chats()->end()) // Если беседа не найдена
-            {
-                QList<QUuid> ChatUsers; // Создаём список участников беседы
-                ChatUsers.push_back(DM.UserAccount()->userInfo()->userUuid()); // Добавляем "Себя"
-                ChatUsers.push_back(inUserInfo.userUuid()); // Добавляем пользователя
+            {   
+                Users::TChatInfo NewChat; // Новая беседа
+                NewChat.setChatUuid(ChatUuid); // Задаём Uuid новой беседы
+                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + " | " + inUserInfo.userName());
+                NewChat.setChatPrivateStatus(true); // Помечаем беседу как приватную
 
-                DM.Client()->createChat(ChatUuid, true, ChatUsers); // Шлём команду на создание приватной беседы
+                NewChat.addUser(DM.UserAccount()->userInfo()->userUuid());  // Добавляем "Себя"
+                NewChat.addUser(inUserInfo.userUuid()); // Добавляем пользователя
+
+                DM.Client()->createChat(NewChat); // Шлём команду на создание приватной беседы
             }
             else // Если беседа найдена
             {

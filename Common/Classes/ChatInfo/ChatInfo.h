@@ -29,8 +29,13 @@ namespace Users
         void setChatPrivateStatus(bool inPrivateStatus); // Метод задаст статус приватности беседы
         bool chatPrivateStatus() const; // Метод вернёт статус приватности беседы
 
+        std::size_t usersCount(); // Метод вернёт кол-во пользователей
         void addUser(QUuid inUserUuid); // Метод добавит пользователя в беседу
         void deleteUser(QUuid inUserUuid); // Метод удалит пользователя из беседы
+        QUuid user(std::size_t inIndex); // Метод вернёт Uuid пользователя по индексу
+
+        friend QDataStream& operator <<(QDataStream&, const TChatInfo&);
+        friend QDataStream& operator >>(QDataStream&, TChatInfo&);
 
     private:
         QUuid fUuid; // Uuid беседы
@@ -44,7 +49,7 @@ namespace Users
         void sig_ChatUserDeleted(QUuid inChatUuid, QUuid inUserUuid); // Сигнал о удалении пользователя из чата
 
     public slots:
-
+        void slot_SetClients(QList<QUuid> &inClientList); // Слот задаст список клиентов беседы
     };
 
 }

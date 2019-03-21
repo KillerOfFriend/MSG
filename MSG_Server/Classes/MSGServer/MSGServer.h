@@ -40,12 +40,21 @@ private:
 
     qint32 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
     std::pair<qint32, QUuid> canAuthorization(QDataStream &inDataStream); // Метод авторизирует пользователя
+
     Users::TUserInfo getUserInfo(QUuid inUserUuid); // Метод вернёт инфо пользователя по Uuid
     QList<Users::TUserInfo> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
+
     std::pair<qint32, Users::TUserInfo> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
     QList<Users::TUserInfo> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
     QList<Users::TUserInfo> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
     std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
+
+    std::pair<qint32, Users::TChatInfo> createChat(QDataStream &inDataStream); // Метод добавит новую беседу
+    QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
+    qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
+    Users::TChatInfo getChatInfo(QUuid inChatUuid); // Метод вернёт информацию о беседе
+    QList<QUuid> getChatUsers(QUuid inChatUuid); // Метод вернёт список пользователй чата
+    QList<Users::TChatInfo> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 

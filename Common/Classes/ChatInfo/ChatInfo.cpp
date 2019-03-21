@@ -1,5 +1,7 @@
 #include "ChatInfo.h"
 
+#include <QList>
+
 using namespace Users;
 
 //-----------------------------------------------------------------------------
@@ -55,6 +57,9 @@ void TChatInfo::setChatPrivateStatus(bool inPrivateStatus) // Метод зад�
 bool TChatInfo::chatPrivateStatus() const // Метод вернёт статус приватности беседы
 { return fPrivateStatus; }
 //-----------------------------------------------------------------------------
+std::size_t TChatInfo::usersCount() // Метод вернёт кол-во пользователей
+{ return fClients.size(); }
+//-----------------------------------------------------------------------------
 void TChatInfo::addUser(QUuid inUserUuid) // Метод добавит пользователя в беседу
 {
     auto InsertRes = fClients.insert(inUserUuid); // Добавляем пользователя в беседу
@@ -75,3 +80,61 @@ void TChatInfo::deleteUser(QUuid inUserUuid) // Метод удалит поль
     }
 }
 //-----------------------------------------------------------------------------
+QUuid TChatInfo::user(std::size_t inIndex) // Метод вернёт Uuid пользователя по индексу
+{
+    if (inIndex >= fClients.size())
+        return QUuid();
+    else
+    {
+        auto It = fClients.begin();
+        std::advance(It, inIndex);
+        return *It;
+    }
+}
+//-----------------------------------------------------------------------------
+void TChatInfo::slot_SetClients(QList<QUuid> &inClientList) // Слот задаст список клиентов беседы
+{
+    fClients.clear(); // Предварительно чистим содержимое контейнера клиентов
+
+    std::for_each(inClientList.begin(), inClientList.end(), [&](const QUuid &UserUuid) // Копируем пользователей
+    {
+        fClients.insert(UserUuid);
+    });
+}
+//-----------------------------------------------------------------------------
+namespace Users
+{   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
+    QDataStream& operator <<(QDataStream &outStream, const TChatInfo &ChatInfo)
+    {
+        outStream << ChatInfo.fUuid;
+        outStream << ChatInfo.fName;
+        outStream << ChatInfo.fPrivateStatus;
+
+        QList<QUuid> ClientsBuf; // Создаём временный буфер пользователей
+        std::for_each(ChatInfo.fClients.begin(), ChatInfo.fClients.end(), [&ClientsBuf](const QUuid &UserUuid) // Копируем пользователей
+        {
+            ClientsBuf.push_back(UserUuid);
+        });
+        outStream << ClientsBuf;
+
+        return outStream;
+    }
+    //-----------------------------------------------------------------------------
+    QDataStream& operator >>(QDataStream &inStream, TChatInfo &ChatInfo)
+    {
+        inStream >> ChatInfo.fUuid;
+        inStream >> ChatInfo.fName;
+        inStream >> ChatInfo.fPrivateStatus;
+
+        ChatInfo.fClients.clear(); // Предварительно чистим содержимое контейнера клиентов
+        QList<QUuid> ClientsBuf; // Создаём временный буфер пользователей
+        inStream >> ClientsBuf;
+        std::for_each(ClientsBuf.begin(), ClientsBuf.end(), [&](const QUuid &UserUuid) // Копируем пользователей
+        {
+            ChatInfo.fClients.insert(UserUuid);
+        });
+
+        return inStream;
+    }
+    //-----------------------------------------------------------------------------
+}

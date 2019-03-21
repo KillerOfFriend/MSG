@@ -40,6 +40,7 @@ namespace Users
     public slots:
         void slot_SetUserInfo(const TUserInfo &inUserInfo); // Слот задаст данные пользователя
         void slot_SetContacts(const QList<TUserInfo> &inContacts); // Слот задаст список контактов
+        void slot_SetChats(const QList<TChatInfo> &inChats); // Слот задаст список бесед
         void slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus); // Сот установит контакту указанный статус
 
     };

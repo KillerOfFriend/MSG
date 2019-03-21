@@ -69,16 +69,18 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                     else
                     {
                         QList<Users::TUserInfo> Contacts = getContacts(UserInfo.userUuid()); // Получаем список контактов пользователя
+                        QList<Users::TChatInfo> Chats = getChats(UserInfo.userUuid()); // Получаем список бесед пользователя
 
                         checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
 
                         Users::TUserAccount UserAccount(this);
                         UserAccount.slot_SetUserInfo(UserInfo);
                         UserAccount.slot_SetContacts(Contacts);
+                        UserAccount.slot_SetChats(Chats);
 
                         slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
 
-                        outStream << Command << Resuslt.first << UserInfo << Contacts; // Пишем в результат команду и результат обработки
+                        outStream << Command << Resuslt.first << UserInfo << Contacts << Chats; // Пишем в результат команду и результат обработки
                         sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                     }
                     break;
@@ -166,7 +168,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 //            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
 //            break;
 //        }
-        case Commands::DeleteContact:
+        case Commands::DeleteContact: // Удаление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
             std::pair<qint32, QUuid> Result = deleteContact(inStream); // Удаляем контакт
@@ -185,6 +187,17 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             }
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
+            break;
+        }
+        case Commands::CreateChat: // Создание беседы
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание беседы");
+            std::pair<qint32, Users::TChatInfo> Result = createChat(inStream); // Пытаемся добавить беседу
+
+            if (Result.first != Res::rUnknown) // Если добавлен или уже существует
+                outStream << Command << Result.first << Result.second; // Шлём команду, результат и саму беседу
+            else outStream << Command << Result.first; // Шлём команду и результат
+
             break;
         }
 
@@ -433,6 +446,167 @@ std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) //
 
         }
     }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+std::pair<qint32, Users::TChatInfo> TMSGServer::createChat(QDataStream &inDataStream) // Метод добавит новую беседу
+{
+    std::pair<qint32, Users::TChatInfo> Result;
+    Result.first = Res::rUnknown;
+
+    Users::TChatInfo NewChat; // Читаем данные о беседе из потока
+    inDataStream >> NewChat;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM create_chat(:in_uuid,:in_name,:in_private_status)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_uuid", NewChat.chatUuid());
+        Query.bindValue(":in_name", NewChat.chatName().toUtf8());
+        Query.bindValue(":in_private_status", NewChat.chatPrivateStatus());
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result.first = Query.value("create_chat").toInt();
+        }
+    }
+
+    if (Result.first != Res::rUnknown) // Если добавление или обновление
+        for (std::size_t Index = 0; Index < NewChat.usersCount(); ++Index)
+        {
+            QUuid Uuid = NewChat.user(Index);
+            if (!Uuid.isNull()) // Если Uuid пользователя валиден
+                addUserToChat(NewChat.chatUuid(), Uuid); // Добавляем пользователя в беседу
+        }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+QList<QUuid> TMSGServer::findChats(QUuid inUserUuid) // Метод вернёт список бесед по uuid указанного пользователя
+{
+    QList<QUuid> Result;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM get_chats(:in_owner_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_owner_uuid", inUserUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next())
+                Result.push_back(Query.value("found_chats_uuid").toUuid());
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+qint32 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Метод добавит пользователя в беседу
+{
+    qint32 Result = Res::rUnknown;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM add_user_to_chat(:in_chat_uuid,:in_user_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_chat_uuid", inChatUuid);
+        Query.bindValue(":in_user_uuid", inUserUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result = Query.value("add_user_to_chat").toInt();
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+Users::TChatInfo TMSGServer::getChatInfo(QUuid inChatUuid) // Метод вернёт информацию о беседе
+{
+    Users::TChatInfo Result;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM get_chat_info(:in_chat_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_chat_uuid", inChatUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next())
+            {
+                Result.setChatUuid(Query.value("f_chat_uuid").toUuid());
+                Result.setChatName(QString::fromUtf8(Query.value("f_chat_name").toByteArray()));
+                Result.setChatPrivateStatus(Query.value("f_chat_is_private").toBool());
+
+                QList<QUuid> ChatUsersBuf = getChatUsers(Result.chatUuid()); // Получаем список пользователей чата
+                Result.slot_SetClients(ChatUsersBuf); // Задаём список пользователей чата
+            }
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+QList<QUuid> TMSGServer::getChatUsers(QUuid inChatUuid) // Метод вернёт список пользователй чата
+{
+    QList<QUuid> Result;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM get_chat_users(:in_chat_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_chat_uuid", inChatUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next())
+                Result.push_back(Query.value("found_users_uuid").toUuid());
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+QList<Users::TChatInfo> TMSGServer::getChats(const QUuid &inOwnerUuid) // Метод вернёт список бесед указонного пользователя
+{
+    QList<Users::TChatInfo> Result;
+
+    QList<QUuid> Chats = findChats(inOwnerUuid); // Получаем список Uuid'ов бесед пользователя
+
+    std::for_each(Chats.begin(), Chats.end(), [&](const QUuid &ChatUuid)
+    {
+        if (!ChatUuid.isNull()) // Если Uuid беседы валиден
+        {
+            Users::TChatInfo FindChat = getChatInfo(ChatUuid); // Получаем данные о беседе
+            if (!FindChat.chatUuid().isNull()) // Если полученная беседа валидна
+                Result.push_back(FindChat); // Добавляем беседу в список
+        }
+    });
 
     return Result;
 }
