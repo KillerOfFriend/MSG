@@ -43,7 +43,7 @@ private:
     void initColumns();
 
 public slots:
-    void slot_NewMessage(QHostAddress inAddres, QString inMessage);
+    void slot_NewMessage(QHostAddress inAddres, QString inMessage); // Слод добавит сообщение в модель
 };
 
 #endif // SERVERLOGMODEL_H

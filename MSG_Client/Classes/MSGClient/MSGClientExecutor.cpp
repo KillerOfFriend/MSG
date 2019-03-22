@@ -27,49 +27,49 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
     {
         case Commands::CreateUser: // Регистрация пользователя
         {
-            sig_LogMessage("Получен ответ на создание пользователя" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на создание пользователя");
             creteUserResult(inStream); // Обработатьм результат регистрации пользователя
             break;
         }
         case Commands::Authorization: // Авторизация пользователя
         {
-            sig_LogMessage("Получен ответ на авторизацию" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на авторизацию");
             userAuthorization(inStream); // Обработать результат авторизации
             break;
         }
         case Commands::GetUserTypes: // Возврат списка типов пользователей
         {
-            sig_LogMessage("Получен ответ на запрос списка типов пользователей" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на запрос списка типов пользователей");
             getUserTypesResult(inStream); // Обрабатываем результат возврата списка пользователей
             break;
         }
         case Commands::FindUsers: // Поиск пользователей
         {
-            sig_LogMessage("Получен ответ на поиск пользователей" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на поиск пользователей");
             findUsersResult(inStream); // Обработать результат поиска пользователей
             break;
         }
         case Commands::AddContact: // Добавление котнакта
         {
-            sig_LogMessage("Получен ответ на добавление пользователя" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на добавление пользователя");
             addContactResult(inStream); // Обработать результат добавления контакта
             break;
         }
 //        case Commands::GetContacts: // Запрос списка контактов
 //        {
-//            sig_LogMessage("Получен ответ на запрос списка контактов" + inClientSender->peerAddress().toString());
+//            sig_LogMessage("Получен ответ на запрос списка контактов");
 //            getContactsResult(inStream); // Обработать результат запроса списка контактов
 //            break;
 //        }
         case Commands::DeleteContact: // Удаление контакта
         {
-            sig_LogMessage("Получен ответ на удаление контакта" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получен ответ на удаление контакта");
             deleteContactResult(inStream); // Обработать результат удаления контака
             break;
         }
         case Commands::ContactChangeStatus: // Контакт изменил свой статус
         {
-            sig_LogMessage("Получено сообщение о смене статуса" + inClientSender->peerAddress().toString());
+            sig_LogMessage("Получено сообщение о смене статуса");
             contactChangeStatus(inStream);  // Обрабатываем изменение статуса контакта
             break;
         }
@@ -98,14 +98,19 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
     qint32 Result = Res::rUnknown;
     Users::TUserInfo UserInfo;
     QList<Users::TUserInfo> Contacts;
+    QList<Users::TChatInfo> Chats;
 
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
     {
         inDataStream >> UserInfo; // Получаем информацию о пользователе
         inDataStream >> Contacts; // Получаем список контактов
+        inDataStream >> Chats; // Получаем список бесед
+
+
         sig_SetUserInfo(UserInfo); // Шлём сигнал с данными пользователя
         sig_SetContacts(Contacts); // Шлём сигнал со списком контактов пользователей
+        sig_SetChats(Chats); // Шлём сигнал со списком бесед
     }
 
     sig_AuthorizationResult(Result); // Шлём сигнал с результатом авторизации

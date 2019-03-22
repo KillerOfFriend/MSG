@@ -64,6 +64,7 @@ signals:
 
     void sig_SetUserInfo(const Users::TUserInfo &inUserInfo);
     void sig_SetContacts(const QList<Users::TUserInfo> &inUsers);
+    void sig_SetChats(const QList<Users::TChatInfo> &inChats);
 
     void sig_UserCreateResult(qint32 inResult);
     void sig_AuthorizationResult(qint32 inResult);

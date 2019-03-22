@@ -2,6 +2,7 @@
 #define MAINFRAME_H
 
 #include <memory>
+#include <map>
 
 #include <QWidget>
 #include <QList>
@@ -30,10 +31,13 @@ private:
     std::unique_ptr<TUsersModel> fFoundUsers = nullptr;
     std::unique_ptr<QSortFilterProxyModel> fFounUsersProxyModel = nullptr;
 
+    std::map<QUuid, qint32> fOpenChatTabs; // Контейнер связывает Uuid беседы и вкладку
+
     void init(); // Метод инициализирует фрейм
     void Link(); // Метод слинкует сигналы со слотами
 
 private slots:
+    void slot_CloseTab(qint32 inTabIndex); // Слот, реагирует на сигнал закрытия вкладки
     void slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo, qint32 inResult); // Слот, реагирует на результат диалога просмотра пользователя
 
     void slot_FindUsers(); // Слот реагирует на запрос поиска пользователей
@@ -46,6 +50,8 @@ private slots:
     void on_ContactsListView_doubleClicked(const QModelIndex &index);
 
     void on_ContactsFilterLineEdit_textChanged(const QString &arg1);
+
+    void on_ChatListView_doubleClicked(const QModelIndex &index);
 
 private:
     Ui::TfmeMainFrame *ui;

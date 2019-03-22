@@ -134,6 +134,8 @@ bool TMSGClient::findUsers(QString inUserName) // Метод отправит к
         Result = false;
     else
     {
+        sig_LogMessage("Отправлен запрос на поиск пользователей по фильтру (" + inUserName + ")");
+
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
         Stream << Commands::FindUsers << inUserName.toLower().toUtf8();
@@ -152,6 +154,8 @@ bool TMSGClient::addContact(QUuid inSelfUuid, QUuid inContactUuid) // Метод
         Result = false;
     else
     {
+        sig_LogMessage("Отправлен запрос на добавление пользоватея в контакты");
+
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
         Stream << Commands::AddContact << inSelfUuid << inContactUuid;
@@ -188,6 +192,8 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
         Result = false;
     else
     {
+        sig_LogMessage("Отправлен запрос на удаление пользоватея из контактов");
+
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
         Stream << Commands::DeleteContact << inSelfUuid << inContactUuid;
@@ -206,6 +212,8 @@ bool TMSGClient::createChat(Users::TChatInfo &inChatInfo) // Метод отпр
         Result = false;
     else
     {
+        sig_LogMessage("Отправлен запрос на создание беседы");
+
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
         Stream << Commands::CreateChat << inChatInfo;
@@ -228,5 +236,8 @@ void TMSGClient::slot_connected()
 { qDebug() << "slot_hostFound"; }
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_disconnected()
-{ qDebug() << "slot_disconnected"; }
+{
+    qDebug() << "slot_disconnected";
+    sig_LogMessage("Соеденение разорвано");
+}
 //-----------------------------------------------------------------------------

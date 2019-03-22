@@ -14,22 +14,6 @@ TServerLogModel::~TServerLogModel()
     fRecords.clear();
 }
 //-----------------------------------------------------------------------------
-void TServerLogModel::slot_NewMessage(QHostAddress inAddres, QString inMessage)
-{
-    TRecord NewRecord = { QDateTime::currentDateTime(), inAddres, inMessage };
-
-    if(fRecords.size() == fMaxLines)
-    {
-        beginRemoveRows(QModelIndex(), 0, 0);
-        fRecords.pop_back();
-        endRemoveRows();
-    }
-
-    beginInsertRows(QModelIndex(), fRecords.size(), fRecords.size());
-    fRecords.push_back(NewRecord);
-    endInsertRows();
-}
-//-----------------------------------------------------------------------------
 int TServerLogModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
@@ -123,5 +107,21 @@ void TServerLogModel::initColumns()
     fColumns[cTime] = tr("Время");
     fColumns[cAddres] = tr("IP Адрес");
     fColumns[cMessage] = tr("Сообщение");
+}
+//-----------------------------------------------------------------------------
+void TServerLogModel::slot_NewMessage(QHostAddress inAddres, QString inMessage)
+{
+    TRecord NewRecord = { QDateTime::currentDateTime(), inAddres, inMessage };
+
+    if(fRecords.size() == fMaxLines)
+    {
+        beginRemoveRows(QModelIndex(), 0, 0);
+        fRecords.pop_back();
+        endRemoveRows();
+    }
+
+    beginInsertRows(QModelIndex(), fRecords.size(), fRecords.size());
+    fRecords.push_back(NewRecord);
+    endInsertRows();
 }
 //-----------------------------------------------------------------------------
