@@ -42,8 +42,6 @@ private slots:
 
     void slot_FindUsers(); // Слот реагирует на запрос поиска пользователей
     void slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers); // Слот, получающий результат поиска пользователей
-    void slot_AddContactRes(qint32 inResult, Users::TUserInfo &inContactInfo); // Слот, получающий результат добавления контакта
-    void slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid); // Слот, получающий результат удаления контакта
 
     void slot_ChatAddNew(); // Слот вызывает добавление ногвой беседы
     void slot_ChatDeleteCurrent(); // Слот вызывает удаление выбранной беседы

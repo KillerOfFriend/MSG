@@ -31,6 +31,7 @@ public:
 private:    
     std::unique_ptr<QTcpServer> fServer = nullptr; // Сервер
     TConnectedUsersModel fClients; // Список подключённых клиентов
+    std::map<QUuid, Users::ChatInfo_Ptr> fChats; // Список бесед
 
     //---
     void init(); // Метод инициализирует класс
@@ -49,7 +50,7 @@ private:
     QList<Users::TUserInfo> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
     std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
-    std::pair<qint32, Users::TChatInfo> createChat(QDataStream &inDataStream); // Метод добавит новую беседу
+    qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
     QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
     qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
     Users::TChatInfo getChatInfo(QUuid inChatUuid); // Метод вернёт информацию о беседе
@@ -66,8 +67,8 @@ private:
     void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
 
     void syncCreateChat(Users::TChatInfo &inChatInfo); // Метод синхронизирует добавленный чат с пользователями
-    void syncAddedUserToChat();
-    void syncDeletedUserToChat();
+    void syncAddedUserToChat(QUuid inUserUuid, QUuid inChatUuid); // Метод синхронизирует беседу послед добавления пользователя в неё
+    void syncDeletedUserFromChat(QUuid inUserUuid, QUuid inChatUuid); // Метод синхронизирует беседу послед удаления пользователя из неё
 
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
@@ -82,8 +83,10 @@ private slots:
     void slot_ClientError(QAbstractSocket::SocketError inError); // Слот, реагирующий на ошибку клиента
 
     void slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAccount &inUserAccount); // Слот, задающий авториированного пользователя
+
     void slot_AddContact(QTcpSocket* inClient, Users::TUserInfo &inContactInfo); // Слот, добавляющйи контакт пользователю
     void slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid); // Слот, удаляющий контакт пользователя
+    void slot_AddChat(Users::TChatInfo &inChatInfo); // Слот, добавляющий беседу
 };
 
 #endif // MSGSERVER_H

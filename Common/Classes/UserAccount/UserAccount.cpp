@@ -114,9 +114,27 @@ void TUserAccount::slot_SetChats(const QList<TChatInfo> &inChats)
 
     std::for_each(inChats.begin(), inChats.end(), [&](const TChatInfo &Info)
     {
-        auto InsertRes = fChats->insert(std::make_pair(Info.chatUuid(), Info));
+        auto InsertRes = fChats->insert(std::make_pair(Info.chatUuid(), std::make_shared<Users::TChatInfo>(Info)));
         if (!InsertRes.second)
             qDebug() << "Не удалось вставить беседу: " + Info.chatName();
     });
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TUserAccount::slot_AddChat - Слот добавит беседу
+ * @param inChat - Новая беседа
+ */
+void TUserAccount::slot_AddChat(const Users::TChatInfo &inChat)
+{
+    auto FindRes = fChats->find(inChat.chatUuid());
+
+    if (FindRes == fChats->end())
+    {
+        fChats->insert(std::make_pair(inChat.chatUuid(), std::make_shared<Users::TChatInfo>(inChat)));
+    }
+    else
+    {
+        FindRes->second = std::make_shared<Users::TChatInfo>(inChat);
+    }
 }
 //-----------------------------------------------------------------------------

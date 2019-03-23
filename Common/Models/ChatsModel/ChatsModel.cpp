@@ -21,7 +21,7 @@ TChatsModel& TChatsModel::operator = (const TChatsModel &inOther)
     this->fColumns = inOther.fColumns;
     this->clear();
 
-    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::TChatInfo> &Item)
+    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Item)
     {
         this->insert(Item);
     });
@@ -62,9 +62,9 @@ QVariant TChatsModel::data(const QModelIndex &index, int role) const
         {
             switch (index.column())
             {
-                case cChatUuid:             { Result = It->second.chatUuid(); break; }
-                case cChatName:             { Result = It->second.chatName(); break; }
-                case cChatPrivateStatus:    { Result = It->second.chatPrivateStatus(); break; }
+                case cChatUuid:             { Result = It->second->chatUuid(); break; }
+                case cChatName:             { Result = It->second->chatName(); break; }
+                case cChatPrivateStatus:    { Result = It->second->chatPrivateStatus(); break; }
 
                 default: { Result = QVariant(); break; }
             }
@@ -90,9 +90,9 @@ QVariant TChatsModel::headerData(int section, Qt::Orientation orientation, int r
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::map<QUuid, Users::TChatInfo>::iterator, bool> TChatsModel::insert(const std::pair<QUuid, Users::TChatInfo> &inValue)
+std::pair<std::map<QUuid, Users::ChatInfo_Ptr>::iterator, bool> TChatsModel::insert(const std::pair<QUuid, Users::ChatInfo_Ptr> &inValue)
 {
-    auto It = std::map<QUuid, Users::TChatInfo>::insert(inValue);
+    auto It = std::map<QUuid, Users::ChatInfo_Ptr>::insert(inValue);
 
     if (It.second)
     {
@@ -101,29 +101,29 @@ std::pair<std::map<QUuid, Users::TChatInfo>::iterator, bool> TChatsModel::insert
          endInsertRows();
     }
     else
-        qDebug() << "Дубликат вставки! " << inValue.second.chatName();
+        qDebug() << "Дубликат вставки! " << inValue.second->chatName();
 
     return It;
 }
 //-----------------------------------------------------------------------------
-std::map<QUuid, Users::TChatInfo>::iterator TChatsModel::erase(std::map<QUuid, Users::TChatInfo>::iterator inIt)
+std::map<QUuid, Users::ChatInfo_Ptr>::iterator TChatsModel::erase(std::map<QUuid, Users::ChatInfo_Ptr>::iterator inIt)
 {
     qint32 Row = std::distance(this->begin(), inIt);
 
     beginRemoveRows(QModelIndex(), Row, Row);
-    auto Res =std::map<QUuid, Users::TChatInfo>::erase(inIt);
+    auto Res =std::map<QUuid, Users::ChatInfo_Ptr>::erase(inIt);
     endRemoveRows();
 
     return Res;
 }
 //-----------------------------------------------------------------------------
-std::map<QUuid, Users::TChatInfo>::size_type TChatsModel::erase(const QUuid &inUuid)
+std::map<QUuid, Users::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &inUuid)
 {
     auto It = this->find(inUuid);
     qint32 Row = std::distance(this->begin(), It);
 
     beginRemoveRows(QModelIndex(), Row, Row);
-    size_type Res = std::map<QUuid, Users::TChatInfo>::erase(inUuid);
+    size_type Res = std::map<QUuid, Users::ChatInfo_Ptr>::erase(inUuid);
     endRemoveRows();
 
     return Res;
@@ -132,7 +132,7 @@ std::map<QUuid, Users::TChatInfo>::size_type TChatsModel::erase(const QUuid &inU
 void TChatsModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());
-    std::map<QUuid, Users::TChatInfo>::clear();
+    std::map<QUuid, Users::ChatInfo_Ptr>::clear();
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------

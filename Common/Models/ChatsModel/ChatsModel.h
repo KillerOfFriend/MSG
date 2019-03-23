@@ -9,7 +9,7 @@
 
 #include "Classes/ChatInfo/ChatInfo.h"
 
-class TChatsModel : public QAbstractTableModel, public std::map<QUuid, Users::TChatInfo>
+class TChatsModel : public QAbstractTableModel, public std::map<QUuid, Users::ChatInfo_Ptr>
 {
     Q_OBJECT
 public:
@@ -27,10 +27,10 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
-    std::pair<std::map<QUuid, Users::TChatInfo>::iterator, bool> insert(const std::pair<QUuid, Users::TChatInfo> &inValue);
+    std::pair<std::map<QUuid, Users::ChatInfo_Ptr>::iterator, bool> insert(const std::pair<QUuid, Users::ChatInfo_Ptr> &inValue);
     //--
-    std::map<QUuid, Users::TChatInfo>::iterator erase(std::map<QUuid, Users::TChatInfo>::iterator inIt);
-    std::map<QUuid, Users::TChatInfo>::size_type erase(const QUuid &inUuid);
+    std::map<QUuid, Users::ChatInfo_Ptr>::iterator erase(std::map<QUuid, Users::ChatInfo_Ptr>::iterator inIt);
+    std::map<QUuid, Users::ChatInfo_Ptr>::size_type erase(const QUuid &inUuid);
     //--
     void clear();
 

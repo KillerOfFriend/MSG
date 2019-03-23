@@ -199,11 +199,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::CreateChat: // Создание беседы
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание беседы");
-            std::pair<qint32, Users::TChatInfo> Result = createChat(inStream); // Пытаемся добавить беседу
+            qint32 Result = createChat(inStream); // Пытаемся добавить беседу
 
-            if (Result.first != Res::rUnknown) // Если добавлен или уже существует
-                outStream << Command << Result.first << Result.second; // Шлём команду, результат и саму беседу
-            else outStream << Command << Result.first; // Шлём команду и результат
+            outStream << Command << Result; // Шлём команду и результат обработки
 
             break;
         }
@@ -457,10 +455,9 @@ std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) //
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, Users::TChatInfo> TMSGServer::createChat(QDataStream &inDataStream) // Метод добавит новую беседу
+qint32 TMSGServer::createChat(QDataStream &inDataStream) // Метод добавит новую беседу
 {
-    std::pair<qint32, Users::TChatInfo> Result;
-    Result.first = Res::rUnknown;
+    qint32 Result = Res::rUnknown;
 
     Users::TChatInfo NewChat; // Читаем данные о беседе из потока
     inDataStream >> NewChat;
@@ -480,17 +477,22 @@ std::pair<qint32, Users::TChatInfo> TMSGServer::createChat(QDataStream &inDataSt
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result.first = Query.value("create_chat").toInt();
+                Result = Query.value("create_chat").toInt();
         }
     }
 
-    if (Result.first != Res::rUnknown) // Если добавление или обновление
-        for (std::size_t Index = 0; Index < NewChat.usersCount(); ++Index)
+    if (Result != Res::rUnknown) // Если добавление или обновление
+    {
+        slot_AddChat(NewChat); // Добавляем чат в контейнер
+        for (std::size_t Index = 0; Index < NewChat.usersCount(); ++Index) // Перебирем пользователей чата
         {
-            QUuid Uuid = NewChat.user(Index);
-            if (!Uuid.isNull()) // Если Uuid пользователя валиден
-                addUserToChat(NewChat.chatUuid(), Uuid); // Добавляем пользователя в беседу
+            QUuid UserUuid = NewChat.user(Index);
+            if (!UserUuid.isNull()) // Если Uuid пользователя валиден
+                addUserToChat(NewChat.chatUuid(), UserUuid); // Добавляем пользователя в беседу
         }
+        // Тут добавление завершено
+        syncCreateChat(NewChat); // Синхронизируем создание беседы с пользователями
+    }
 
     return Result;
 }

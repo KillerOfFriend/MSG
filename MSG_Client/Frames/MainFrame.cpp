@@ -67,9 +67,9 @@ void TfmeMainFrame::init()
  */
 void TfmeMainFrame::Link()
 {
+    connect(ui->LogInfoListView->model(), &QAbstractItemModel::rowsInserted, ui->LogInfoListView, &QListView::scrollToBottom);
+
     connect(TDM::Instance().Client().get(), &TMSGClient::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes);
-    connect(TDM::Instance().Client().get(), &TMSGClient::sig_AddContactResult, this, &TfmeMainFrame::slot_AddContactRes);
-    connect(TDM::Instance().Client().get(), &TMSGClient::sig_DeleteContactResult, this, &TfmeMainFrame::slot_DeleteContactRes);
     connect(ui->ChatTabWidget, &QTabWidget::tabCloseRequested, this, &TfmeMainFrame::slot_CloseTab);
 
     connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers);
@@ -185,44 +185,6 @@ void TfmeMainFrame::slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers)
     fFoundUsers->dataChanged(fFoundUsers->index(0,0), fFoundUsers->index(fFoundUsers->rowCount(),0));
 }
 //-----------------------------------------------------------------------------
-/**
- * @brief TfmeMainFrame::slot_AddContactRes - Слот, получающий результат добавления контакта
- * @param inResult - Результат выполнения
- */
-void TfmeMainFrame::slot_AddContactRes(qint32 inResult, Users::TUserInfo &inContactInfo)
-{
-    switch (inResult)
-    {
-        case Res::AddContact::acCreated:
-        {
-            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(inContactInfo.userUuid(), inContactInfo)); // Добавляем контакт в список
-            QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно добавлен"));
-            break;
-        };
-        case Res::AddContact::acAlredyExist: { QMessageBox::warning(this, tr("Предупреждение"), tr("Контакт уже существует!")); break; };
-        default: { QMessageBox::critical(this, tr("Ошибка"), tr("Произошла непредвиденная ошибка!")); break; };
-    }
-}
-//-----------------------------------------------------------------------------
-/**
- * @brief TfmeMainFrame::slot_DeleteContactRes - Слот, получающий результат удаления контакта
- * @param inResult - Результат выполнения
- */
-void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid)
-{
-    switch (inResult)
-    {
-        case Res::DeleteContact::dcContactRemove:
-        {
-            TDM::Instance().UserAccount()->contacts()->erase(inContactUuid);
-            QMessageBox::information(this, tr("Сообщение"), tr("Контакт успешно удалён"));
-            break;
-        };
-        case Res::DeleteContact::dcContactNotFound: {QMessageBox::warning(this, tr("Предупреждение"), tr("Не удалось найти пользователя!")); break; }
-        default: { QMessageBox::critical(this, tr("Ошибка"), tr("Что то пошло не так!")); break; };
-    }
-}
-//-----------------------------------------------------------------------------
 void TfmeMainFrame::slot_ChatAddNew() // Слот вызывает добавление ногвой беседы
 {
     TUserListDialog UserListDialog(this);
@@ -322,17 +284,17 @@ void TfmeMainFrame::on_ChatListView_doubleClicked(const QModelIndex &index)
 
     if (It != TDM::Instance().UserAccount()->chats()->end())
     {
-        auto FindRes = fOpenChatTabs.find(It->second.chatUuid()); // Ищим среди открытых вкладок беседу
+        auto FindRes = fOpenChatTabs.find(It->second->chatUuid()); // Ищим среди открытых вкладок беседу
 
         if (FindRes != fOpenChatTabs.end()) // Если вкладка уже существует
             TabIndex = FindRes->second; // Запоминаем номер открытой вкладки
         else // Если вкладки с этой беседой нет
         {
             TChatWidget* NewChatWidget = new TChatWidget(ui->ChatTabWidget); // Создаём виджет чата
-            NewChatWidget->setChatUuid(It->second.chatUuid()); // Задаём ему Uuid
+            NewChatWidget->setChatUuid(It->second->chatUuid()); // Задаём ему Uuid
 
-            TabIndex = ui->ChatTabWidget->addTab(NewChatWidget, It->second.chatName()); // Создаём новую вкладку и получаем её индекс
-            fOpenChatTabs.insert(std::make_pair(It->second.chatUuid(), TabIndex)); // Добавляем индекс новой вкладки в список открытых
+            TabIndex = ui->ChatTabWidget->addTab(NewChatWidget, It->second->chatName()); // Создаём новую вкладку и получаем её индекс
+            fOpenChatTabs.insert(std::make_pair(It->second->chatUuid(), TabIndex)); // Добавляем индекс новой вкладки в список открытых
         }
     }
 

@@ -2,6 +2,7 @@
 #define CHATINFO_H
 
 #include <set>
+#include <memory>
 
 #include <QObject>
 #include <QUuid>
@@ -10,6 +11,10 @@
 
 namespace Users
 {
+    class TChatInfo;
+
+    typedef std::shared_ptr<TChatInfo> ChatInfo_Ptr;
+
     class TChatInfo : public QObject
     {
         Q_OBJECT

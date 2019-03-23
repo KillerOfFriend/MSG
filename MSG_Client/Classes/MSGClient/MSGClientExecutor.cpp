@@ -5,6 +5,8 @@
 
 #include "comandes.h"
 #include "resultcodes.h"
+
+#include "Classes/DataModule/DataModule.h"
 #include "Classes/UserInfo/UserInfo.h"
 
 //-----------------------------------------------------------------------------
@@ -71,6 +73,18 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
         {
             sig_LogMessage("Получено сообщение о смене статуса");
             contactChangeStatus(inStream);  // Обрабатываем изменение статуса контакта
+            break;
+        }
+        case Commands::CreateChat: // Создание беседы
+        {
+            sig_LogMessage("Получен ответ на создание беседы");
+            createChatResult(inStream); // Обрабатываем результат создания беседы
+            break;
+        }
+        case Commands::InviteToChat:
+        {
+            sig_LogMessage("Получено приглашение в чат");
+            inviteToChatResult(inStream);
             break;
         }
 
@@ -162,25 +176,20 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
     if (Result == Res::AddContact::acCreated)
         inDataStream >> ContactInfo;
 
-    sig_AddContactResult(Result, ContactInfo);
+    switch (Result)
+    {
+        case Res::AddContact::acCreated:
+        {
+            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), ContactInfo)); // Добавляем контакт в список
+            sig_LogMessage(tr("Успешно добавлен контакт: ") + ContactInfo.userName());
+            break;
+        };
+        case Res::AddContact::acAlredyExist:
+        { sig_LogMessage(tr("Контакт уже существует!")); break; };
+        default:
+        { sig_LogMessage(tr("Произошла непредвиденная ошибка при добавлении контакта!")); break; };
+    }
 }
-//-----------------------------------------------------------------------------
-/**
- * @brief TMSGClient::getContactsResult - Метод обработает результат запроса списка контактов
- * @param inDataStream - Входящий поток
- */
-//void TMSGClient::getContactsResult(QDataStream &inDataStream)
-//{
-//    qint32 Result = Res::rUnknown;
-//    QList<TUserInfo> FoundContacts;
-
-//    inDataStream >> Result; // Получаем результат поиска
-
-//    if (Result == Res::GetContacts::gcUsersFound) // Если контакты найдены
-//        inDataStream >> FoundContacts; // Получаем информацию о контактах
-
-//    sig_GetContactsResult(FoundContacts);
-//}
 //-----------------------------------------------------------------------------
 /**
  * @brief TMSGClient::deleteContactResult - Метод обработает результат удаления контакта
@@ -195,7 +204,50 @@ void TMSGClient::deleteContactResult(QDataStream &inDataStream)
     if (Result == Res::DeleteContact::dcContactRemove)
         inDataStream >> ContactUuid;
 
-    sig_DeleteContactResult(Result, ContactUuid);
+    switch (Result)
+    {
+        case Res::DeleteContact::dcContactRemove:
+        {
+            TDM::Instance().UserAccount()->contacts()->erase(ContactUuid);
+            sig_LogMessage(tr("Контакт успешно удалён"));
+            break;
+        };
+        case Res::DeleteContact::dcContactNotFound:
+        { sig_LogMessage(tr("Не удалось найти пользователя для удаления!")); break; }
+        default: { sig_LogMessage(tr("Произошла непредвиденная ошибка при удалении контакта!")); break; };
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::createChatResult - Метод обработает результат создания беседы
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::createChatResult(QDataStream &inDataStream)
+{
+    qint32 Result = Res::rUnknown;
+    inDataStream >> Result;
+
+    switch (Result)
+    {
+        case Res::CreateChat::ccCreated:
+        { sig_LogMessage(tr("Новая беседа успешно создана")); break; }
+        case Res::CreateChat::ccAlredyExist:
+        { sig_LogMessage(tr("Беседа уже существует")); break; }
+        default:
+        { sig_LogMessage(tr("При создании беседы произошла ошибка!")); break; }
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::InviteToChatResult - Метод обработает добавление в чат
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::inviteToChatResult(QDataStream &inDataStream)
+{
+    Users::TChatInfo AddedChat;
+    inDataStream >> AddedChat;
+
+    sig_InviteToChatResult(AddedChat);
 }
 //-----------------------------------------------------------------------------
 /**

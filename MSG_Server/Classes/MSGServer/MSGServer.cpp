@@ -316,6 +316,14 @@ void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAcco
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
 
+        // Нужно обеспечить доступ к чатам пользователя
+        std::for_each(inUserAccount.chats()->begin(), inUserAccount.chats()->end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Chat)
+        {
+            auto FindChatRes = fChats.find(Chat.first); // Ищим данную беседу в списке отслеживаемых бесед
+            if (FindChatRes == fChats.end()) // Если данной беседы нет в списке отслеживаемых бесед
+                fChats.insert(Chat); // Добавляем
+        });
+
         userChangeStatus(inClient, Users::UserStatus::usOnline); // Сообщаем об изменении статуса клиента на "Online"
     }
     else // Если сокет не найден (НЕ ДОЛЖНО ТАКОГО БЫТЬ)
@@ -365,6 +373,35 @@ void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid)
 }
 //-----------------------------------------------------------------------------
 /**
+ * @brief slot_AddChat - Слот, добавляющий беседу
+ * @param inChatInfo - Данные добовляемой беседы
+ */
+void TMSGServer::slot_AddChat(Users::TChatInfo &inChatInfo)
+{
+    auto FindChatRes = fChats.find(inChatInfo.chatUuid());
+
+    if (FindChatRes == fChats.end()) // Беседа не найдена
+    {
+        fChats.insert(std::make_pair(inChatInfo.chatUuid(), std::make_shared<Users::TChatInfo>(inChatInfo))); // Добавляем беседу в контенйнер
+        // Теперь требуется добавить чат пользователям онлайн
+        for(std::size_t UserIndex = 0; UserIndex < inChatInfo.usersCount(); ++UserIndex)
+        {
+            auto ClientFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client)
+            {
+                return Client.second.userInfo()->userUuid() == inChatInfo.user(UserIndex);
+            });
+
+            if (ClientFindRes != fClients.end())
+                ClientFindRes->second.slot_AddChat(inChatInfo);
+        }
+    }
+    else // Беседа уже есть
+    {
+        FindChatRes->second = std::make_shared<Users::TChatInfo>(inChatInfo);
+    }
+}
+//-----------------------------------------------------------------------------
+/**
  * @brief TMSGServer::syncAddedUser - Метод синхранизирует список контактов после добавления пользователя
  * @param inContactUuid - Uuid пользователя, которого нужно синхронизировать
  * @param inOwnerInfo - Данные пользователя, добавившего контакт
@@ -409,6 +446,68 @@ void TMSGServer::syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid)
         // Шлём команду на удаление пользоваеля вместе с информацией о удалившем (удаляемом) юзере
         outStream << Commands::DeleteContact << Res::DeleteContact::dcContactRemove << inOwnerUuid;
         ContactIt->first->write(Data);
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::syncCreateChat - Метод синхронизирует добавленный чат с пользователями
+ * @param inChatInfo - Информация о чате
+ */
+void TMSGServer::syncCreateChat(Users::TChatInfo &inChatInfo)
+{
+    for (std::size_t UserIndex = 0; UserIndex < inChatInfo.usersCount(); ++UserIndex) // Перебираем всех юзеров беседы
+    {
+        syncAddedUserToChat(inChatInfo.user(UserIndex), inChatInfo.chatUuid()); // Запускаем синхронизацию
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::syncAddedUserToChat - Метод синхронизирует беседу послед добавления пользователя в неё
+ * @param inUserUuid - Uuid пользователя
+ * @param inChatUuid - Uuid чата
+ */
+void TMSGServer::syncAddedUserToChat(QUuid inUserUuid, QUuid inChatUuid)
+{
+    auto UserFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим пользователя онлайн
+    {
+        return Client.second.userInfo()->userUuid() == inUserUuid;
+    });
+
+    auto ChatFindResult = fChats.find(inChatUuid); // Ищим беседу
+
+    if ( UserFindRes != fClients.end() && ChatFindResult != fChats.end() ) // Если юзер и беседа найдены
+    {
+        QByteArray Data;
+        QDataStream outStream(&Data, QIODevice::WriteOnly);
+
+        outStream << Commands::InviteToChat << *ChatFindResult->second; // Шлём команду на добавление + беседу
+
+        UserFindRes->first->write(Data);
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGServer::syncDeletedUserFromChat - Метод синхронизирует беседу послед удаления пользователя из неё
+ * @param inUserUuid - Uuid пользователя
+ * @param inChatUuid - Uuid чата
+ */
+void TMSGServer::syncDeletedUserFromChat(QUuid inUserUuid, QUuid inChatUuid)
+{
+    auto UserFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим пользователя онлайн
+    {
+        return Client.second.userInfo()->userUuid() == inUserUuid;
+    });
+
+    auto ChatFindResult = fChats.find(inChatUuid); // Ищим беседу
+
+    if ( UserFindRes != fClients.end() && ChatFindResult != fChats.end() ) // Если юзер и беседа найдены
+    {
+        QByteArray Data;
+        QDataStream outStream(&Data, QIODevice::WriteOnly);
+
+        outStream << Commands::DeleteUserFromChat << ChatFindResult->first; // Шлём команду на удаление + uuid беседы
+
+        UserFindRes->first->write(Data);
     }
 }
 //-----------------------------------------------------------------------------

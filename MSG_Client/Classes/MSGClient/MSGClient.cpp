@@ -166,24 +166,6 @@ bool TMSGClient::addContact(QUuid inSelfUuid, QUuid inContactUuid) // Метод
     return Result;
 }
 //-----------------------------------------------------------------------------
-//bool TMSGClient::getContacts(QUuid inSelfUuid) // Метод отправит команду на возвращение списка контактов
-//{
-//    bool Result = true;
-
-//    if(!isConnected())
-//        Result = false;
-//    else
-//    {
-//        QByteArray SendingData;
-//        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-//        Stream << Commands::GetContacts << inSelfUuid;
-
-//        fClient->write(SendingData);
-//    }
-
-//    return Result;
-//}
-//-----------------------------------------------------------------------------
 bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Метод отправит команду на удаление контакта
 {
     bool Result = true;

@@ -46,5 +46,7 @@ void TDM::init() // Мотод инициализирует классы мод�
 
     connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Users::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
     connect(fClient.get(), &TMSGClient::sig_GetUserTypesResult, fModels.get(), &TModels::slot_InitUserTypes); // Передача списка типов пользователей
+
+    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
 }
 //-----------------------------------------------------------------------------
