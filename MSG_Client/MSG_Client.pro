@@ -50,7 +50,8 @@ SOURCES += \
     ../Common/Classes/ChatInfo/ChatInfo.cpp \
     ../Common/Models/ChatsModel/ChatsModel.cpp \
     Frames/ChatWidget/ChatWidget.cpp \
-    Models/ClientLogModel/ClientLogModel.cpp
+    Models/ClientLogModel/ClientLogModel.cpp \
+    Dialogs/UserListDialog/UserListDialog.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -74,7 +75,8 @@ HEADERS += \
     ../Common/Classes/ChatInfo/ChatInfo.h \
     ../Common/Models/ChatsModel/ChatsModel.h \
     Frames/ChatWidget/ChatWidget.h \
-    Models/ClientLogModel/ClientLogModel.h
+    Models/ClientLogModel/ClientLogModel.h \
+    Dialogs/UserListDialog/UserListDialog.h
 
 FORMS += \
         ClientMainWindow.ui \
@@ -82,7 +84,8 @@ FORMS += \
     Dialogs/UserViewDialog/UserViewDialog.ui \
     Dialogs/ConnectDialog/ConnectDialog.ui \
     Classes/UserHeaderWidget/UserHeaderWidget.ui \
-    Frames/ChatWidget/ChatWidget.ui
+    Frames/ChatWidget/ChatWidget.ui \
+    Dialogs/UserListDialog/UserListDialog.ui
 
 RESOURCES += \
     clientres.qrc

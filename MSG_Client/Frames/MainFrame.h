@@ -45,6 +45,10 @@ private slots:
     void slot_AddContactRes(qint32 inResult, Users::TUserInfo &inContactInfo); // Слот, получающий результат добавления контакта
     void slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid); // Слот, получающий результат удаления контакта
 
+    void slot_ChatAddNew(); // Слот вызывает добавление ногвой беседы
+    void slot_ChatDeleteCurrent(); // Слот вызывает удаление выбранной беседы
+    void slot_ChatOpenCurrent(); // Слот вызывает открытие выбранной беседы
+
     void on_ContactsFindListView_doubleClicked(const QModelIndex &index);
 
     void on_ContactsListView_doubleClicked(const QModelIndex &index);
@@ -52,6 +56,8 @@ private slots:
     void on_ContactsFilterLineEdit_textChanged(const QString &arg1);
 
     void on_ChatListView_doubleClicked(const QModelIndex &index);
+
+    void on_ChatListView_customContextMenuRequested(const QPoint &pos);
 
 private:
     Ui::TfmeMainFrame *ui;

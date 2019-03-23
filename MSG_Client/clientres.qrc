@@ -16,4 +16,9 @@
         <file>Images/Other/AvaMale.png</file>
         <file>Images/Other/AvaFemale.png</file>
     </qresource>
+    <qresource prefix="/Resurse/ChatsPopupMenu">
+        <file>Images/ChatsPopupMenu/NewChat.png</file>
+        <file>Images/ChatsPopupMenu/DeleteChat.png</file>
+        <file>Images/ChatsPopupMenu/SendMessageToChat.png</file>
+    </qresource>
 </RCC>

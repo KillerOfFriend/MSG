@@ -107,7 +107,7 @@ namespace Users
     QDataStream& operator <<(QDataStream &outStream, const TChatInfo &ChatInfo)
     {
         outStream << ChatInfo.fUuid;
-        outStream << ChatInfo.fName;
+        outStream << ChatInfo.fName.toUtf8();
         outStream << ChatInfo.fPrivateStatus;
 
         QList<QUuid> ClientsBuf; // Создаём временный буфер пользователей
@@ -123,7 +123,11 @@ namespace Users
     QDataStream& operator >>(QDataStream &inStream, TChatInfo &ChatInfo)
     {
         inStream >> ChatInfo.fUuid;
-        inStream >> ChatInfo.fName;
+
+        QByteArray Buff;
+        inStream >> Buff;
+        ChatInfo.fName = QString::fromUtf8(Buff);
+
         inStream >> ChatInfo.fPrivateStatus;
 
         ChatInfo.fClients.clear(); // Предварительно чистим содержимое контейнера клиентов

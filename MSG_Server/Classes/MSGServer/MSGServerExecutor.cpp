@@ -37,6 +37,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 
             break;
         }
+        //---
         case Commands::Authorization: // Авторизация пользователя
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на авторизацию");
@@ -94,6 +95,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             }
             break;
         }
+        //---
         case Commands::GetUserTypes: // Запрос списка типов пользователей
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка типов пользователей");
@@ -111,6 +113,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 
             break;
         }
+        //---
         case Commands::FindUsers: // Поиск пользователей
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на поиск пользователя");
@@ -130,6 +133,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 
             break;
         }
+        //---
         case Commands::AddContact: // Добавление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
@@ -152,6 +156,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата добавления контакта");
             break;
         }
+        //---
 //        case Commands::GetContacts: // Запрос списка контактов
 //        {
 //            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка контактов");
@@ -168,6 +173,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 //            sig_LogMessage(inClientSender->peerAddress(), "Отправка списка контактов");
 //            break;
 //        }
+        //---
         case Commands::DeleteContact: // Удаление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
@@ -189,6 +195,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
             break;
         }
+        //---
         case Commands::CreateChat: // Создание беседы
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание беседы");

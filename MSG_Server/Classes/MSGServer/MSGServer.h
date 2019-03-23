@@ -65,6 +65,10 @@ private:
     void syncAddedUser(QUuid inContactUuid, Users::TUserInfo &inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
     void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
 
+    void syncCreateChat(Users::TChatInfo &inChatInfo); // Метод синхронизирует добавленный чат с пользователями
+    void syncAddedUserToChat();
+    void syncDeletedUserToChat();
+
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
     void sigSocketError();

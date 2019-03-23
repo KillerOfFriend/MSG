@@ -124,87 +124,6 @@
           <item>
            <widget class="QListView" name="ChatListView"/>
           </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnAddChat">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../clientres.qrc">
-                <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/AddToContacts.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/AddToContacts.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnRemoveChat">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../clientres.qrc">
-                <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/RemoveFromContacts.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/RemoveFromContacts.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnOpenChat">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../clientres.qrc">
-                <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/SendMessage.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/SendMessage.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
          </layout>
         </widget>
         <widget class="QWidget" name="ContactsFindTab">
@@ -357,8 +276,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../clientres.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -2,11 +2,13 @@
 #include "ui_MainFrame.h"
 
 #include <QMessageBox>
+#include <QMenu>
 
 #include "resultcodes.h"
 #include "Classes/DataModule/DataModule.h"
 #include "Dialogs/UserViewDialog/UserViewDialog.h"
 #include "Frames/ChatWidget/ChatWidget.h"
+#include "Dialogs/UserListDialog/UserListDialog.h"
 
 //-----------------------------------------------------------------------------
 TfmeMainFrame::TfmeMainFrame(QWidget *inParent) :
@@ -56,6 +58,8 @@ void TfmeMainFrame::init()
 
     fUserProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка контактов по имени
     fFounUsersProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка найденых пользователей по имени
+
+    ui->ChatListView->setContextMenuPolicy(Qt::CustomContextMenu);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -75,29 +79,18 @@ void TfmeMainFrame::Link()
 //-----------------------------------------------------------------------------
 /**
  * @brief slot_CloseTab - Слот, реагирует на сигнал закрытия вкладки
- * @param inTabIndex
+ * @param inTabIndex - Индекс вкладки
  */
 void TfmeMainFrame::slot_CloseTab(qint32 inTabIndex)
 {
-    if (inTabIndex != 0)
+    if (inTabIndex != 0) // Самая аервая вкладки информационная, её закрывать нельзя
     {
-        ui->ChatTabWidget->removeTab(inTabIndex); // Удаляем вкладку
+        TChatWidget* ChatWidget = qobject_cast<TChatWidget*>(ui->ChatTabWidget->widget(inTabIndex)); // Получаем виджет по индексу и приводим к чатвиджету
 
-        // Ищим номер вкладки в контейенре
-        auto FindRes = std::find_if(fOpenChatTabs.begin(), fOpenChatTabs.end(), [&inTabIndex](const std::pair<QUuid, qint32> &Item)
+        if (ChatWidget != nullptr) // Если приведение успешно
         {
-            return Item.second == inTabIndex;
-        });
-
-        if (FindRes != fOpenChatTabs.end()) // Если вкладка найдена
-        {
-            // После удаления вкладки индексы сдвигаются. Подстраиваемся под это
-            std::for_each(FindRes, fOpenChatTabs.end(), [](std::pair<const QUuid, qint32> &Item)
-            {
-                Item.second--;
-            });
-
-            fOpenChatTabs.erase(FindRes); // Удаляем вкладку из контейнера
+            fOpenChatTabs.erase(ChatWidget->chatUuid()); // Удаляем данные о вкладке по Uuid чата
+            ui->ChatTabWidget->removeTab(inTabIndex); // Удаляем вкладку
         }
     }
 }
@@ -140,7 +133,7 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo
             {   
                 Users::TChatInfo NewChat; // Новая беседа
                 NewChat.setChatUuid(ChatUuid); // Задаём Uuid новой беседы
-                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + " | " + inUserInfo.userName());
+                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + "|" + inUserInfo.userName());
                 NewChat.setChatPrivateStatus(true); // Помечаем беседу как приватную
 
                 NewChat.addUser(DM.UserAccount()->userInfo()->userUuid());  // Добавляем "Себя"
@@ -230,6 +223,48 @@ void TfmeMainFrame::slot_DeleteContactRes(qint32 inResult, QUuid &inContactUuid)
     }
 }
 //-----------------------------------------------------------------------------
+void TfmeMainFrame::slot_ChatAddNew() // Слот вызывает добавление ногвой беседы
+{
+    TUserListDialog UserListDialog(this);
+    UserListDialog.exec();
+
+    if (UserListDialog.result() == QDialog::DialogCode::Accepted) // Если в диалоге было подтвреждение
+    {
+        Users::TChatInfo NewChat; // Новая беседа
+        NewChat.setChatUuid(QUuid::createUuid()); // Генерируем Uuid новой беседы
+        NewChat.setChatPrivateStatus(false); // Помечаем беседу как публичную
+
+        TDM &DM = TDM::Instance();
+
+        QString ChatName = DM.UserAccount()->userInfo()->userName(); // Создаём имя беседы
+        NewChat.addUser(DM.UserAccount()->userInfo()->userUuid()); // Добавляем в беседу себя
+
+        QList<QUuid> Users = UserListDialog.selectedUsersUuids(); // Получаем список Uuid'ов выбранных пользователей
+
+        std::for_each(Users.begin(), Users.end(), [&](const QUuid &UserUuid) // Перебераем список выбранных пользователей
+        {
+            auto FindRes = DM.UserAccount()->contacts()->find(UserUuid);
+            ChatName += QString("|" + FindRes->second.userName()); // Формируем имя беседы
+
+            NewChat.addUser(UserUuid); // Добавляем пользователя в беседу
+        });
+
+        NewChat.setChatName(ChatName); // Задаём имя беседы
+
+        DM.Client()->createChat(NewChat); // Шлём команду на создание публичной беседы
+    }
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::slot_ChatDeleteCurrent() // Слот вызывает удаление выбранной беседы
+{
+    int DeleteChat = 1;
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::slot_ChatOpenCurrent() // Слот вызывает открытие выбранной беседы
+{
+    int OpenChat = 2;
+}
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &index)
@@ -302,5 +337,26 @@ void TfmeMainFrame::on_ChatListView_doubleClicked(const QModelIndex &index)
     }
 
     ui->ChatTabWidget->setCurrentIndex(TabIndex); // Делаем вкладку активной
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::on_ChatListView_customContextMenuRequested(const QPoint &pos)
+{
+    QPoint globalPos = ui->ChatListView->mapToGlobal(pos);
+
+    QMenu ChatMenu; // Создаём меню
+    QModelIndex Index = ui->ChatListView->indexAt(pos); // Пытаемся получить индекс на нажатый айтем
+
+    QAction* AddChatAction = ChatMenu.addAction(tr("Добавить беседу"), this, SLOT(slot_ChatAddNew()));
+    AddChatAction->setIcon(QIcon(":/Resurse/ChatsPopupMenu/Images/ChatsPopupMenu/NewChat.png"));
+
+    if (Index.isValid()) // Если попали по айтему добавляем кнопки на удаление и открытие
+    {
+        QAction* DeleteChatAction = ChatMenu.addAction(tr("Удалить беседу"), this, SLOT(slot_ChatDeleteCurrent()));
+        DeleteChatAction->setIcon(QIcon(":/Resurse/ChatsPopupMenu/Images/ChatsPopupMenu/DeleteChat.png"));
+        QAction* OpenChatAction = ChatMenu.addAction(tr("Открыть и написать"), this, SLOT(slot_ChatOpenCurrent()));
+        OpenChatAction->setIcon(QIcon(":/Resurse/ChatsPopupMenu/Images/ChatsPopupMenu/SendMessageToChat.png"));
+    }
+
+    ChatMenu.exec(globalPos);
 }
 //-----------------------------------------------------------------------------
