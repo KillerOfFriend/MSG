@@ -1,15 +1,20 @@
 #include "UserItemDelegate.h"
- 
+
+#include <QApplication>
+
 #include "Models/UsersModel/UsersModel.h"
  
+//-----------------------------------------------------------------------------
 TUserItemDelegate::TUserItemDelegate()
 {
+
 }
- 
+ //-----------------------------------------------------------------------------
 TUserItemDelegate::~TUserItemDelegate()
 {
+
 }
- 
+//-----------------------------------------------------------------------------
 QSize TUserItemDelegate::sizeHint(const QStyleOptionViewItem &  option, const QModelIndex & index) const
 {
     if(!index.isValid())
@@ -25,12 +30,6 @@ QSize TUserItemDelegate::sizeHint(const QStyleOptionViewItem &  option, const QM
 
     QFontMetrics FMUserName(UserNameFont);
     QFontMetrics FMUserLogin(UserLoginFont);
- 
-    /* No need for x,y here. we only need to calculate the height given the width.
-     * Note that the given height is 0. That is because boundingRect() will return
-     * the suitable height if the given geometry does not fit. And this is exactly
-     * what we want.
-     */
 
     // Устанавливаем позицию отрисовки аватара
     QPoint AvatarStartDraw(option.rect.left(), option.rect.top());
@@ -45,7 +44,7 @@ QSize TUserItemDelegate::sizeHint(const QStyleOptionViewItem &  option, const QM
                                                  UserNameRect.width(), 0,
                                                  Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, UserLogin);
  
-    // Опциональная ширина, Высотанадписи именю пользоваьеля + Высота надписи логина пользователя
+    // Опциональная ширина, Высота надписи имени пользователя + Высота надписи логина пользователя
     QSize Size(option.rect.width(), UserNameRect.height() + UserLoginRect.height() +  fIndent * 3);
 
     if(Size.height() < fAvatarSize.height()) // Если расчётная высота меньше высоты аватара
@@ -53,7 +52,7 @@ QSize TUserItemDelegate::sizeHint(const QStyleOptionViewItem &  option, const QM
  
     return Size; // Возвращаем размер айтема
 }
- 
+//-----------------------------------------------------------------------------
 void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if(!index.isValid())
@@ -96,14 +95,6 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QFontMetrics FMUserName(UserNameFont);
     QFontMetrics FMUserLogin(UserLoginFont);
 
-    /*
-     * The x,y coords are not (0,0) but values given by 'option'. So, calculate the
-     * rects again given the x,y,w.
-     * Note that the given height is 0. That is because boundingRect() will return
-     * the suitable height if the given geometry does not fit. And this is exactly
-     * what we want.
-     */    
-
     // Устанавливаем позицию отрисовки аватара
     QPoint AvatarStartDraw(option.rect.left(), option.rect.top());
     QRect AvatarRect(AvatarStartDraw, fAvatarSize);
@@ -135,3 +126,4 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     painter->restore();
 }
+//-----------------------------------------------------------------------------

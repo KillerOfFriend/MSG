@@ -12,6 +12,7 @@
 #include "Models/UsersModel/UsersModel.h"
 #include "Models/UsersModel/UsersProxyModel.h"
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"
+#include "Delegates/ChatItemDelegate/ChatItemDelegate.h"
 
 namespace Ui {
 class TfmeMainFrame;
@@ -27,6 +28,7 @@ public:
 
 private:
     std::unique_ptr<TUserItemDelegate> fUserListDelegate = nullptr;
+    std::unique_ptr<TChatItemDelegate> fChatListDelegate = nullptr;
     std::unique_ptr<TUsersProxyModel> fUserProxyModel = nullptr;
     std::unique_ptr<TUsersModel> fFoundUsers = nullptr;
     std::unique_ptr<QSortFilterProxyModel> fFounUsersProxyModel = nullptr;

@@ -39,7 +39,8 @@ void TfmeMainFrame::init()
 
     ui->LogInfoListView->setModel(DM.Models()->LogModel().get()); // Задаём модель логов клиента
 
-    fUserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения
+    fUserListDelegate.reset(new TUserItemDelegate()); // Инициализируем делегат отображения пользователей
+    fChatListDelegate.reset(new TChatItemDelegate()); // Инициализируем делегат отображения бесед
     fFoundUsers.reset(new TUsersModel(this)); // Инициализируем модель найденых юзеров
 
     fUserProxyModel.reset(new TUsersProxyModel(this)); // Инициализация фильтров
@@ -48,12 +49,13 @@ void TfmeMainFrame::init()
     fUserProxyModel->setSourceModel(DM.UserAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
     fFounUsersProxyModel->setSourceModel(fFoundUsers.get()); // Задаём модель-источник фильтру списка найденых пользователей
 
-    ui->ContactsListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения
-    ui->ContactsFindListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения
+    ui->ContactsListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения контактов
+    ui->ContactsFindListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения пользователей
 
     ui->ContactsListView->setModel(fUserProxyModel.get()); // Задаём фильтрующую модель контактов
     ui->ContactsFindListView->setModel(fFounUsersProxyModel.get()); // Задаём модель найденых пользователей
 
+    ui->ChatListView->setItemDelegate(fChatListDelegate.get()); //  Задаём делегат отображения бесед
     ui->ChatListView->setModel(DM.UserAccount()->chats().get()); // Задаём модель данных бесед
 
     fUserProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка контактов по имени
