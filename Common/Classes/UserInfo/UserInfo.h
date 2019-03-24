@@ -1,6 +1,8 @@
 #ifndef USERINFO_H
 #define USERINFO_H
 
+#include <memory>
+
 #include <QObject>
 #include <QUuid>
 #include <QPixmap>
@@ -9,12 +11,17 @@
 
 namespace Users
 {
+    class TUserInfo;
+
+    typedef std::shared_ptr<TUserInfo> UserInfo_Ptr;
+
     namespace UserStatus
     {
         const qint8 usUnknown = 0;
         const qint8 usOnline = 1;
         const qint8 usOffline = 2;
     }
+
 
     class TUserInfo : public QObject
     {
