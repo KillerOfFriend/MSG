@@ -22,7 +22,7 @@ public:
         rbSendMsg =  0x4
     };
 
-    explicit TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent = nullptr);
+    explicit TUserViewDialog(Users::UserInfo_Ptr &inUserInfo, QWidget *inParent = nullptr);
     ~TUserViewDialog();
 
     void setButtons(eResButtons inButtons);
@@ -35,13 +35,13 @@ private slots:
 private:
     Ui::TUserViewDialog *ui; 
 
-    Users::TUserInfo &fUserInfo ; // Ссылка на объект информации о пользователе
+    Users::UserInfo_Ptr fUserInfo ; // Указател на объект информации о пользователе
 
     void initFont(); // Метод инициализирует стиль текста
     void initText(); // Метод инициализирует надписи
 
 signals:
-    void sig_Result(const Users::TUserInfo &inUserInfo, qint32 inResult);
+    void sig_Result(const Users::UserInfo_Ptr inUserInfo, qint32 inResult);
 
 };
 

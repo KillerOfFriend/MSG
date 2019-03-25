@@ -4,10 +4,12 @@
 #include "Classes/DataModule/DataModule.h"
 
 //-----------------------------------------------------------------------------
-TUserViewDialog::TUserViewDialog(Users::TUserInfo &inUserInfo, QWidget *inParent) :
-    QDialog(inParent), ui(new Ui::TUserViewDialog), fUserInfo(inUserInfo)
+TUserViewDialog::TUserViewDialog(Users::UserInfo_Ptr &inUserInfo, QWidget *inParent) :
+    QDialog(inParent), ui(new Ui::TUserViewDialog)
 {
     ui->setupUi(this);
+
+    fUserInfo = inUserInfo;
 
     initFont();
     initText();
@@ -55,9 +57,9 @@ void TUserViewDialog::initFont() // Метод инициализирует ст
 //-----------------------------------------------------------------------------
 void TUserViewDialog::initText() // Метод инициализирует надписи
 {
-    ui->UserHeaderWidget->slot_SetUserAvatar(fUserInfo.userAvatar(), fUserInfo.userIsMale());
-    ui->UserHeaderWidget->slot_SetUserName(fUserInfo.userName());
-    ui->UserHeaderWidget->slot_SetUserLogin(fUserInfo.userLogin());
+    ui->UserHeaderWidget->slot_SetUserAvatar(fUserInfo->userAvatar(), fUserInfo->userIsMale());
+    ui->UserHeaderWidget->slot_SetUserName(fUserInfo->userName());
+    ui->UserHeaderWidget->slot_SetUserLogin(fUserInfo->userLogin());
 
     ui->UserSexLabel->setText(tr("Пол:"));
     ui->UserTypeLabel->setText(tr("Тип:"));
@@ -66,23 +68,23 @@ void TUserViewDialog::initText() // Метод инициализирует на
 
     //--
 
-    if (fUserInfo.userIsMale()) // Талерасты не пройдут
+    if (fUserInfo->userIsMale()) // Талерасты не пройдут
         ui->UserSexValueLabel->setText(tr("Мужской"));
     else ui->UserSexValueLabel->setText(tr("Женский"));
 
     TDM &DM = TDM::Instance();
-    OtherTypes::TUserType ForFind(fUserInfo.userType()); // Инициализируем айтем для поиска
+    OtherTypes::TUserType ForFind(fUserInfo->userType()); // Инициализируем айтем для поиска
     auto FindRes = DM.Models()->UserTypeModel()->find(ForFind); // Ищим тип пользователя по его коду
 
     if (FindRes == DM.Models()->UserTypeModel()->end()) // Если тип не найден
         ui->UserTypeValueLabel->setText("UNKNOWN!"); // Сообщаем о косяке
     else ui->UserTypeValueLabel->setText(FindRes->TypeName); // Выводим тип пользователя
 
-    if (fUserInfo.userBirthday().isNull())
+    if (fUserInfo->userBirthday().isNull())
         ui->UserBirthdayValueLabel->setText(tr("Не указана"));
-    else ui->UserBirthdayValueLabel->setText(fUserInfo.userBirthday().toString("dd.MM.yyyy"));
+    else ui->UserBirthdayValueLabel->setText(fUserInfo->userBirthday().toString("dd.MM.yyyy"));
 
-    ui->UserRegistrationDateValueLabel->setText(fUserInfo.userRegistrationDate().toString("dd.MM.yyyy"));
+    ui->UserRegistrationDateValueLabel->setText(fUserInfo->userRegistrationDate().toString("dd.MM.yyyy"));
 }
 //-----------------------------------------------------------------------------
 void TUserViewDialog::setButtons(eResButtons inButtons)

@@ -39,7 +39,7 @@ private:
 signals:
 
 public slots:
-
+    void slot_SetUserAccount(Users::TUserAccount &inUserAccount);
 
 };
 

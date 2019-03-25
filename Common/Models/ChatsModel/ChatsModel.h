@@ -16,6 +16,7 @@ public:
     enum eColumns { cChatUuid = 0, cChatName = 1, cChatPrivateStatus = 2 };
 
     TChatsModel(QObject* inParent = nullptr);
+    TChatsModel(const TChatsModel &inOther);
     ~TChatsModel();
 
     TChatsModel& operator = (const TChatsModel &inOther);

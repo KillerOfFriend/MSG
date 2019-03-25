@@ -26,20 +26,23 @@ namespace Users
 
         TUserAccount &operator =(const TUserAccount &inOther);
 
-        std::shared_ptr<TUserInfo> userInfo() const; // Метод вернёт информацию о пользователе
+        UserInfo_Ptr userInfo() const; // Метод вернёт информацию о пользователе
         std::shared_ptr<TUsersModel> contacts() const; // Метод вернёт список контактов
         std::shared_ptr<TChatsModel> chats() const; // Метод вернёт список бесед
 
     private:
-        std::shared_ptr<TUserInfo> fUserInfo = nullptr; // Данные о пользователе
+        UserInfo_Ptr fUserInfo = nullptr; // Данные о пользователе
         std::shared_ptr<TUsersModel> fContacts = nullptr; // Список контактов
         std::shared_ptr<TChatsModel> fChats = nullptr; // Список бесед пользователя
+
+        friend QDataStream& operator <<(QDataStream&, const TUserAccount&);
+        friend QDataStream& operator >>(QDataStream&, TUserAccount&);
 
     signals:
 
     public slots:
-        void slot_SetUserInfo(const TUserInfo &inUserInfo); // Слот задаст данные пользователя
-        void slot_SetContacts(const QList<TUserInfo> &inContacts); // Слот задаст список контактов
+        void slot_SetUserInfo(const UserInfo_Ptr &inUserInfo); // Слот задаст данные пользователя
+        void slot_SetContacts(const QList<UserInfo_Ptr> &inContacts); // Слот задаст список контактов
         void slot_SetChats(const QList<TChatInfo> &inChats); // Слот задаст список бесед
         void slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus); // Слот установит контакту указанный статус
         void slot_AddChat(const Users::TChatInfo &inChat); // Слот добавит беседу

@@ -110,21 +110,15 @@ void TMSGClient::creteUserResult(QDataStream &inDataStream)
 void TMSGClient::userAuthorization(QDataStream &inDataStream)
 {
     qint32 Result = Res::rUnknown;
-    Users::TUserInfo UserInfo;
-    QList<Users::TUserInfo> Contacts;
-    QList<Users::TChatInfo> Chats;
 
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
     {
-        inDataStream >> UserInfo; // Получаем информацию о пользователе
-        inDataStream >> Contacts; // Получаем список контактов
-        inDataStream >> Chats; // Получаем список бесед
+        Users::TUserAccount NewAccount;
+        inDataStream >> NewAccount; // Получаем информацию о пользователе
 
-
-        sig_SetUserInfo(UserInfo); // Шлём сигнал с данными пользователя
-        sig_SetContacts(Contacts); // Шлём сигнал со списком контактов пользователей
-        sig_SetChats(Chats); // Шлём сигнал со списком бесед
+        //TDM::Instance().UserAccount().reset(new Users::TUserAccount(NewAccount));
+        TDM::Instance().slot_SetUserAccount(NewAccount);
     }
 
     sig_AuthorizationResult(Result); // Шлём сигнал с результатом авторизации
@@ -180,7 +174,7 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
     {
         case Res::AddContact::acCreated:
         {
-            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), ContactInfo)); // Добавляем контакт в список
+            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), std::make_shared<Users::TUserInfo>(ContactInfo))); // Добавляем контакт в список
             sig_LogMessage(tr("Успешно добавлен контакт: ") + ContactInfo.userName());
             break;
         };

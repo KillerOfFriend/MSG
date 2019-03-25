@@ -40,7 +40,7 @@ private:
 
 private slots:
     void slot_CloseTab(qint32 inTabIndex); // Слот, реагирует на сигнал закрытия вкладки
-    void slot_UserViewDialogResult(const Users::TUserInfo &inUserInfo, qint32 inResult); // Слот, реагирует на результат диалога просмотра пользователя
+    void slot_UserViewDialogResult(const Users::UserInfo_Ptr inUserInfo, qint32 inResult); // Слот, реагирует на результат диалога просмотра пользователя
 
     void slot_FindUsers(); // Слот реагирует на запрос поиска пользователей
     void slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers); // Слот, получающий результат поиска пользователей

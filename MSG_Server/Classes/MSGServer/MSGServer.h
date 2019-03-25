@@ -10,6 +10,7 @@
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 
+#include "Classes/ServerCache/ServerCache.h"
 #include "Models/ConnectedUsers/ConnectedUsers.h"
 
 class TMSGServer : public QObject
@@ -30,6 +31,8 @@ public:
 
 private:    
     std::unique_ptr<QTcpServer> fServer = nullptr; // Сервер
+    std::unique_ptr<TServerCache> fServerCache = nullptr; // Кеш
+
     TConnectedUsersModel fClients; // Список подключённых клиентов
     std::map<QUuid, Users::ChatInfo_Ptr> fChats; // Список бесед
 
@@ -42,12 +45,11 @@ private:
     qint32 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
     std::pair<qint32, QUuid> canAuthorization(QDataStream &inDataStream); // Метод авторизирует пользователя
 
-    Users::TUserInfo getUserInfo(QUuid inUserUuid); // Метод вернёт инфо пользователя по Uuid
-    QList<Users::TUserInfo> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
+    QList<Users::UserInfo_Ptr> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
 
-    std::pair<qint32, Users::TUserInfo> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
-    QList<Users::TUserInfo> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
-    QList<Users::TUserInfo> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
+    std::pair<qint32, Users::UserInfo_Ptr> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
+    QList<Users::UserInfo_Ptr> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
+    QList<Users::UserInfo_Ptr> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
     std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
 //    qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
@@ -59,11 +61,11 @@ private:
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
-    void checkUsersStatus(QList<Users::TUserInfo> &inUsers); // Метод проверит наличие контактов онлайн и установит их статус
-    void checkUserStatus(Users::TUserInfo &inUsers); // Метод проверит наличие контакта онлайнт и установит их статус
+    void checkUsersStatus(QList<Users::UserInfo_Ptr> &inUsers); // Метод проверит наличие контактов онлайн и установит их статус
+    void checkUserStatus(Users::UserInfo_Ptr inUsers); // Метод проверит наличие контакта онлайнт и установит их статус
     void userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus); // Метод отправит контактам пользователя сообщение об изменении его статуса
 
-    void syncAddedUser(QUuid inContactUuid, Users::TUserInfo &inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
+    void syncAddedUser(QUuid inContactUuid, Users::UserInfo_Ptr inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
     void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
 
 //    void syncCreateChat(Users::TChatInfo &inChatInfo); // Метод синхронизирует добавленный чат с пользователями
@@ -84,7 +86,7 @@ private slots:
 
     void slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAccount &inUserAccount); // Слот, задающий авториированного пользователя
 
-    void slot_AddContact(QTcpSocket* inClient, Users::TUserInfo &inContactInfo); // Слот, добавляющйи контакт пользователю
+    void slot_AddContact(QTcpSocket* inClient, Users::UserInfo_Ptr &inContactInfo); // Слот, добавляющйи контакт пользователю
     void slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid); // Слот, удаляющий контакт пользователя
 //    void slot_AddChat(Users::TChatInfo &inChatInfo); // Слот, добавляющий беседу
 };

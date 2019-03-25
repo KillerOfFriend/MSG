@@ -8,6 +8,17 @@ TChatsModel::TChatsModel(QObject* inParent) : QAbstractTableModel(inParent)
     initColumns();
 }
 //-----------------------------------------------------------------------------
+TChatsModel::TChatsModel(const TChatsModel &inOther) : QAbstractTableModel(inOther.parent()), std::map<QUuid, Users::ChatInfo_Ptr>()
+{
+    this->fColumns = inOther.fColumns;
+    this->clear();
+
+    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Item)
+    { this->insert(Item); });
+
+    this->setParent(inOther.parent());
+}
+//-----------------------------------------------------------------------------
 TChatsModel::~TChatsModel()
 {
     clear();
@@ -22,9 +33,7 @@ TChatsModel& TChatsModel::operator = (const TChatsModel &inOther)
     this->clear();
 
     std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Item)
-    {
-        this->insert(Item);
-    });
+    { this->insert(Item); });
 
     this->setParent(inOther.parent());
 
