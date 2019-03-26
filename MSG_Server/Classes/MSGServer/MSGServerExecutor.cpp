@@ -62,7 +62,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 {
                     Users::UserInfo_Ptr UserInfo = fServerCache->getUserInfo(Resuslt.second); // Получаем информацию о пользователе
 
-                    if (!UserInfo && UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
+                    if (!UserInfo || UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
                     {
                         outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
                         sig_LogMessage(inClientSender->peerAddress(), "Ошибка чтения данных записи");

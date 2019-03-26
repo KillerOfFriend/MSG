@@ -13,7 +13,17 @@ TUserType::TUserType(const TUserType &inOther) : TypeCode(inOther.TypeCode), Typ
 
 }
 //-----------------------------------------------------------------------------
+TUserType& TUserType::operator =(const TUserType &inOther)
+{
+    if (this == &inOther)
+         return *this;
 
+    this->TypeCode = inOther.TypeCode;
+    this->TypeName = inOther.TypeName;
+
+    return *this;
+}
+//-----------------------------------------------------------------------------
 namespace OtherTypes
 {
     //-----------------------------------------------------------------------------

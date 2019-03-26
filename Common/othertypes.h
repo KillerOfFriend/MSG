@@ -14,6 +14,8 @@ namespace OtherTypes
         qint32 TypeCode;
         QString TypeName;
 
+        TUserType &operator =(const TUserType &inOther);
+
         bool operator () (const TUserType &inFirst, const TUserType &inSecond) const
         { return inFirst.TypeCode < inSecond.TypeCode; }
 

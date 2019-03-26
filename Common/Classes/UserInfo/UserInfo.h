@@ -69,13 +69,13 @@ namespace Users
 
     private:
         QUuid fUuid; // Уникальный идентификатор пользователя
-        quint32 fType; // Тип пользователя
+        quint32 fType = 0; // Тип пользователя
         QString fLogin; // Логин пользователя
         QString fName; // Имя пользователя
         quint8 fStatus = UserStatus::usUnknown; // Статус пользователя
         QDate fRegistrationDate; // Дата регистрации
         QDate fBirthday; // День рождения пользователя
-        bool fIsMale; // Половая пренадлежность пользователя
+        bool fIsMale = true; // Половая пренадлежность пользователя
 
         QImage fAvatar; // Аватар пользователя
 
