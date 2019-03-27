@@ -7,7 +7,7 @@ using namespace Users;
 //-----------------------------------------------------------------------------
 TChatInfo::TChatInfo(QObject *inParent) : QObject(inParent)
 {
-
+    fClients = std::make_shared<std::map<QUuid, UserInfo_Ptr>>();
 }
 //-----------------------------------------------------------------------------
 TChatInfo::TChatInfo(const TChatInfo &inOther) : QObject(inOther.parent())
@@ -21,7 +21,6 @@ TChatInfo::TChatInfo(const TChatInfo &inOther) : QObject(inOther.parent())
 TChatInfo::~TChatInfo()
 {
     fName.clear();
-    fClients->clear();
 }
 //-----------------------------------------------------------------------------
 TChatInfo& TChatInfo::operator =(const TChatInfo &inOther)
@@ -63,8 +62,8 @@ std::shared_ptr<std::map<QUuid, UserInfo_Ptr>> TChatInfo::clients() // Мето�
 void TChatInfo::addUser(UserInfo_Ptr inUserInfo) // Метод добавит пользователя в беседу
 {
     auto InsertRes = fClients->insert(std::make_pair(inUserInfo->userUuid(), inUserInfo)); // Добавляем пользователя в беседу
-//    if (InsertRes.second) // Если пользователя успешно добавлен
-//        sig_ChatUserAdded(fUuid, inUserInfo); // Шлём сигнал об добавлении пользователя в беседу
+    if (InsertRes.second) // Если пользователя успешно добавлен
+        sig_ChatUserAdded(fUuid, inUserInfo); // Шлём сигнал об добавлении пользователя в беседу
 }
 //-----------------------------------------------------------------------------
 void TChatInfo::deleteUser(QUuid inUserUuid) // Метод удалит пользователя из беседы
@@ -74,21 +73,21 @@ void TChatInfo::deleteUser(QUuid inUserUuid) // Метод удалит поль
     if(FindRes != fClients->end()) // Если такой пользоваетль в беседе есть
     {
         fClients->erase(FindRes); // Удаляем его из контейнера
-//        sig_ChatUserDeleted(fUuid, inUserUuid); // Шлём сигнал об удалении пользователя
-//        if (fClients->empty()) // Если контейнер пуст
-//            sig_ChatIsEmpty(fUuid); // Шлём сигнал о том, что беседа опустела
+        sig_ChatUserDeleted(fUuid, inUserUuid); // Шлём сигнал об удалении пользователя
+        if (fClients->empty()) // Если контейнер пуст
+            sig_ChatIsEmpty(fUuid); // Шлём сигнал о том, что беседа опустела
     }
 }
 //-----------------------------------------------------------------------------
-//void TChatInfo::slot_SetClients(QList<QUuid> &inClientList) // Слот задаст список клиентов беседы
-//{
-//    fClients->clear(); // Предварительно чистим содержимое контейнера клиентов
+void TChatInfo::slot_SetClients(QList<UserInfo_Ptr> &inClientList) // Слот задаст список клиентов беседы
+{
+    fClients->clear(); // Предварительно чистим содержимое контейнера клиентов
 
-//    std::for_each(inClientList.begin(), inClientList.end(), [&](const QUuid &UserUuid) // Копируем пользователей
-//    {
-//        fClients.insert(UserUuid);
-//    });
-//}
+    std::for_each(inClientList.begin(), inClientList.end(), [&](const UserInfo_Ptr &UserUuid) // Копируем пользователей
+    {
+        fClients->insert(std::make_pair(UserUuid->userUuid(), UserUuid));
+    });
+}
 //-----------------------------------------------------------------------------
 namespace Users
 {   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно

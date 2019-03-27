@@ -122,31 +122,33 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::UserInfo_Ptr inUserIn
         };
         case TUserViewDialog::rbSendMsg:
         {
-//            QUuid ChatUuid; // Uuid беседы
-//            // Формируем Uuid приватной беседы
-//            // Uuid прививатной беседы формируется из суммы байтовых последовательностей самого клиента и клиента, которуму пишется
-//            // ВАЖНО! для правильной генерации Uuid с обеих сторон соединения, последовательность должна быть от меньшего к большему
-//            if (DM.UserAccount()->userInfo()->userUuid() < inUserInfo.userUuid())
-//                ChatUuid = QUuid(DM.UserAccount()->userInfo()->userUuid().toByteArray() + inUserInfo.userUuid().toByteArray());
-//            else ChatUuid = QUuid(inUserInfo.userUuid().toByteArray() + DM.UserAccount()->userInfo()->userUuid().toByteArray());
+            QUuid ChatUuid; // Uuid беседы
+            // Формируем Uuid приватной беседы
+            // Uuid прививатной беседы формируется из суммы байтовых последовательностей самого клиента и клиента, которуму пишется
+            // ВАЖНО! для правильной генерации Uuid с обеих сторон соединения, последовательность должна быть от меньшего к большему
+            if (DM.UserAccount()->userInfo()->userUuid() < inUserInfo->userUuid())
+                ChatUuid = QUuid(DM.UserAccount()->userInfo()->userUuid().toByteArray() + inUserInfo->userUuid().toByteArray());
+            else ChatUuid = QUuid(inUserInfo->userUuid().toByteArray() + DM.UserAccount()->userInfo()->userUuid().toByteArray());
 
-//            auto FindCharRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
-//            if (FindCharRes == DM.UserAccount()->chats()->end()) // Если беседа не найдена
-//            {
-//                Users::TChatInfo NewChat; // Новая беседа
-//                NewChat.setChatUuid(ChatUuid); // Задаём Uuid новой беседы
-//                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + "|" + inUserInfo.userName());
-//                NewChat.setChatPrivateStatus(true); // Помечаем беседу как приватную
+            auto FindCharRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
+            if (FindCharRes == DM.UserAccount()->chats()->end()) // Если беседа не найдена
+            {
+                Users::TChatInfo NewChat; // Новая беседа
+                NewChat.setChatUuid(ChatUuid); // Задаём Uuid новой беседы
+                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + "|" + inUserInfo->userName());
+                NewChat.setChatPrivateStatus(true); // Помечаем беседу как приватную
 
-//                NewChat.addUser(DM.UserAccount()->userInfo()->userUuid());  // Добавляем "Себя"
-//                NewChat.addUser(inUserInfo.userUuid()); // Добавляем пользователя
+                NewChat.addUser(DM.UserAccount()->userInfo());  // Добавляем "Себя"
+                NewChat.addUser(inUserInfo); // Добавляем пользователя
 
-//                DM.Client()->createChat(NewChat); // Шлём команду на создание приватной беседы
-//            }
-//            else // Если беседа найдена
-//            {
-//                // !!!
-//            }
+                DM.Client()->createChat(NewChat); // Шлём команду на создание приватной беседы
+            }
+            else // Если беседа найдена
+            {
+                auto FindRes = fOpenChatTabs.find(ChatUuid);
+                if (FindRes != fOpenChatTabs.end())
+                    ui->ChatTabWidget->setCurrentIndex(FindRes->second);
+            }
 
             break;
         };

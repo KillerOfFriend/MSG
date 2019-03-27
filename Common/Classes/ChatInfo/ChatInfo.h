@@ -48,12 +48,12 @@ namespace Users
         std::shared_ptr<std::map<QUuid, UserInfo_Ptr>> fClients = nullptr; // Список клиентов беседы
 
     signals:
-//        void sig_ChatUserAdded(QUuid inChatUuid, QUuid inUserUuid); // Сигнал о добавлении пользователя в чат
-//        void sig_ChatIsEmpty(QUuid inChatUuid); // Сигнал, посылающий QUuid опустевшено чата
-//        void sig_ChatUserDeleted(QUuid inChatUuid, QUuid inUserUuid); // Сигнал о удалении пользователя из чата
+        void sig_ChatUserAdded(QUuid inChatUuid, UserInfo_Ptr inUserUuid); // Сигнал о добавлении пользователя в чат
+        void sig_ChatIsEmpty(QUuid inChatUuid); // Сигнал, посылающий QUuid опустевшено чата
+        void sig_ChatUserDeleted(QUuid inChatUuid, QUuid inUserUuid); // Сигнал о удалении пользователя из чата
 
     public slots:
-//        void slot_SetClients(QList<QUuid> &inClientList); // Слот задаст список клиентов беседы
+        void slot_SetClients(QList<UserInfo_Ptr> &inClientList); // Слот задаст список клиентов беседы
     };
 
 }

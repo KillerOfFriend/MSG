@@ -57,12 +57,6 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
             addContactResult(inStream); // Обработать результат добавления контакта
             break;
         }
-//        case Commands::GetContacts: // Запрос списка контактов
-//        {
-//            sig_LogMessage("Получен ответ на запрос списка контактов");
-//            getContactsResult(inStream); // Обработать результат запроса списка контактов
-//            break;
-//        }
         case Commands::DeleteContact: // Удаление контакта
         {
             sig_LogMessage("Получен ответ на удаление контакта");
@@ -241,7 +235,7 @@ void TMSGClient::inviteToChatResult(QDataStream &inDataStream)
     Users::TChatInfo AddedChat;
     inDataStream >> AddedChat;
 
-    sig_InviteToChatResult(AddedChat);
+    sig_InviteToChatResult(std::make_shared<Users::TChatInfo>(AddedChat));
 }
 //-----------------------------------------------------------------------------
 /**

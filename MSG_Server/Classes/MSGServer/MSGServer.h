@@ -40,6 +40,7 @@ private:
     void init(); // Метод инициализирует класс
     void Link(); // Метод соединит сигналы\слоты
 
+    QTcpSocket* socketByUuid(QUuid inClientUuid); // Метод вернёт сокет клиента если он онлайн
     void executCommand(QTcpSocket* inSender); // Метод выполнит команду
 
     qint32 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
@@ -52,12 +53,12 @@ private:
     QList<Users::UserInfo_Ptr> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
     std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
-//    qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
-//    QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
-//    qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
+    qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
+    QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
+    qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
 //    Users::TChatInfo getChatInfo(QUuid inChatUuid); // Метод вернёт информацию о беседе
 //    QList<QUuid> getChatUsers(QUuid inChatUuid); // Метод вернёт список пользователй чата
-//    QList<Users::TChatInfo> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
+    QList<Users::ChatInfo_Ptr> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
@@ -68,8 +69,8 @@ private:
     void syncAddedUser(QUuid inContactUuid, Users::UserInfo_Ptr inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
     void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
 
-//    void syncCreateChat(Users::TChatInfo &inChatInfo); // Метод синхронизирует добавленный чат с пользователями
-//    void syncAddedUserToChat(QUuid inUserUuid, QUuid inChatUuid); // Метод синхронизирует беседу послед добавления пользователя в неё
+    void syncCreateChat(QUuid inChatUuid); // Метод синхронизирует добавленный чат с пользователями
+    void syncAddedUserToChat(Users::ChatInfo_Ptr inChatUUid, Users::UserInfo_Ptr inUser); // Метод синхронизирует беседу послед добавления пользователя в неё
 //    void syncDeletedUserFromChat(QUuid inUserUuid, QUuid inChatUuid); // Метод синхронизирует беседу послед удаления пользователя из неё
 
 signals:

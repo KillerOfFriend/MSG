@@ -121,15 +121,15 @@ void TUserAccount::slot_ContactChangeStatus(QUuid inContactUuid, quint8 inNewSta
  * @brief TUserAccount::slot_SetChats - Слот задаст список бесед
  * @param inChats - Список бесед
  */
-void TUserAccount::slot_SetChats(const QList<TChatInfo> &inChats)
+void TUserAccount::slot_SetChats(const QList<ChatInfo_Ptr> &inChats)
 {
     fChats->clear();
 
-    std::for_each(inChats.begin(), inChats.end(), [&](const TChatInfo &Info)
+    std::for_each(inChats.begin(), inChats.end(), [&](const ChatInfo_Ptr &Info)
     {
-        auto InsertRes = fChats->insert(std::make_pair(Info.chatUuid(), std::make_shared<Users::TChatInfo>(Info)));
+        auto InsertRes = fChats->insert(std::make_pair(Info->chatUuid(), Info));
         if (!InsertRes.second)
-            qDebug() << "Не удалось вставить беседу: " + Info.chatName();
+            qDebug() << "Не удалось вставить беседу: " + Info->chatName();
     });
 }
 //-----------------------------------------------------------------------------
@@ -137,17 +137,20 @@ void TUserAccount::slot_SetChats(const QList<TChatInfo> &inChats)
  * @brief TUserAccount::slot_AddChat - Слот добавит беседу
  * @param inChat - Новая беседа
  */
-void TUserAccount::slot_AddChat(const Users::TChatInfo &inChat)
+void TUserAccount::slot_AddChat(const ChatInfo_Ptr inChat)
 {
-    auto FindRes = fChats->find(inChat.chatUuid());
+    if (!inChat)
+        return;
 
-    if (FindRes == fChats->end())
-    {
-        fChats->insert(std::make_pair(inChat.chatUuid(), std::make_shared<Users::TChatInfo>(inChat)));
+    auto FindRes = fChats->find(inChat->chatUuid()); // Ищим беседу по Uuid
+
+    if (FindRes == fChats->end()) // Если не найдена
+    {   // Добавляем
+        fChats->insert(std::make_pair(inChat->chatUuid(), inChat));
     }
-    else
-    {
-        FindRes->second = std::make_shared<Users::TChatInfo>(inChat);
+    else // Если найдена
+    {   // Обновляем
+        FindRes->second = inChat;
     }
 }
 //-----------------------------------------------------------------------------

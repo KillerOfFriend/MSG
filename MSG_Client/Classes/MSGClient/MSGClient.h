@@ -75,7 +75,7 @@ signals:
     //--
     void sig_FindUsersResult(const QList<Users::TUserInfo> &inUsers);
     //--
-    void sig_InviteToChatResult(const Users::TChatInfo &inChat);
+    void sig_InviteToChatResult(const Users::ChatInfo_Ptr inChat);
 
     void sig_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus);
 };

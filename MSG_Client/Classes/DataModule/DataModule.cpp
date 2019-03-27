@@ -44,14 +44,17 @@ void TDM::init() // Мотод инициализирует классы мод�
 //    connect(fClient.get(), &TMSGClient::sig_SetContacts, fUserAccount.get(), &Users::TUserAccount::slot_SetContacts); // Передача информации о контактах пользователя
 //    connect(fClient.get(), &TMSGClient::sig_SetChats, fUserAccount.get(), &Users::TUserAccount::slot_SetChats); // Передача информации о беседах
 
-    connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Users::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
+//    connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Users::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
     connect(fClient.get(), &TMSGClient::sig_GetUserTypesResult, fModels.get(), &TModels::slot_InitUserTypes); // Передача списка типов пользователей
 
-    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
+//    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
 }
 //-----------------------------------------------------------------------------
 void TDM::slot_SetUserAccount(Users::TUserAccount &inUserAccount)
 {
-    fUserAccount = std::make_shared<Users::TUserAccount>(inUserAccount);
+    fUserAccount = std::make_shared<Users::TUserAccount>(inUserAccount); // Переназначаем аккаунт
+    // Линкуем к нему сигналы
+    connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Users::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
+    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
 }
 //-----------------------------------------------------------------------------

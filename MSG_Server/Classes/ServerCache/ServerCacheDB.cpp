@@ -78,8 +78,8 @@ Users::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
                 Result->setChatName(QString::fromUtf8(Query.value("f_chat_name").toByteArray()));
                 Result->setChatPrivateStatus(Query.value("f_chat_is_private").toBool());
 
-                QList<QUuid> ChatUsersBuf = getChatUsers(Result->chatUuid()); // Получаем список пользователей чата
-//                Result.slot_SetClients(ChatUsersBuf); // Задаём список пользователей чата
+                QList<Users::UserInfo_Ptr> ChatUsersBuf = getChatUsers(Result->chatUuid()); // Получаем список пользователей чата
+                Result->slot_SetClients(ChatUsersBuf); // Задаём список пользователей чата
             }
             fChatsCache->insert(std::make_pair(Result->chatUuid(), Result)); // Добавляем результат в кеш
         }
@@ -91,11 +91,11 @@ Users::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
 /**
  * @brief TServerCache::getChatUsers - Метод получит список Uuid'ов пользователей указанной беседы
  * @param inChatUuid - Uuid беседы
- * @return Вернёт список Uuid'ов пользователей чатов
+ * @return Вернёт список пользователей чатов
  */
-QList<QUuid> TServerCache::getChatUsers(QUuid inChatUuid)
+QList<Users::UserInfo_Ptr> TServerCache::getChatUsers(QUuid inChatUuid)
 {
-    QList<QUuid> Result;
+    QList<Users::UserInfo_Ptr> Result;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -110,7 +110,15 @@ QList<QUuid> TServerCache::getChatUsers(QUuid inChatUuid)
         else
         {
             while (Query.next())
-                Result.push_back(Query.value("found_users_uuid").toUuid());
+            {
+                QUuid UserUuid = Query.value("found_users_uuid").toUuid(); // Получаем uuid пользователя
+                if (!UserUuid.isNull())
+                {
+                    Users::UserInfo_Ptr UiserInfo = getUserInfo(UserUuid); // Получаем данные о пользователе
+                    if (UiserInfo) // Если пользователь валиден
+                        Result.push_back(UiserInfo); // Добавляем его в список
+                }
+            }
         }
     }
 

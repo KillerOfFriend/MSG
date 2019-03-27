@@ -31,7 +31,7 @@ private:
     Users::UserInfo_Ptr uploadUserInfoFromDB(const QUuid inUserUuid); // Метод получит информацию о пользователе из БД и сохранит в кеше
     Users::ChatInfo_Ptr uploadChatInfoFromDB(const QUuid inChatUuid); // Метод получит информацию о беседе из БД и сохранит в кеше
 
-    QList<QUuid> getChatUsers(QUuid inChatUuid); // Метод получит список Uuid'ов пользователей указанной беседы
+    QList<Users::UserInfo_Ptr> getChatUsers(QUuid inChatUuid); // Метод получит список пользователей указанной беседы
 
 public slots:
 
