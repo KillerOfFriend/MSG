@@ -16,7 +16,8 @@ namespace Commands
     const quint8 CreateChat =           8;  // Создание новой беседы
     const quint8 InviteToChat =         9;  // Приглашение в новый чат
     const quint8 AddUserToChat =        10; // Добавление пользователя в беседу
-    const quint8 DeleteUserFromChat =   11; // Удаление пользователя из беседы
+    const quint8 ILeaveFromChat =       11; // Выход пользователя из чата
+    const quint8 DeleteUserFromChat =   12; // Удаление пользователя из беседы
 }
 
 #endif // COMANDES_H

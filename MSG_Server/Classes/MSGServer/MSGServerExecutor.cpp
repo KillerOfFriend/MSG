@@ -31,7 +31,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание пользователя");
 
-            qint32 Resuslt = creteUser(inStream); // Регистрация пользователя
+            quint8 Resuslt = creteUser(inStream); // Регистрация пользователя
             outStream << Command << Resuslt; // Пишем в результат команду и результат обработки
             sig_LogMessage(inClientSender->peerAddress(), "Отправка ответа о создании пользователя");
 
@@ -42,7 +42,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на авторизацию");
 
-            std::pair<qint32, QUuid> Resuslt = canAuthorization(inStream); // Обрабатываем возможность авторизации
+            std::pair<quint8, QUuid> Resuslt = canAuthorization(inStream); // Обрабатываем возможность авторизации
 
             switch (Resuslt.first) // Проверяем результат обработки
             {
@@ -141,7 +141,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::AddContact: // Добавление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
-            std::pair<qint32, Users::UserInfo_Ptr> Result = addContact(inStream); // Добавляем контакт
+            std::pair<quint8, Users::UserInfo_Ptr> Result = addContact(inStream); // Добавляем контакт
 
             if (Result.first != Res::AddContact::acCreated) // Если пользователь не был добавлен
                 outStream << Command << Result.first; // Пишем в результат команду и результат обработки
@@ -164,7 +164,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::DeleteContact: // Удаление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление контакта");
-            std::pair<qint32, QUuid> Result = deleteContact(inStream); // Удаляем контакт
+            std::pair<quint8, QUuid> Result = deleteContact(inStream); // Удаляем контакт
 
             if (Result.first != Res::DeleteContact::dcContactRemove) // Если контакт не удалён
                 outStream << Command << Result.first; // Пишем в результат команду и результат обработки
@@ -186,10 +186,32 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::CreateChat: // Создание беседы
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание беседы");
-            qint32 Result = createChat(inStream); // Пытаемся добавить беседу
+            quint8 Result = createChat(inStream); // Пытаемся добавить беседу
 
             outStream << Command << Result; // Шлём команду и результат обработки
 
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка результата создания беседы");
+            break;
+        }
+        //---
+        case Commands::DeleteUserFromChat: // Выход пользователя из беседы
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление пользователя");
+            quint8 Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя
+
+            outStream << Command << Result; // Шлём команду и результат обработки
+
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления пользователя из чата");
+            break;
+        }
+        case Commands::ILeaveFromChat: // Выход пользователя из беседы
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на выход пользователя из беседы");
+            quint8 Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя (приславшего запрос)
+
+            outStream << Command << Result; // Шлём команду и результат обработки
+
+            sig_LogMessage(inClientSender->peerAddress(), "Отправка результата выхода из чата");
             break;
         }
 
@@ -200,9 +222,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
     //inClientSender->waitForBytesWritten();
 }
 //-----------------------------------------------------------------------------
-qint32 TMSGServer::creteUser(QDataStream &inDataStream)
+quint8 TMSGServer::creteUser(QDataStream &inDataStream)
 {
-    quint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
 
     QString Login = ReadStringFromStream(inDataStream); // Читаем логин
 
@@ -230,16 +252,16 @@ qint32 TMSGServer::creteUser(QDataStream &inDataStream)
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result = Query.value("create_user").toInt();
+                Result = Query.value("create_user").toUInt();
         }
     }
 
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream) // Метод авторизирует пользователя
+std::pair<quint8, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream) // Метод авторизирует пользователя
 {
-    std::pair<qint32, QUuid> Result;
+    std::pair<quint8, QUuid> Result;
 
     QString Login = ReadStringFromStream(inDataStream);
 
@@ -261,7 +283,7 @@ std::pair<qint32, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream)
         {
             while (Query.next()) // Вернётся только 1 запись
             {
-                Result.first = Query.value("result_code").toInt();
+                Result.first = Query.value("result_code").toUInt();
                 Result.second = Query.value("uuid_found_user").toByteArray();
             }
         }
@@ -301,9 +323,9 @@ QList<Users::UserInfo_Ptr> TMSGServer::findUsers(QDataStream &inDataStream) // �
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, Users::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
+std::pair<quint8, Users::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
 {
-    std::pair<qint32, Users::UserInfo_Ptr> Result;
+    std::pair<quint8, Users::UserInfo_Ptr> Result;
     Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец нового контакта
@@ -325,7 +347,7 @@ std::pair<qint32, Users::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDat
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result.first = Query.value("create_contact").toInt();
+                Result.first = Query.value("create_contact").toUInt();
 
             if (Result.first == Res::AddContact::acCreated) // Если контакт был добавлен
                 Result.second = fServerCache->getUserInfo(NewContact); // Получаем информацию об это контакте
@@ -372,9 +394,9 @@ QList<Users::UserInfo_Ptr> TMSGServer::getContacts(QDataStream &inDataStream) //
     return getContacts(OwnerUuid);
 }
 //-----------------------------------------------------------------------------
-std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю
+std::pair<quint8, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) // Метод удалит котнтакт пользователю
 {
-    std::pair<qint32, QUuid> Result;
+    std::pair<quint8, QUuid> Result;
     Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец контакта
@@ -396,7 +418,7 @@ std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) //
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result.first = Query.value("delete_contacts").toInt();
+                Result.first = Query.value("delete_contacts").toUInt();
 
             if (Result.first == Res::DeleteContact::dcContactRemove) // Если контакт был удалён
                 Result.second = Contact; // Запоминаем его Uuid
@@ -406,9 +428,9 @@ std::pair<qint32, QUuid> TMSGServer::deleteContact(QDataStream &inDataStream) //
     return Result;
 }
 //-----------------------------------------------------------------------------
-qint32 TMSGServer::createChat(QDataStream &inDataStream) // Метод добавит новую беседу
+quint8 TMSGServer::createChat(QDataStream &inDataStream) // Метод добавит новую беседу
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
 
     Users::TChatInfo NewChat; // Читаем данные о беседе из потока
     inDataStream >> NewChat;
@@ -428,7 +450,7 @@ qint32 TMSGServer::createChat(QDataStream &inDataStream) // Метод доба�
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result = Query.value("create_chat").toInt();
+                Result = Query.value("create_chat").toUInt();
         }
     }
 
@@ -469,9 +491,9 @@ QList<QUuid> TMSGServer::findChats(QUuid inUserUuid) // Метод вернёт 
     return Result;
 }
 //-----------------------------------------------------------------------------
-qint32 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Метод добавит пользователя в беседу
+quint8 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Метод добавит пользователя в беседу
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -487,7 +509,7 @@ qint32 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Мето
         else
         {
             while (Query.next()) // Вернётся только 1 запись
-                Result = Query.value("add_user_to_chat").toInt();
+                Result = Query.value("add_user_to_chat").toUInt();
         }
     }
 
@@ -509,6 +531,35 @@ QList<Users::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // М�
                 Result.push_back(Chat); // Добавляем беседу в список
         }
     });
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+quint8 TMSGServer::deleteUserFromChat(QDataStream &inDataStream) // Метод удалит пользователя из беседы
+{
+    quint8 Result = Res::rUnknown;
+
+    QUuid ChatUuid; // Uuid беседы, из которой удаляем пользователя
+    QUuid UserUuid; // Uuid удаляемого пользователя
+
+    inDataStream >> ChatUuid >> UserUuid;
+
+    Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(ChatUuid); // Ищим беседу
+
+    if (!Chat) // если беседа не найдена
+        Result = Res::DeleteUserFromChat::deleteFail;
+    else // Беседа найдена
+    {
+        auto FindRes = Chat->clients()->find(UserUuid); // Ищим удаляемого пользователя
+        if (FindRes == Chat->clients()->end()) // Пользователь беседы не найден
+            Result = Res::DeleteUserFromChat::notInside;
+        else // Пользоваетль беседы найден
+        {   // ВАЖНО! Сначала запускаем синхронизацию удаления, а только посл выполняем удаление само удаление (иначе синхранизация с удалеяемым пользователем не пройдет!)
+            syncDeletedUserFromChat(Chat, UserUuid); // Синхронизируем удаление пользователя из беседы
+            Chat->clients()->erase(FindRes); // Удаляем пользователя из беседы
+            Result = Res::DeleteUserFromChat::deleteSuccess;
+        }
+    }
 
     return Result;
 }

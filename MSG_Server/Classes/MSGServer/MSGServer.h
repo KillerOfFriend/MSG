@@ -43,20 +43,21 @@ private:
     QTcpSocket* socketByUuid(QUuid inClientUuid); // Метод вернёт сокет клиента если он онлайн
     void executCommand(QTcpSocket* inSender); // Метод выполнит команду
 
-    qint32 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
-    std::pair<qint32, QUuid> canAuthorization(QDataStream &inDataStream); // Метод авторизирует пользователя
+    quint8 creteUser(QDataStream &inDataStream); // Метод создаст нового пользователя
+    std::pair<quint8, QUuid> canAuthorization(QDataStream &inDataStream); // Метод авторизирует пользователя
 
     QList<Users::UserInfo_Ptr> findUsers(QDataStream &inDataStream); // Метод вернёт список пользователей по их имени\логину
 
-    std::pair<qint32, Users::UserInfo_Ptr> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
+    std::pair<quint8, Users::UserInfo_Ptr> addContact(QDataStream &inDataStream); // Метод добавит котнтакт пользователю
     QList<Users::UserInfo_Ptr> getContacts(QDataStream &inDataStream); // Метод вернёт список контактов по uuid указанного пользователя
     QList<Users::UserInfo_Ptr> getContacts(const QUuid &inOwnerUuid); // Метод вернёт список контактов указанного пользователя
-    std::pair<qint32, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
+    std::pair<quint8, QUuid> deleteContact(QDataStream &inDataStream); // Метод удалит котнтакт пользователю
 
-    qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
+    quint8 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
     QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
-    qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
+    quint8 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
     QList<Users::ChatInfo_Ptr> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
+    quint8 deleteUserFromChat(QDataStream &inDataStream); // Метод удалит пользователя из беседы
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 
@@ -67,9 +68,9 @@ private:
     void syncAddedUser(QUuid inContactUuid, Users::UserInfo_Ptr inOwnerInfo); // Метод синхранизирует список контактов после добавления пользователя
     void syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid); // Метод синхранизирует список контактов после удаления пользователя
 
-    void syncCreateChat(QUuid inChatUuid); // Метод синхронизирует добавленный чат с пользователями
+    void syncCreateChat(QUuid inChatUuid); // Метод синхронизирует добавленную беседу с пользователями
     void syncAddedUserToChat(Users::ChatInfo_Ptr inChatUUid, Users::UserInfo_Ptr inUser); // Метод синхронизирует беседу послед добавления пользователя в неё
-//    void syncDeletedUserFromChat(QUuid inUserUuid, QUuid inChatUuid); // Метод синхронизирует беседу послед удаления пользователя из неё
+    void syncDeletedUserFromChat(Users::ChatInfo_Ptr inChat, QUuid inChatUuid); // Метод синхронизирует беседу послед удаления пользователя из неё
 
 signals:
     void sig_LogMessage(QHostAddress inAddres, QString inMessage); // Сигнал пошлёт сообщение
@@ -87,7 +88,6 @@ private slots:
 
     void slot_AddContact(QTcpSocket* inClient, Users::UserInfo_Ptr &inContactInfo); // Слот, добавляющйи контакт пользователю
     void slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid); // Слот, удаляющий контакт пользователя
-//    void slot_AddChat(Users::TChatInfo &inChatInfo); // Слот, добавляющий беседу
 };
 
 #endif // MSGSERVER_H

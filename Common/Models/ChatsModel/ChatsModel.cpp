@@ -117,6 +117,7 @@ std::pair<std::map<QUuid, Users::ChatInfo_Ptr>::iterator, bool> TChatsModel::ins
 //-----------------------------------------------------------------------------
 std::map<QUuid, Users::ChatInfo_Ptr>::iterator TChatsModel::erase(std::map<QUuid, Users::ChatInfo_Ptr>::iterator inIt)
 {
+    sig_chatDeleting(inIt->first);
     qint32 Row = std::distance(this->begin(), inIt);
 
     beginRemoveRows(QModelIndex(), Row, Row);
@@ -129,13 +130,18 @@ std::map<QUuid, Users::ChatInfo_Ptr>::iterator TChatsModel::erase(std::map<QUuid
 std::map<QUuid, Users::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &inUuid)
 {
     auto It = this->find(inUuid);
-    qint32 Row = std::distance(this->begin(), It);
+    if (It != this->end())
+    {
+        sig_chatDeleting(inUuid);
+        qint32 Row = std::distance(this->begin(), It);
 
-    beginRemoveRows(QModelIndex(), Row, Row);
-    size_type Res = std::map<QUuid, Users::ChatInfo_Ptr>::erase(inUuid);
-    endRemoveRows();
+        beginRemoveRows(QModelIndex(), Row, Row);
+        size_type Res = std::map<QUuid, Users::ChatInfo_Ptr>::erase(inUuid);
+        endRemoveRows();
 
-    return Res;
+        return Res;
+    }
+    else return 0;
 }
 //-----------------------------------------------------------------------------
 void TChatsModel::clear()

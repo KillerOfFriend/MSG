@@ -10,6 +10,7 @@
 
 #include <QCryptographicHash>
 
+#include "Classes/DataModule/DataModule.h"
 #include "Classes/Settings/Settings.h"
 #include "comandes.h"
 #include "resultcodes.h"
@@ -199,6 +200,26 @@ bool TMSGClient::createChat(Users::TChatInfo &inChatInfo) // Метод отпр
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
         Stream << Commands::CreateChat << inChatInfo;
+
+        fClient->write(SendingData);
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+bool TMSGClient::leaveFromChat(const QUuid inChatUuid) // Метод удалит беседу (По факту, удалит из беседы пользователя)
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        sig_LogMessage("Отправлен запрос на выход из беседы");
+
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Stream << Commands::ILeaveFromChat << inChatUuid << TDM::Instance().UserAccount()->userInfo()->userUuid(); // Шлём ID беседы и свой Uuid
 
         fClient->write(SendingData);
     }

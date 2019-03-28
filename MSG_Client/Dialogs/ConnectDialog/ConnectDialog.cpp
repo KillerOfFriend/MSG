@@ -130,7 +130,7 @@ void TConnectDialog::slot_LinkEnterPress(bool inEnabled)
     }
 }
 //-----------------------------------------------------------------------------
-void TConnectDialog::slot_RegistrationResult(qint32 inRes)
+void TConnectDialog::slot_RegistrationResult(quint8 inRes)
 {
     disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_UserCreateResult, this, &TConnectDialog::slot_RegistrationResult); // Разрываем связь
 
@@ -171,7 +171,7 @@ void TConnectDialog::slot_RegistrationResult(qint32 inRes)
     slot_SetUiEnabled(true);
 }
 //-----------------------------------------------------------------------------
-void TConnectDialog::slot_AuthorizationResult(qint32 Result)
+void TConnectDialog::slot_AuthorizationResult(quint8 Result)
 {
     disconnect(TDM::Instance().Client().get(), &TMSGClient::sig_AuthorizationResult, this, &TConnectDialog::slot_AuthorizationResult);
 

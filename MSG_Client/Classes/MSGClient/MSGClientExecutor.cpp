@@ -75,10 +75,22 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
             createChatResult(inStream); // Обрабатываем результат создания беседы
             break;
         }
-        case Commands::InviteToChat:
+        case Commands::InviteToChat: // Приглашение в беседу
         {
-            sig_LogMessage("Получено приглашение в чат");
+            sig_LogMessage("Получено приглашение в беседу");
             inviteToChatResult(inStream);
+            break;
+        }
+        case Commands::DeleteUserFromChat: // Удаление пользователя из беседы
+        {
+            sig_LogMessage("Пролучeн запрос на удаление пользователя из беседы");
+            deleteUserFromChatResult(inStream);
+            break;
+        }
+        case Commands::ILeaveFromChat: // Выход из беседы
+        {
+            sig_LogMessage("Пролучeн ответ на выход из беседы");
+            leaveFromChatResult(inStream);
             break;
         }
 
@@ -92,7 +104,7 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
  */
 void TMSGClient::creteUserResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     inDataStream >> Result; // Получаем результат выполнения
     sig_UserCreateResult(Result); // Шлём сигнал с результатом создания пользователя
 }
@@ -103,7 +115,7 @@ void TMSGClient::creteUserResult(QDataStream &inDataStream)
  */
 void TMSGClient::userAuthorization(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
 
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
@@ -124,7 +136,7 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
  */
 void TMSGClient::getUserTypesResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     QList<OtherTypes::TUserType> UserTypes;
 
     inDataStream >> Result; // Получаем результат выполнения
@@ -140,7 +152,7 @@ void TMSGClient::getUserTypesResult(QDataStream &inDataStream)
  */
 void TMSGClient::findUsersResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     QList<Users::TUserInfo> FoundUsers;
 
     inDataStream >> Result; // Получаем результат поиска
@@ -157,7 +169,7 @@ void TMSGClient::findUsersResult(QDataStream &inDataStream)
  */
 void TMSGClient::addContactResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     Users::TUserInfo ContactInfo;
     inDataStream >> Result;
 
@@ -185,7 +197,7 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
  */
 void TMSGClient::deleteContactResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     QUuid ContactUuid;
     inDataStream >> Result;
 
@@ -212,7 +224,7 @@ void TMSGClient::deleteContactResult(QDataStream &inDataStream)
  */
 void TMSGClient::createChatResult(QDataStream &inDataStream)
 {
-    qint32 Result = Res::rUnknown;
+    quint8 Result = Res::rUnknown;
     inDataStream >> Result;
 
     switch (Result)
@@ -227,7 +239,7 @@ void TMSGClient::createChatResult(QDataStream &inDataStream)
 }
 //-----------------------------------------------------------------------------
 /**
- * @brief TMSGClient::InviteToChatResult - Метод обработает добавление в чат
+ * @brief TMSGClient::InviteToChatResult - Метод обработает добавление в беседу
  * @param inDataStream - Входящий поток
  */
 void TMSGClient::inviteToChatResult(QDataStream &inDataStream)
@@ -236,6 +248,78 @@ void TMSGClient::inviteToChatResult(QDataStream &inDataStream)
     inDataStream >> AddedChat;
 
     sig_InviteToChatResult(std::make_shared<Users::TChatInfo>(AddedChat));
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::deleteUserFromChat - Метод обработает удаление из беседы
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::deleteUserFromChatResult(QDataStream &inDataStream)
+{
+    quint8 Result = Res::rUnknown;
+    QUuid ChatUuid;
+    QUuid UserUuid;
+    inDataStream >> Result >> ChatUuid >> UserUuid;
+
+    switch (Result)
+    {
+        case Res::DeleteUserFromChat::deleteSuccess: // Успешное удаление
+        {
+            TDM &DM = TDM::Instance();
+            QString LogMessage = "";
+            auto FindChatRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу
+
+            if (FindChatRes == DM.UserAccount()->chats()->end())
+                LogMessage = tr("Ошибка, получен запрос на удаление пользователя из несуществующей беседы");
+            else
+            {
+                if (UserUuid == DM.UserAccount()->userInfo()->userUuid()) // Если удалён текущий пользователь
+                {   // То требуется удалить саму беседу
+                    LogMessage = tr("Вы покидаете беседу: ") + FindChatRes->second->chatName();
+                    DM.UserAccount()->chats()->erase(FindChatRes); // Удаляем беседу (сгенерируется сигнал об удалении беседы)
+                }
+                else // если удаляется не текущий пользователь
+                {
+                    auto FindUserRes = FindChatRes->second->clients()->find(UserUuid); // Ищим удаляемого пользователя
+
+                    if (FindUserRes == FindChatRes->second->clients()->end()) // Если пользоваетль не найден
+                        LogMessage = tr("Ошибка, получен запрос на удаление не существующего пользователя из беседы");
+                    else // Если пользователь найден
+                    {
+                        LogMessage = tr("Пользователь %1 покидает беседу %2").arg(FindUserRes->second->userName()).arg(FindChatRes->second->chatName());
+                        FindChatRes->second->clients()->erase(FindUserRes); // Удаляем пользователя из беседы
+                    }
+                }
+            }
+
+            sig_LogMessage(LogMessage);
+            break;
+        }
+        case Res::DeleteUserFromChat::notInside: // Не удалось найти
+        { sig_LogMessage(tr("Не удалось найти пользователя для удаления")); break; }
+        default:
+        { sig_LogMessage(tr("При удалении пользователя произошла ошибка!")); break; }
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMSGClient::leaveFromChat - Метод обработает выход из беседы
+ * @param inDataStream - Входящий поток
+ */
+void TMSGClient::leaveFromChatResult(QDataStream &inDataStream)
+{
+    quint8 Result = Res::rUnknown;
+    inDataStream >> Result;
+
+    switch (Result)
+    {
+        case Res::ILeaveFromChat::leaveSuccess: // Выход успешен
+        { sig_LogMessage(tr("Выход из беседы прошёл успешно")); break; }
+        case Res::ILeaveFromChat::leaveFail: // Не удалось
+        { sig_LogMessage(tr("Не удалось выйти из беседы")); break; }
+        default:
+        { sig_LogMessage(tr("При выходе из беседы произошла ошибка!")); break; }
+    }
 }
 //-----------------------------------------------------------------------------
 /**

@@ -40,6 +40,9 @@ private:
     std::array<QString, fColumnCount> fColumns;
 
     void initColumns();
+
+signals:
+    void sig_chatDeleting(const QUuid inDeletedChatUuid); // Сигнал об удалении беседы
 };
 
 #endif // CHATSMODEL_H

@@ -38,8 +38,8 @@ private slots:
     void slot_regCheck(); // Слот проверит возможность регистрации
     void slot_confCheck(); // Слот проверит возможность сохранения настроек
 
-    void slot_RegistrationResult(qint32 inRes); // Слот, реагирующий на возврат результата регистрации пользователя
-    void slot_AuthorizationResult(qint32 Result); // Слот, реагирующий на возврат результата авторизации
+    void slot_RegistrationResult(quint8 inRes); // Слот, реагирующий на возврат результата регистрации пользователя
+    void slot_AuthorizationResult(quint8 Result); // Слот, реагирующий на возврат результата авторизации
 
     void on_SaveLoginCheckBox_clicked(bool checked);
     void on_btnRegistrationUser_clicked();

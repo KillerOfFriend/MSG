@@ -30,6 +30,7 @@ public:
     bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
 
     bool createChat(Users::TChatInfo &inChatInfo); // Метод отправит команду на создание беседы
+    bool leaveFromChat(const QUuid inChatUuid); // Метод удалит беседу (По факту, удалит из беседы пользователя)
 
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;
@@ -48,7 +49,9 @@ private:
     void deleteContactResult(QDataStream &inDataStream); // Метод обработает результат удаления контакта
     //--
     void createChatResult(QDataStream &inDataStream); // Метод обработает результат создания беседы
-    void inviteToChatResult(QDataStream &inDataStream); // Метод обработает добавление в чат
+    void inviteToChatResult(QDataStream &inDataStream); // Метод обработает добавление в беседу
+    void deleteUserFromChatResult(QDataStream &inDataStream); // Метод обработает удаление из беседы
+    void leaveFromChatResult(QDataStream &inDataStream); // Метод обработает выход из беседы
 
     void contactChangeStatus(QDataStream &inDataStream); // Метод обработает сообщение о смене статуса контакта
 
@@ -63,14 +66,14 @@ private slots:
 
 signals:
     void sig_LogMessage(QString inMessage);
-    void sig_TimeOut(qint32 inResult);
+    void sig_TimeOut(quint8 inResult);
     //--
     void sig_SetUserInfo(const Users::TUserInfo &inUserInfo);
     void sig_SetContacts(const QList<Users::TUserInfo> &inUsers);
     void sig_SetChats(const QList<Users::TChatInfo> &inChats);
     //--
-    void sig_UserCreateResult(qint32 inResult);
-    void sig_AuthorizationResult(qint32 inResult);
+    void sig_UserCreateResult(quint8 inResult);
+    void sig_AuthorizationResult(quint8 inResult);
     void sig_GetUserTypesResult(QList<OtherTypes::TUserType> &inUserTypes);
     //--
     void sig_FindUsersResult(const QList<Users::TUserInfo> &inUsers);
