@@ -2,7 +2,6 @@
 #include "ui_UserListDialog.h"
 
 #include "Classes/DataModule/DataModule.h"
-
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"
 
 //-----------------------------------------------------------------------------
@@ -27,17 +26,23 @@ TUserListDialog::~TUserListDialog()
     delete ui;
 }
 //-----------------------------------------------------------------------------
-QList<QUuid> TUserListDialog::selectedUsersUuids() // Метод вернёт Uuid'ы выбранных пользователей
+QList<Users::UserInfo_Ptr> TUserListDialog::selectedUsers() // Метод вернёт Uuid'ы выбранных пользователей
 {
-    QList<QUuid> UsersResult;
+    QList<Users::UserInfo_Ptr> UsersResult;
 
     QModelIndexList Selected = ui->UsersListView->selectionModel()->selectedIndexes(); // Получаем список выделенных пользователей
 
     std::for_each(Selected.begin(), Selected.end(), [&UsersResult](const QModelIndex &Index) // Перебираем
     {
         QModelIndex UuidIndex = Index.sibling(Index.row(), TUsersModel::eColumns::cUserUuid); // Получаем индекс на Uuid
-        if (UuidIndex.isValid()) // Если имешённый индекс валидный
-            UsersResult.push_back(UuidIndex.data().toUuid()); // Добавляем его в результат
+        TDM &DM = TDM::Instance();
+
+        if (UuidIndex.isValid()) // Если cмешённый индекс валидный
+        {
+            auto FindRes = DM.UserAccount()->contacts()->find(UuidIndex.data().toUuid()); // Ищим по пользователя по uuid
+            if (FindRes != DM.UserAccount()->contacts()->end()) // Если юзер найден
+                UsersResult.push_back(FindRes->second); // Добавляем его в результат
+        }
     });
 
     return UsersResult;

@@ -191,34 +191,33 @@ void TfmeMainFrame::slot_FindUsersRes(const QList<Users::TUserInfo> &inUsers)
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::slot_ChatAddNew() // Слот вызывает добавление ногвой беседы
 {
-//    TUserListDialog UserListDialog(this);
-//    UserListDialog.exec();
+    TUserListDialog UserListDialog(this);
+    UserListDialog.exec();
 
-//    if (UserListDialog.result() == QDialog::DialogCode::Accepted) // Если в диалоге было подтвреждение
-//    {
-//        Users::TChatInfo NewChat; // Новая беседа
-//        NewChat.setChatUuid(QUuid::createUuid()); // Генерируем Uuid новой беседы
-//        NewChat.setChatPrivateStatus(false); // Помечаем беседу как публичную
+    if (UserListDialog.result() == QDialog::DialogCode::Accepted) // Если в диалоге было подтвреждение
+    {
+        Users::TChatInfo NewChat; // Новая беседа
+        NewChat.setChatUuid(QUuid::createUuid()); // Генерируем Uuid новой беседы
+        NewChat.setChatPrivateStatus(false); // Помечаем беседу как публичную
 
-//        TDM &DM = TDM::Instance();
+        TDM &DM = TDM::Instance();
 
-//        QString ChatName = DM.UserAccount()->userInfo()->userName(); // Создаём имя беседы
-//        NewChat.addUser(DM.UserAccount()->userInfo()->userUuid()); // Добавляем в беседу себя
+        QString ChatName = DM.UserAccount()->userInfo()->userName(); // Создаём имя беседы
+        NewChat.addUser(DM.UserAccount()->userInfo()); // Добавляем в беседу себя
 
-//        QList<QUuid> Users = UserListDialog.selectedUsersUuids(); // Получаем список Uuid'ов выбранных пользователей
+        QList<Users::UserInfo_Ptr> Users = UserListDialog.selectedUsers(); // Получаем список Uuid'ов выбранных пользователей
 
-//        std::for_each(Users.begin(), Users.end(), [&](const QUuid &UserUuid) // Перебераем список выбранных пользователей
-//        {
-//            auto FindRes = DM.UserAccount()->contacts()->find(UserUuid);
-//            ChatName += QString("|" + FindRes->second.userName()); // Формируем имя беседы
+        std::for_each(Users.begin(), Users.end(), [&](const Users::UserInfo_Ptr &User) // Перебераем список выбранных пользователей
+        {
+            ChatName += QString("|" + User->userName()); // Формируем имя беседы
 
-//            NewChat.addUser(UserUuid); // Добавляем пользователя в беседу
-//        });
+            NewChat.addUser(User); // Добавляем пользователя в беседу
+        });
 
-//        NewChat.setChatName(ChatName); // Задаём имя беседы
+        NewChat.setChatName(ChatName); // Задаём имя беседы
 
-//        DM.Client()->createChat(NewChat); // Шлём команду на создание публичной беседы
-//    }
+        DM.Client()->createChat(NewChat); // Шлём команду на создание публичной беседы
+    }
 }
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::slot_ChatDeleteCurrent() // Слот вызывает удаление выбранной беседы

@@ -56,8 +56,6 @@ private:
     qint32 createChat(QDataStream &inDataStream); // Метод добавит новую беседу
     QList<QUuid> findChats(QUuid inUserUuid); // Метод вернёт список бесед по uuid указанного пользователя
     qint32 addUserToChat(QUuid inChatUuid, QUuid inUserUuid); // Метод добавит пользователя в беседу
-//    Users::TChatInfo getChatInfo(QUuid inChatUuid); // Метод вернёт информацию о беседе
-//    QList<QUuid> getChatUsers(QUuid inChatUuid); // Метод вернёт список пользователй чата
     QList<Users::ChatInfo_Ptr> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока

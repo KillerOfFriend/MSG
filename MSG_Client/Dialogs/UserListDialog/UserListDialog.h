@@ -8,6 +8,7 @@
 #include <QItemSelection>
 
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"
+#include "Classes/UserInfo/UserInfo.h"
 
 namespace Ui {
 class TUserListDialog;
@@ -21,7 +22,7 @@ public:
     explicit TUserListDialog(QWidget *inParent = nullptr);
     ~TUserListDialog();
 
-    QList<QUuid> selectedUsersUuids(); // Метод вернёт Uuid'ы выбранных пользователей
+    QList<Users::UserInfo_Ptr> selectedUsers(); // Метод вернёт Uuid'ы выбранных пользователей
 
 private:
     Ui::TUserListDialog *ui;

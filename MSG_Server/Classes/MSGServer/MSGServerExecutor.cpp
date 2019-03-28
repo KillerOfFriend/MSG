@@ -129,7 +129,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 QList<Users::TUserInfo> UsersBuf;
                 std::for_each(Resuslt.begin(), Resuslt.end(), [&UsersBuf](const Users::UserInfo_Ptr &UserInfo)
                 { // Приобразуем указетели к объектам
-                    UsersBuf.push_back(Users::TUserInfo(*UserInfo));
+                    UsersBuf.push_back(*UserInfo);
                 });
                 outStream << Command << Res::FindUsers::fuUsersFound << UsersBuf; // Пишем в результат команду и результат обработки
                 sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
@@ -493,61 +493,6 @@ qint32 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Мето
 
     return Result;
 }
-////-----------------------------------------------------------------------------
-//Users::TChatInfo TMSGServer::getChatInfo(QUuid inChatUuid) // Метод вернёт информацию о беседе
-//{
-//    Users::TChatInfo Result;
-
-//    QSqlQuery Query(TDB::Instance().DB());
-
-//    if(!Query.prepare("SELECT * FROM get_chat_info(:in_chat_uuid)"))
-//        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
-//    else
-//    {
-//        Query.bindValue(":in_chat_uuid", inChatUuid);
-
-//        if (!Query.exec())
-//            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
-//        else
-//        {
-//            while (Query.next())
-//            {
-//                Result.setChatUuid(Query.value("f_chat_uuid").toUuid());
-//                Result.setChatName(QString::fromUtf8(Query.value("f_chat_name").toByteArray()));
-//                Result.setChatPrivateStatus(Query.value("f_chat_is_private").toBool());
-
-//                QList<QUuid> ChatUsersBuf = getChatUsers(Result.chatUuid()); // Получаем список пользователей чата
-//                Result.slot_SetClients(ChatUsersBuf); // Задаём список пользователей чата
-//            }
-//        }
-//    }
-
-//    return Result;
-//}
-////-----------------------------------------------------------------------------
-//QList<QUuid> TMSGServer::getChatUsers(QUuid inChatUuid) // Метод вернёт список пользователй чата
-//{
-//    QList<QUuid> Result;
-
-//    QSqlQuery Query(TDB::Instance().DB());
-
-//    if(!Query.prepare("SELECT * FROM get_chat_users(:in_chat_uuid)"))
-//        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
-//    else
-//    {
-//        Query.bindValue(":in_chat_uuid", inChatUuid);
-
-//        if (!Query.exec())
-//            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
-//        else
-//        {
-//            while (Query.next())
-//                Result.push_back(Query.value("found_users_uuid").toUuid());
-//        }
-//    }
-
-//    return Result;
-//}
 //-----------------------------------------------------------------------------
 QList<Users::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // Метод вернёт список бесед указонного пользователя
 {

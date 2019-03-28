@@ -499,7 +499,7 @@ void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChat, Users::UserInfo
             QByteArray Data;
             QDataStream outStream(&Data, QIODevice::WriteOnly);
 
-            outStream << Commands::InviteToChat << Users::TChatInfo(*inChat.get()); // Шлём команду на добавление + беседу
+            outStream << Commands::InviteToChat << *inChat; // Шлём команду на добавление + беседу
 
             ClientSocket->write(Data);
         }
