@@ -11,6 +11,7 @@
 #include "Classes/UserHeaderWidget/UserHeaderWidget.h"
 #include "Models/UsersModel/UsersModel.h"
 #include "Models/UsersModel/UsersProxyModel.h"
+#include "Models/ChatsModel/ChatsProxyModel.h"
 #include "Delegates/UserItemDelegate/UserItemDelegate.h"
 #include "Delegates/ChatItemDelegate/ChatItemDelegate.h"
 
@@ -23,20 +24,34 @@ class TfmeMainFrame : public QWidget
     Q_OBJECT
 
 public:
+    enum eContactsTabs : quint32 // Вкладки
+    {
+        ctContacts = 0,         // Контакты
+        ctChats = 1,            // Беседы
+        ctFindContacts = 2      // Поиск контактов
+    };
+
     explicit TfmeMainFrame(QWidget *inParent = nullptr);
     ~TfmeMainFrame();
 
 private:
     std::unique_ptr<TUserItemDelegate> fUserListDelegate = nullptr;
     std::unique_ptr<TChatItemDelegate> fChatListDelegate = nullptr;
-    std::unique_ptr<TUsersProxyModel> fUserProxyModel = nullptr;
+
+    std::unique_ptr<TUsersProxyModel> fUsersProxyModel = nullptr;
+    std::unique_ptr<TChatsProxyModel> fChatsProxyModel = nullptr;
+
     std::unique_ptr<TUsersModel> fFoundUsers = nullptr;
+
     std::unique_ptr<QSortFilterProxyModel> fFounUsersProxyModel = nullptr;
 
-    std::map<QUuid, qint32> fOpenChatTabs; // Контейнер связывает Uuid беседы и вкладку
+    std::map<QUuid, QWidget*> fOpenChatTabs; // Контейнер связывает Uuid беседы и вкладку
 
     void init(); // Метод инициализирует фрейм
     void Link(); // Метод слинкует сигналы со слотами
+
+public slots:
+    void slot_CloseChat(QUuid inChatUuid); // Слот, реагирующий на закрытие беседы (Как правило удалённой)
 
 private slots:
     void slot_CloseTab(qint32 inTabIndex); // Слот, реагирует на сигнал закрытия вкладки
@@ -58,6 +73,8 @@ private slots:
     void on_ChatListView_doubleClicked(const QModelIndex &index);
 
     void on_ChatListView_customContextMenuRequested(const QPoint &pos);
+
+    void on_ChatFilterLineEdit_textChanged(const QString &arg1);
 
 private:
     Ui::TfmeMainFrame *ui;

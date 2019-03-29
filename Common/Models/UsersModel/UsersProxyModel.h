@@ -2,6 +2,7 @@
 #define USERSPROXYMODEL_H
 
 #include <QSortFilterProxyModel>
+
 #include "Models/UsersModel/UsersModel.h"
 
 class TUsersProxyModel : public QSortFilterProxyModel

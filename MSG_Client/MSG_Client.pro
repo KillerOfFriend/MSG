@@ -52,7 +52,8 @@ SOURCES += \
     Frames/ChatWidget/ChatWidget.cpp \
     Models/ClientLogModel/ClientLogModel.cpp \
     Dialogs/UserListDialog/UserListDialog.cpp \
-    Delegates/ChatItemDelegate/ChatItemDelegate.cpp
+    Delegates/ChatItemDelegate/ChatItemDelegate.cpp \
+    ../Common/Models/ChatsModel/ChatsProxyModel.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -78,7 +79,8 @@ HEADERS += \
     Frames/ChatWidget/ChatWidget.h \
     Models/ClientLogModel/ClientLogModel.h \
     Dialogs/UserListDialog/UserListDialog.h \
-    Delegates/ChatItemDelegate/ChatItemDelegate.h
+    Delegates/ChatItemDelegate/ChatItemDelegate.h \
+    ../Common/Models/ChatsModel/ChatsProxyModel.h
 
 FORMS += \
         ClientMainWindow.ui \

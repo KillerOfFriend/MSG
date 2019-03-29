@@ -44,25 +44,30 @@ void TfmeMainFrame::init()
     fChatListDelegate.reset(new TChatItemDelegate()); // Инициализируем делегат отображения бесед
     fFoundUsers.reset(new TUsersModel(this)); // Инициализируем модель найденых юзеров
 
-    fUserProxyModel.reset(new TUsersProxyModel(this)); // Инициализация фильтров
+    fUsersProxyModel.reset(new TUsersProxyModel(this)); // Инициализация фильтров
+    fChatsProxyModel.reset(new TChatsProxyModel(this));
     fFounUsersProxyModel.reset(new QSortFilterProxyModel(this));
 
-    fUserProxyModel->setSourceModel(DM.UserAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
+    fUsersProxyModel->setSourceModel(DM.UserAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
+    fChatsProxyModel->setSourceModel(DM.UserAccount()->chats().get());
     fFounUsersProxyModel->setSourceModel(fFoundUsers.get()); // Задаём модель-источник фильтру списка найденых пользователей
 
     ui->ContactsListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения контактов
     ui->ContactsFindListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения пользователей
 
-    ui->ContactsListView->setModel(fUserProxyModel.get()); // Задаём фильтрующую модель контактов
+    ui->ContactsListView->setModel(fUsersProxyModel.get()); // Задаём фильтрующую модель контактов
     ui->ContactsFindListView->setModel(fFounUsersProxyModel.get()); // Задаём модель найденых пользователей
 
     ui->ChatListView->setItemDelegate(fChatListDelegate.get()); //  Задаём делегат отображения бесед
-    ui->ChatListView->setModel(DM.UserAccount()->chats().get()); // Задаём модель данных бесед
+    ui->ChatListView->setModel(fChatsProxyModel.get()); // Задаём модель данных бесед
 
-    fUserProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка контактов по имени
+    fUsersProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка контактов по имени
     fFounUsersProxyModel->sort(TUsersModel::eColumns::cUserName); // Сортировка списка найденых пользователей по имени
-
+    // Настраиваем политики меню
+    ui->ContactsListView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->ChatListView->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    ui->ContactsTabWidget->setCurrentIndex(eContactsTabs::ctContacts); // Устанавливаем текущую вкладку
 }
 //-----------------------------------------------------------------------------
 /**
@@ -70,15 +75,28 @@ void TfmeMainFrame::init()
  */
 void TfmeMainFrame::Link()
 {
-    connect(ui->LogInfoListView->model(), &QAbstractItemModel::rowsInserted, ui->LogInfoListView, &QListView::scrollToBottom);
+    connect(ui->LogInfoListView->model(), &QAbstractItemModel::rowsInserted, ui->LogInfoListView, &QListView::scrollToBottom); // Автопрокрутка логов
 
-    connect(TDM::Instance().Client().get(), &TMSGClient::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes);
-    connect(ui->ChatTabWidget, &QTabWidget::tabCloseRequested, this, &TfmeMainFrame::slot_CloseTab);
+    connect(TDM::Instance().Client().get(), &TMSGClient::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes); // Получение результатов поиска контактов
+    connect(TDM::Instance().UserAccount()->chats().get(), &TChatsModel::sig_chatDeleting, this, &TfmeMainFrame::slot_CloseChat); // Закрытие беседы (удалённой)
 
-    connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers);
+    connect(ui->ChatTabWidget, &QTabWidget::tabCloseRequested, this, &TfmeMainFrame::slot_CloseTab); // Закрытие вкладки беседы (крестом)
+    connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers); // Вызов поиска контактов
 }
 //-----------------------------------------------------------------------------
 // SLOTS
+//-----------------------------------------------------------------------------
+/**
+ * @brief TfmeMainFrame::slot_CloseChat - Слот, реагирующий на закрытие беседы (Как правило удалённой)
+ * @param inChatUuid - Uuid закрываемой беседы
+ */
+void TfmeMainFrame::slot_CloseChat(QUuid inChatUuid)
+{
+    auto FindRes = fOpenChatTabs.find(inChatUuid); // Ищим открытую беседу (вкладку)
+
+    if (FindRes != fOpenChatTabs.end()) // Если открытая беседа найдена
+        slot_CloseTab(ui->ChatTabWidget->indexOf(FindRes->second)); // Вызываем закрытие вкладки беседы
+}
 //-----------------------------------------------------------------------------
 /**
  * @brief slot_CloseTab - Слот, реагирует на сигнал закрытия вкладки
@@ -149,7 +167,7 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Users::UserInfo_Ptr inUserIn
             {
                 auto FindRes = fOpenChatTabs.find(ChatUuid);
                 if (FindRes != fOpenChatTabs.end())
-                    ui->ChatTabWidget->setCurrentIndex(FindRes->second);
+                    ui->ChatTabWidget->setCurrentWidget(FindRes->second);
             }
 
             break;
@@ -241,7 +259,33 @@ void TfmeMainFrame::slot_ChatDeleteCurrent() // Слот вызывает уда
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::slot_ChatOpenCurrent() // Слот вызывает открытие выбранной беседы
 {
-    int OpenChat = 2;
+    QModelIndex CurrentSelectChat = ui->ChatListView->currentIndex();
+    QModelIndex ChatUuidIndex = CurrentSelectChat.sibling(CurrentSelectChat.row(), TChatsModel::eColumns::cChatUuid); // Перемещаем индекс на "поле" Uuid беседы
+
+    if (!ChatUuidIndex.isValid())
+        return;
+
+    QWidget* TabWidget = nullptr;
+    auto It = TDM::Instance().UserAccount()->chats()->find(ChatUuidIndex.data().toUuid());
+
+    if (It != TDM::Instance().UserAccount()->chats()->end())
+    {
+        auto FindRes = fOpenChatTabs.find(It->second->chatUuid()); // Ищим среди открытых вкладок беседу
+
+        if (FindRes != fOpenChatTabs.end()) // Если вкладка уже существует
+            TabWidget = FindRes->second; // Запоминаем номер открытой вкладки
+        else // Если вкладки с этой беседой нет
+        {
+            TChatWidget* NewChatWidget = new TChatWidget(ui->ChatTabWidget); // Создаём виджет чата
+            NewChatWidget->setChatUuid(It->second->chatUuid()); // Задаём ему Uuid
+
+            qint32 NewTabIndex = ui->ChatTabWidget->addTab(NewChatWidget, It->second->chatName()); // Создаём новую вкладку и получаем её индекс
+            TabWidget = ui->ChatTabWidget->widget(NewTabIndex);
+            fOpenChatTabs.insert(std::make_pair(It->second->chatUuid(), TabWidget)); // Добавляем новую вкладку в список открытых
+        }
+    }
+
+    ui->ChatTabWidget->setCurrentWidget(TabWidget); // Делаем вкладку активной
 }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -271,7 +315,7 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
 void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
 {
     auto OtherUserIt = TDM::Instance().UserAccount()->contacts()->begin();
-    QModelIndex ContactIndex = fUserProxyModel->mapToSource(index); // Полученый индекс фильтрующей модели приводим к индексу модели источника
+    QModelIndex ContactIndex = fUsersProxyModel->mapToSource(index); // Полученый индекс фильтрующей модели приводим к индексу модели источника
     std::advance(OtherUserIt, ContactIndex.row()); // Получаем итератор на выбраный контакт
 
     TUserViewDialog UserViewDialog(OtherUserIt->second, this); // Инициализируем диалог просмотра пользователя
@@ -284,38 +328,10 @@ void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
     disconnect(&UserViewDialog, &TUserViewDialog::sig_Result, this, &TfmeMainFrame::slot_UserViewDialogResult);
 }
 //-----------------------------------------------------------------------------
-void TfmeMainFrame::on_ContactsFilterLineEdit_textChanged(const QString &arg1)
-{
-    fUserProxyModel->setFilter(TUsersModel::eColumns::cUserName, arg1);
-}
-//-----------------------------------------------------------------------------
 void TfmeMainFrame::on_ChatListView_doubleClicked(const QModelIndex &index)
 {
-    QModelIndex ChatUuidIndex = index.sibling(index.row(), TChatsModel::eColumns::cChatUuid); // Перемещаем индекс на "поле" Uuid беседы
-
-    if (!ChatUuidIndex.isValid())
-        return;
-
-    qint32 TabIndex = 0;
-    auto It = TDM::Instance().UserAccount()->chats()->find(ChatUuidIndex.data().toUuid());
-
-    if (It != TDM::Instance().UserAccount()->chats()->end())
-    {
-        auto FindRes = fOpenChatTabs.find(It->second->chatUuid()); // Ищим среди открытых вкладок беседу
-
-        if (FindRes != fOpenChatTabs.end()) // Если вкладка уже существует
-            TabIndex = FindRes->second; // Запоминаем номер открытой вкладки
-        else // Если вкладки с этой беседой нет
-        {
-            TChatWidget* NewChatWidget = new TChatWidget(ui->ChatTabWidget); // Создаём виджет чата
-            NewChatWidget->setChatUuid(It->second->chatUuid()); // Задаём ему Uuid
-
-            TabIndex = ui->ChatTabWidget->addTab(NewChatWidget, It->second->chatName()); // Создаём новую вкладку и получаем её индекс
-            fOpenChatTabs.insert(std::make_pair(It->second->chatUuid(), TabIndex)); // Добавляем индекс новой вкладки в список открытых
-        }
-    }
-
-    ui->ChatTabWidget->setCurrentIndex(TabIndex); // Делаем вкладку активной
+    Q_UNUSED(index)
+    slot_ChatOpenCurrent();
 }
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::on_ChatListView_customContextMenuRequested(const QPoint &pos)
@@ -339,3 +355,14 @@ void TfmeMainFrame::on_ChatListView_customContextMenuRequested(const QPoint &pos
     ChatMenu.exec(globalPos);
 }
 //-----------------------------------------------------------------------------
+void TfmeMainFrame::on_ContactsFilterLineEdit_textChanged(const QString &arg1)
+{
+    fUsersProxyModel->setFilter(TUsersModel::eColumns::cUserName, arg1);
+}
+//-----------------------------------------------------------------------------
+void TfmeMainFrame::on_ChatFilterLineEdit_textChanged(const QString &arg1)
+{
+    fChatsProxyModel->setFilter(TChatsModel::eColumns::cChatName, arg1);
+}
+//-----------------------------------------------------------------------------
+

@@ -2,6 +2,8 @@
 
 #include <QApplication>
 
+#include "Classes/DataModule/DataModule.h"
+#include "Classes/ChatInfo/ChatInfo.h"
 #include "Models/ChatsModel/ChatsModel.h"
 
 //-----------------------------------------------------------------------------
@@ -84,9 +86,48 @@ void TChatItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 //-----------------------------------------------------------------------------
 QImage TChatItemDelegate::createPreview(QUuid inChatUuid) const // Метод создаст превью беседы
 {
-    QImage Result;
-    QPainter Painter(&Result);
-    //Painter.drawImage(0, 0, );
+    auto FindChatRes = TDM::Instance().UserAccount()->chats()->find(inChatUuid);
+    if (FindChatRes == TDM::Instance().UserAccount()->chats()->end())
+        return QImage();
+
+    Users::ChatInfo_Ptr chat = FindChatRes->second;
+
+    QImage Result = QImage(fPreviewSize, QImage::Format_ARGB32); // Результирующее изображение превью беседы
+    Result.fill(Qt::transparent); // Заливаем буфер "прозрачным цветом"
+    QPainter Painter; // Отрисовщик
+
+    quint8 AvaCount = std::min(static_cast<std::size_t>(fPreviewAvaCount), FindChatRes->second->clients()->size() - 1); // Ищим минимальное кол-во аватаров на превью
+    quint8 AvaRow = 0;
+    quint8 AvaCol = 0;
+
+    Painter.begin(&Result); // Начинаем отрисовку результирующего изображения
+    // =>
+    auto LastUserIt = FindChatRes->second->clients()->begin(); // Получаем итератор на первого порльзователя беседы
+    std::advance(LastUserIt, AvaCount + 1); // Сдвигаем его на последнего отображаемого + 1
+    // Перебираем отображаемых на превью пользователей
+    std::for_each(FindChatRes->second->clients()->begin(), LastUserIt, [&] (const std::pair<QUuid, Users::UserInfo_Ptr> &ChatUser)
+    {
+        QImage UserAvatar = ChatUser.second->userAvatar().scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Получаем аватар пользователя
+
+        if (UserAvatar.isNull()) // Если у пользователя нет аватара
+        {
+            if (ChatUser.second->userIsMale())
+                UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный мужской аватар
+            else
+                UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaFemale.png").scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный женский аватар
+        }
+
+        Painter.drawImage(AvaCol * fPreviewAvaSize.height(), AvaRow * fPreviewAvaSize.width(), UserAvatar); // Отрисовываем аватар пользователя
+
+        AvaCol++; // Переходим к следующему столбцу
+        if (AvaCol == fPreviewColCount) // Если столбец больше дозволенного
+        {
+            AvaCol = 0; // Возвращаемся к нулевому столбцу
+            AvaRow++; // Переходим к следующей строке
+        }
+    });
+    // =>
+    Painter.end(); // Отрисовка завершена
 
     return Result;
 }
