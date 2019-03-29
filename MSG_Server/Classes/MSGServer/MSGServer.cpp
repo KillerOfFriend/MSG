@@ -391,6 +391,35 @@ void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid)
 }
 //-----------------------------------------------------------------------------
 /**
+ * @brief TMSGServer::slot_DeleteUserFromChat - Слот, удаляющий пользователя из беседы
+ * @param inChatUuid - Uuid беседы
+ * @param inUserUuid - Uuid удаляемого пользователя
+ */
+void TMSGServer::slot_DeleteUserFromChat(QUuid inChatUuid, QUuid inUserUuid)
+{
+    Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(inChatUuid); // Ищим беседу
+
+    if (Chat) // Беседа найдена
+    {
+        auto FindRes = Chat->clients()->find(inUserUuid); // Ищим удаляемого пользователя
+        if (FindRes != Chat->clients()->end()) // Пользоваетль беседы найден
+        {   // ВАЖНО! Сначала запускаем синхронизацию удаления, а только посл выполняем удаление само удаление (иначе синхранизация с удалеяемым пользователем не пройдет!)
+            syncDeletedUserFromChat(Chat, inUserUuid); // Синхронизируем удаление пользователя из беседы
+            Chat->clients()->erase(FindRes); // Удаляем пользователя из беседы
+        }
+    }
+}
+//-----------------------------------------------------------------------------
+/**
+ * @brief slot_DeleteChat - Слот, удаляющий беседу
+ * @param inChatUuid - Uuid удаляемой беседы
+ */
+void TMSGServer::slot_DeleteChat(QUuid inChatUuid)
+{
+    //deleteChat(inChatUuid); // Вызываем удалеие беседы
+}
+//-----------------------------------------------------------------------------
+/**
  * @brief TMSGServer::syncAddedUser - Метод синхранизирует список контактов после добавления пользователя
  * @param inContactUuid - Uuid пользователя, которого нужно синхронизировать
  * @param inOwnerInfo - Данные пользователя, добавившего контакт
@@ -463,9 +492,9 @@ void TMSGServer::syncCreateChat(QUuid inChatUuid)
  * @param inChat - Беседа, в которую был добавлен пользователь
  * @param inUser - Клиента беседы
  */
-void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChat, Users::UserInfo_Ptr inUser)
+void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChatUuid, Users::UserInfo_Ptr inUser)
 {
-    if (!inChat || !inUser)
+    if (!inChatUuid || !inUser)
         return;
 
     if (inUser->userStatus() == Users::UserStatus::usOnline ) // Если юзер и беседа валидны, а так же юзер онлайн
@@ -477,7 +506,7 @@ void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChat, Users::UserInfo
             QByteArray Data;
             QDataStream outStream(&Data, QIODevice::WriteOnly);
 
-            outStream << Commands::InviteToChat << *inChat; // Шлём команду на добавление + беседу
+            outStream << Commands::InviteToChat << *inChatUuid; // Шлём команду на добавление + беседу
 
             ClientSocket->write(Data);
         }
@@ -503,7 +532,7 @@ void TMSGServer::syncDeletedUserFromChat(Users::ChatInfo_Ptr inChat, QUuid inUse
             QByteArray Data;
             QDataStream outStream(&Data, QIODevice::WriteOnly);
 
-            outStream << Commands::DeleteUserFromChat << Res::DeleteUserFromChat::deleteSuccess << inChat->chatUuid() << inUserUuid; // Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
+            outStream << Commands::DeleteUserFromChat << Res::DeleteUserFromChat::dufcSuccess << inChat->chatUuid() << inUserUuid; // Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
 
             ClientSocket->write(Data);
         }

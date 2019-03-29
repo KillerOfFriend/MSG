@@ -263,7 +263,7 @@ void TMSGClient::deleteUserFromChatResult(QDataStream &inDataStream)
 
     switch (Result)
     {
-        case Res::DeleteUserFromChat::deleteSuccess: // Успешное удаление
+        case Res::DeleteUserFromChat::dufcSuccess: // Успешное удаление
         {
             TDM &DM = TDM::Instance();
             QString LogMessage = "";
@@ -295,7 +295,7 @@ void TMSGClient::deleteUserFromChatResult(QDataStream &inDataStream)
             sig_LogMessage(LogMessage);
             break;
         }
-        case Res::DeleteUserFromChat::notInside: // Не удалось найти
+        case Res::DeleteUserFromChat::dufcNotInside: // Не удалось найти
         { sig_LogMessage(tr("Не удалось найти пользователя для удаления")); break; }
         default:
         { sig_LogMessage(tr("При удалении пользователя произошла ошибка!")); break; }
@@ -313,9 +313,9 @@ void TMSGClient::leaveFromChatResult(QDataStream &inDataStream)
 
     switch (Result)
     {
-        case Res::ILeaveFromChat::leaveSuccess: // Выход успешен
+        case Res::ILeaveFromChat::lfcSuccess: // Выход успешен
         { sig_LogMessage(tr("Выход из беседы прошёл успешно")); break; }
-        case Res::ILeaveFromChat::leaveFail: // Не удалось
+        case Res::ILeaveFromChat::lfcFail: // Не удалось
         { sig_LogMessage(tr("Не удалось выйти из беседы")); break; }
         default:
         { sig_LogMessage(tr("При выходе из беседы произошла ошибка!")); break; }

@@ -21,6 +21,7 @@ namespace Res
         const quint8 caIncorrectPass = 2;
         const quint8 caAuthorizationFalse = 3;
         const quint8 caUserInfoError = 4;
+        const quint8 caUserAlredyOnline = 5;
     }
 
     namespace GetUserTypes
@@ -61,15 +62,21 @@ namespace Res
 
     namespace DeleteUserFromChat
     {
-        const quint8 deleteSuccess = 1;
-        const quint8 deleteFail = 2;
-        const quint8 notInside = 3;
+        const quint8 dufcSuccess = 1;
+        const quint8 dufcFail = 2;
+        const quint8 dufcNotInside = 3;
     }
 
     namespace ILeaveFromChat
     {   // Выход = удаление из беседы, поэтому присваиваем значения
-        const quint8 leaveSuccess = DeleteUserFromChat::deleteSuccess;
-        const quint8 leaveFail = DeleteUserFromChat::deleteFail;
+        const quint8 lfcSuccess = DeleteUserFromChat::dufcSuccess;
+        const quint8 lfcFail = DeleteUserFromChat::dufcFail;
+    }
+
+    namespace DeleteChat
+    {
+        const quint8 dcSuccess = 1;
+        const quint8 dcNotFound = 2;
     }
 }
 

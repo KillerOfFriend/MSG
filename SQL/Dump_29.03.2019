@@ -1,0 +1,677 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 10.6 (Ubuntu 10.6-0ubuntu0.18.04.1)
+-- Dumped by pg_dump version 10.6 (Ubuntu 10.6-0ubuntu0.18.04.1)
+
+-- Started on 2019-03-29 10:34:37 MSK
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+DROP DATABASE "MSGDB";
+--
+-- TOC entry 2991 (class 1262 OID 16384)
+-- Name: MSGDB; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE "MSGDB" WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'ru_RU.UTF-8' LC_CTYPE = 'ru_RU.UTF-8';
+
+
+ALTER DATABASE "MSGDB" OWNER TO postgres;
+
+\connect "MSGDB"
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 9 (class 2615 OID 16385)
+-- Name: data; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA data;
+
+
+ALTER SCHEMA data OWNER TO postgres;
+
+--
+-- TOC entry 1 (class 3079 OID 13043)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2994 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+--
+-- TOC entry 2 (class 3079 OID 16536)
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- TOC entry 2995 (class 0 OID 0)
+-- Dependencies: 2
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- TOC entry 620 (class 1247 OID 16646)
+-- Name: authorization_result; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.authorization_result AS (
+	result_code integer,
+	found_user_uuid uuid
+);
+
+
+ALTER TYPE public.authorization_result OWNER TO postgres;
+
+--
+-- TOC entry 623 (class 1247 OID 16651)
+-- Name: type_authorization_result; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.type_authorization_result AS (
+	result_code integer,
+	uuid_found_user uuid
+);
+
+
+ALTER TYPE public.type_authorization_result OWNER TO postgres;
+
+--
+-- TOC entry 238 (class 1255 OID 16800)
+-- Name: add_user_to_chat(uuid, uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.add_user_to_chat(in_chat_uuid uuid, in_user_uuid uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.chats_users WHERE cu_chat_uuid = in_chat_uuid AND cu_user_uuid = in_user_uuid) THEN
+   RETURN 2;
+ELSE 
+   INSERT INTO data.chats_users(cu_chat_uuid, cu_user_uuid) VALUES(in_chat_uuid, in_user_uuid);
+   RETURN 1;
+END IF;
+END
+$$;
+
+
+ALTER FUNCTION public.add_user_to_chat(in_chat_uuid uuid, in_user_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 231 (class 1255 OID 16668)
+-- Name: can_user_authorization(bytea, bytea); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.can_user_authorization(in_login bytea, in_password bytea) RETURNS public.type_authorization_result
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+ authorization_result type_authorization_result;
+ found_uuid uuid;
+BEGIN
+
+SELECT user_uuid INTO found_uuid FROM data.users WHERE user_login = in_login AND user_password = in_password;
+
+IF (found_uuid IS NOT NULL) THEN
+   SELECT 1, found_uuid INTO authorization_result; -- Пользователь с таким логином  и паролем существует 
+ELSE 
+   IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+	SELECT 2, NULL INTO authorization_result; -- Пользователь существует, но пароль не верный
+   ELSE
+	SELECT 3, NULL INTO authorization_result; -- Нет такого пользователя
+   END IF;
+END IF;
+
+RETURN authorization_result;
+END
+$$;
+
+
+ALTER FUNCTION public.can_user_authorization(in_login bytea, in_password bytea) OWNER TO postgres;
+
+--
+-- TOC entry 239 (class 1255 OID 16799)
+-- Name: create_chat(uuid, bytea, boolean); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.create_chat(in_uuid uuid, in_name bytea, in_private_status boolean) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.chats WHERE chat_uuid = in_uuid) THEN
+   UPDATE data.chats SET (chat_name, chat_is_private) = (in_name, in_private_status);
+   RETURN 2;
+ELSE 
+   INSERT INTO data.chats(chat_uuid, chat_name, chat_is_private) VALUES(in_uuid, in_name, in_private_status);
+   RETURN 1;
+END IF;
+END
+$$;
+
+
+ALTER FUNCTION public.create_chat(in_uuid uuid, in_name bytea, in_private_status boolean) OWNER TO postgres;
+
+--
+-- TOC entry 237 (class 1255 OID 16754)
+-- Name: create_contact(uuid, uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.create_contact(in_owner uuid, in_contact uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact) THEN
+   RETURN 2; -- Уже существует
+ELSE 
+   INSERT INTO data.friend_list(fl_owner_uuid, fl_friend_uuid) VALUES(in_owner, in_contact); -- Добавляем связь хозяин - контакт
+   INSERT INTO data.friend_list(fl_owner_uuid, fl_friend_uuid) VALUES(in_contact, in_owner); -- Добавляем связь контакт - хозяин
+   RETURN 1; -- Создан
+END IF;
+END
+$$;
+
+
+ALTER FUNCTION public.create_contact(in_owner uuid, in_contact uuid) OWNER TO postgres;
+
+--
+-- TOC entry 235 (class 1255 OID 16751)
+-- Name: create_user(bytea, bytea, bytea, boolean); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.create_user(in_login bytea, in_password bytea, in_name bytea, in_is_male boolean) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+IF EXISTS (SELECT 1 FROM data.users WHERE user_login = in_login) THEN
+   RETURN 2;
+ELSE 
+   INSERT INTO data.users(user_type, user_login, user_password, user_name, user_is_male) VALUES(2, in_login, in_password, in_name, in_is_male);
+   RETURN 1;
+END IF;
+END
+$$;
+
+
+ALTER FUNCTION public.create_user(in_login bytea, in_password bytea, in_name bytea, in_is_male boolean) OWNER TO postgres;
+
+--
+-- TOC entry 244 (class 1255 OID 16999)
+-- Name: delete_chat(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.delete_chat(in_chat_uuid uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	IF EXISTS (SELECT 1 FROM data.chats WHERE chat_uuid = in_chat_uuid) THEN
+		DELETE FROM data.chats_users WHERE cu_chat_uuid = in_chat_uuid; -- Удаляем связь пользователей с беседой
+		DELETE FROM data.chats WHERE chat_uuid = in_chat_uuid; -- удаляем саму беседу
+		RETURN 1; -- Удаление успешно
+	ELSE 
+	   RETURN 2; -- Нечего удалять
+	END IF;
+
+END
+$$;
+
+
+ALTER FUNCTION public.delete_chat(in_chat_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 234 (class 1255 OID 16720)
+-- Name: delete_contacts(uuid, uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.delete_contacts(in_owner uuid, in_contact uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	IF EXISTS (SELECT 1 FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact) THEN
+		DELETE FROM data.friend_list WHERE fl_owner_uuid = in_owner AND fl_friend_uuid = in_contact; -- Удаляем связь
+		DELETE FROM data.friend_list WHERE fl_owner_uuid = in_contact AND fl_friend_uuid = in_owner; -- Удаляем обратную связь
+		RETURN 1; -- Удаление успешно
+	ELSE 
+	   RETURN 2; -- Нечего удалять
+	END IF;
+
+END
+$$;
+
+
+ALTER FUNCTION public.delete_contacts(in_owner uuid, in_contact uuid) OWNER TO postgres;
+
+--
+-- TOC entry 243 (class 1255 OID 16993)
+-- Name: delete_user_from_chat(uuid, uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.delete_user_from_chat(in_chat_uuid uuid, in_user_uuid uuid) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	IF EXISTS (SELECT 1 FROM data.chats_users WHERE cu_chat_uuid = in_chat_uuid AND cu_user_uuid = in_user_uuid) THEN
+		DELETE FROM data.chats_users WHERE cu_chat_uuid = in_chat_uuid AND cu_user_uuid = in_user_uuid; -- Удаляем связь пользователя с беседой
+		RETURN 1; -- Удаление успешно
+	ELSE 
+	   RETURN 2; -- Нечего удалять
+	END IF;
+
+END
+$$;
+
+
+ALTER FUNCTION public.delete_user_from_chat(in_chat_uuid uuid, in_user_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 232 (class 1255 OID 16708)
+-- Name: find_users(bytea); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.find_users(in_user bytea) RETURNS TABLE(found_user_uuid uuid)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT user_uuid FROM data.users WHERE user_login LIKE in_user OR user_name LIKE in_user;
+END
+$$;
+
+
+ALTER FUNCTION public.find_users(in_user bytea) OWNER TO postgres;
+
+--
+-- TOC entry 241 (class 1255 OID 16810)
+-- Name: get_chat_info(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_chat_info(in_chat_uuid uuid) RETURNS TABLE(f_chat_uuid uuid, f_chat_name bytea, f_chat_is_private boolean, f_chat_date_of_creation date)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT chat_uuid, chat_name, chat_is_private, chat_date_of_creation FROM data.chats WHERE chat_uuid = in_chat_uuid;
+END
+$$;
+
+
+ALTER FUNCTION public.get_chat_info(in_chat_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 242 (class 1255 OID 16811)
+-- Name: get_chat_users(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_chat_users(in_chat_uuid uuid) RETURNS TABLE(found_users_uuid uuid)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT cu_user_uuid FROM data.chats_users WHERE cu_chat_uuid = in_chat_uuid;
+END
+$$;
+
+
+ALTER FUNCTION public.get_chat_users(in_chat_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 240 (class 1255 OID 16809)
+-- Name: get_chats(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_chats(in_owner_uuid uuid) RETURNS TABLE(found_chats_uuid uuid)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT cu_chat_uuid FROM data.chats_users WHERE cu_user_uuid = in_owner_uuid;
+END
+$$;
+
+
+ALTER FUNCTION public.get_chats(in_owner_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 233 (class 1255 OID 16712)
+-- Name: get_contacts(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_contacts(in_owner_uuid uuid) RETURNS TABLE(found_friend_uuid uuid)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT fl_friend_uuid FROM data.friend_list WHERE fl_owner_uuid = in_owner_uuid;
+END
+$$;
+
+
+ALTER FUNCTION public.get_contacts(in_owner_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 236 (class 1255 OID 16752)
+-- Name: get_user_info(uuid); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_user_info(in_user_uuid uuid) RETURNS TABLE(f_user_uuid uuid, f_user_type integer, f_user_login bytea, f_user_name bytea, f_user_birthday date, f_user_date_of_registration date, f_user_is_male boolean, f_user_avatar bytea)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT user_uuid, user_type, user_login, user_name, user_birthday, user_date_of_registration, user_is_male, user_avatar FROM data.users WHERE user_uuid = in_user_uuid;
+END
+$$;
+
+
+ALTER FUNCTION public.get_user_info(in_user_uuid uuid) OWNER TO postgres;
+
+--
+-- TOC entry 208 (class 1255 OID 16703)
+-- Name: get_users_types(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_users_types() RETURNS TABLE(out_type_code integer, out_type_name bytea)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+     RETURN QUERY SELECT type_code, type_name FROM data.user_types;
+END
+$$;
+
+
+ALTER FUNCTION public.get_users_types() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 203 (class 1259 OID 17070)
+-- Name: chats; Type: TABLE; Schema: data; Owner: postgres
+--
+
+CREATE TABLE data.chats (
+    chat_uuid uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    chat_name bytea NOT NULL,
+    chat_is_private boolean NOT NULL,
+    chat_date_of_creation date DEFAULT CURRENT_DATE
+);
+
+
+ALTER TABLE data.chats OWNER TO postgres;
+
+--
+-- TOC entry 205 (class 1259 OID 17082)
+-- Name: chats_users; Type: TABLE; Schema: data; Owner: postgres
+--
+
+CREATE TABLE data.chats_users (
+    cu_id integer NOT NULL,
+    cu_chat_uuid uuid NOT NULL,
+    cu_user_uuid uuid NOT NULL
+);
+
+
+ALTER TABLE data.chats_users OWNER TO postgres;
+
+--
+-- TOC entry 204 (class 1259 OID 17080)
+-- Name: chats_users_cu_id_seq; Type: SEQUENCE; Schema: data; Owner: postgres
+--
+
+CREATE SEQUENCE data.chats_users_cu_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE data.chats_users_cu_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2996 (class 0 OID 0)
+-- Dependencies: 204
+-- Name: chats_users_cu_id_seq; Type: SEQUENCE OWNED BY; Schema: data; Owner: postgres
+--
+
+ALTER SEQUENCE data.chats_users_cu_id_seq OWNED BY data.chats_users.cu_id;
+
+
+--
+-- TOC entry 207 (class 1259 OID 17137)
+-- Name: friend_list; Type: TABLE; Schema: data; Owner: postgres
+--
+
+CREATE TABLE data.friend_list (
+    fl_id integer NOT NULL,
+    fl_owner_uuid uuid NOT NULL,
+    fl_friend_uuid uuid NOT NULL
+);
+
+
+ALTER TABLE data.friend_list OWNER TO postgres;
+
+--
+-- TOC entry 206 (class 1259 OID 17135)
+-- Name: friend_list_fl_id_seq; Type: SEQUENCE; Schema: data; Owner: postgres
+--
+
+CREATE SEQUENCE data.friend_list_fl_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE data.friend_list_fl_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2997 (class 0 OID 0)
+-- Dependencies: 206
+-- Name: friend_list_fl_id_seq; Type: SEQUENCE OWNED BY; Schema: data; Owner: postgres
+--
+
+ALTER SEQUENCE data.friend_list_fl_id_seq OWNED BY data.friend_list.fl_id;
+
+
+--
+-- TOC entry 201 (class 1259 OID 16694)
+-- Name: user_types; Type: TABLE; Schema: data; Owner: postgres
+--
+
+CREATE TABLE data.user_types (
+    type_id integer NOT NULL,
+    type_code integer NOT NULL,
+    type_name bytea NOT NULL
+);
+
+
+ALTER TABLE data.user_types OWNER TO postgres;
+
+--
+-- TOC entry 200 (class 1259 OID 16692)
+-- Name: user_types_type_id_seq; Type: SEQUENCE; Schema: data; Owner: postgres
+--
+
+CREATE SEQUENCE data.user_types_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE data.user_types_type_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2998 (class 0 OID 0)
+-- Dependencies: 200
+-- Name: user_types_type_id_seq; Type: SEQUENCE OWNED BY; Schema: data; Owner: postgres
+--
+
+ALTER SEQUENCE data.user_types_type_id_seq OWNED BY data.user_types.type_id;
+
+
+--
+-- TOC entry 202 (class 1259 OID 16739)
+-- Name: users; Type: TABLE; Schema: data; Owner: postgres
+--
+
+CREATE TABLE data.users (
+    user_uuid uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_type integer NOT NULL,
+    user_login bytea NOT NULL,
+    user_password bytea NOT NULL,
+    user_name bytea NOT NULL,
+    user_is_male boolean NOT NULL,
+    user_birthday date,
+    user_date_of_registration date DEFAULT CURRENT_DATE,
+    user_avatar bytea
+);
+
+
+ALTER TABLE data.users OWNER TO postgres;
+
+--
+-- TOC entry 2851 (class 2604 OID 17085)
+-- Name: chats_users cu_id; Type: DEFAULT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.chats_users ALTER COLUMN cu_id SET DEFAULT nextval('data.chats_users_cu_id_seq'::regclass);
+
+
+--
+-- TOC entry 2852 (class 2604 OID 17140)
+-- Name: friend_list fl_id; Type: DEFAULT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.friend_list ALTER COLUMN fl_id SET DEFAULT nextval('data.friend_list_fl_id_seq'::regclass);
+
+
+--
+-- TOC entry 2846 (class 2604 OID 16697)
+-- Name: user_types type_id; Type: DEFAULT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.user_types ALTER COLUMN type_id SET DEFAULT nextval('data.user_types_type_id_seq'::regclass);
+
+
+--
+-- TOC entry 2860 (class 2606 OID 17079)
+-- Name: chats chats_chat_uuid_key; Type: CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.chats
+    ADD CONSTRAINT chats_chat_uuid_key UNIQUE (chat_uuid);
+
+
+--
+-- TOC entry 2854 (class 2606 OID 16702)
+-- Name: user_types user_types_type_code_key; Type: CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.user_types
+    ADD CONSTRAINT user_types_type_code_key UNIQUE (type_code);
+
+
+--
+-- TOC entry 2856 (class 2606 OID 16748)
+-- Name: users users_user_login_key; Type: CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.users
+    ADD CONSTRAINT users_user_login_key UNIQUE (user_login);
+
+
+--
+-- TOC entry 2858 (class 2606 OID 16750)
+-- Name: users users_user_uuid_key; Type: CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.users
+    ADD CONSTRAINT users_user_uuid_key UNIQUE (user_uuid);
+
+
+--
+-- TOC entry 2861 (class 2606 OID 17086)
+-- Name: chats_users chats_users_cu_chat_uuid_fkey; Type: FK CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.chats_users
+    ADD CONSTRAINT chats_users_cu_chat_uuid_fkey FOREIGN KEY (cu_chat_uuid) REFERENCES data.chats(chat_uuid);
+
+
+--
+-- TOC entry 2862 (class 2606 OID 17091)
+-- Name: chats_users chats_users_cu_user_uuid_fkey; Type: FK CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.chats_users
+    ADD CONSTRAINT chats_users_cu_user_uuid_fkey FOREIGN KEY (cu_user_uuid) REFERENCES data.users(user_uuid);
+
+
+--
+-- TOC entry 2864 (class 2606 OID 17146)
+-- Name: friend_list friend_list_fl_friend_uuid_fkey; Type: FK CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.friend_list
+    ADD CONSTRAINT friend_list_fl_friend_uuid_fkey FOREIGN KEY (fl_friend_uuid) REFERENCES data.users(user_uuid);
+
+
+--
+-- TOC entry 2863 (class 2606 OID 17141)
+-- Name: friend_list friend_list_fl_owner_uuid_fkey; Type: FK CONSTRAINT; Schema: data; Owner: postgres
+--
+
+ALTER TABLE ONLY data.friend_list
+    ADD CONSTRAINT friend_list_fl_owner_uuid_fkey FOREIGN KEY (fl_owner_uuid) REFERENCES data.users(user_uuid);
+
+
+--
+-- TOC entry 2993 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2019-03-29 10:34:38 MSK
+
+--
+-- PostgreSQL database dump complete
+--
+

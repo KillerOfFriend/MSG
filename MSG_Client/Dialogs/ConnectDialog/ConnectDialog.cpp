@@ -217,6 +217,11 @@ void TConnectDialog::slot_AuthorizationResult(quint8 Result)
             close();
             break;
         }
+        case Res::CanAut::caUserAlredyOnline:
+        {
+            QMessageBox::warning(this, tr("Предупреждение"), tr("Этот пользователь уже авторизирован!"));
+            break;
+        }
 
         default: { QMessageBox::critical(this, tr("Ошибка"), tr("Неизвестная ошибка!")); break; };
     }

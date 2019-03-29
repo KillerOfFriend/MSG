@@ -60,28 +60,36 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 }
                 case Res::CanAut::caAuthorizationTrue: // Пользователь найден (авторизация возможна)
                 {
-                    Users::UserInfo_Ptr UserInfo = fServerCache->getUserInfo(Resuslt.second); // Получаем информацию о пользователе
-
-                    if (!UserInfo || UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
+                    if (socketByUuid(Resuslt.second)) // Если пользователь с таким Uuid уже авторизирован (Есть сокет)
                     {
-                        outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
-                        sig_LogMessage(inClientSender->peerAddress(), "Ошибка чтения данных записи");
+                        outStream << Command << Res::CanAut::caUserAlredyOnline; // Пишем в результат команду и флаг попытки повторной авторизации
+                        sig_LogMessage(inClientSender->peerAddress(), "Повторная авторизация запрещена");
                     }
-                    else
+                    else // Авторизация уникальна (Сокет с таким Uuid не найден)
                     {
-                        QList<Users::UserInfo_Ptr> Contacts = getContacts(UserInfo->userUuid()); // Получаем список контактов пользователя
-                        QList<Users::ChatInfo_Ptr> Chats = getChats(UserInfo->userUuid()); // Получаем список бесед пользователя
+                        Users::UserInfo_Ptr UserInfo = fServerCache->getUserInfo(Resuslt.second); // Получаем информацию о пользователе
 
-                        checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
+                        if (!UserInfo || UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
+                        {
+                            outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
+                            sig_LogMessage(inClientSender->peerAddress(), "Ошибка чтения данных записи");
+                        }
+                        else // Данные о пользователе успешно получены
+                        {
+                            QList<Users::UserInfo_Ptr> Contacts = getContacts(UserInfo->userUuid()); // Получаем список контактов пользователя
+                            QList<Users::ChatInfo_Ptr> Chats = getChats(UserInfo->userUuid()); // Получаем список бесед пользователя
 
-                        Users::TUserAccount UserAccount(this);
-                        UserAccount.slot_SetUserInfo(UserInfo);
-                        UserAccount.slot_SetContacts(Contacts);
-                        UserAccount.slot_SetChats(Chats);
+                            checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
 
-                        slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
-                        outStream << Command << Resuslt.first << UserAccount; // Пишем в результат команду и результат обработки
-                        sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
+                            Users::TUserAccount UserAccount(this);
+                            UserAccount.slot_SetUserInfo(UserInfo);
+                            UserAccount.slot_SetContacts(Contacts);
+                            UserAccount.slot_SetChats(Chats);
+
+                            slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
+                            outStream << Command << Resuslt.first << UserAccount; // Пишем в результат команду и результат обработки
+                            sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
+                        }
                     }
                     break;
                 }
@@ -197,9 +205,13 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::DeleteUserFromChat: // Выход пользователя из беседы
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на удаление пользователя");
-            quint8 Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя
+            std::pair<quint8, std::pair<QUuid, QUuid>> Result; // Результат состоит из резульатат обработки и прары Uuid чата Uuid пользоватля
+            Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя
 
-            outStream << Command << Result; // Шлём команду и результат обработки
+            if (Result.first == Res::DeleteUserFromChat::dufcSuccess) // Если пользователь успешно удалён из беседы (В БД)
+                slot_DeleteUserFromChat(Result.second.first, Result.second.second); // Удаляем пользователя из бесседы в кеше
+
+            outStream << Command << Result.first; // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления пользователя из чата");
             break;
@@ -207,9 +219,13 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::ILeaveFromChat: // Выход пользователя из беседы
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на выход пользователя из беседы");
-            quint8 Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя (приславшего запрос)
+            std::pair<quint8, std::pair<QUuid, QUuid>> Result; // Результат состоит из резульатат обработки и прары Uuid чата Uuid пользоватля
+            Result = deleteUserFromChat(inStream); // Пытаемся удалить пользователя (приславшего запрос)
 
-            outStream << Command << Result; // Шлём команду и результат обработки
+            if (Result.first == Res::DeleteUserFromChat::dufcSuccess) // Если пользователь успешно удалён из беседы (В БД)
+                slot_DeleteUserFromChat(Result.second.first, Result.second.second); // Удаляем пользователя из бесседы в кеше
+
+            outStream << Command << Result.first; // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата выхода из чата");
             break;
@@ -535,29 +551,58 @@ QList<Users::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // М�
     return Result;
 }
 //-----------------------------------------------------------------------------
-quint8 TMSGServer::deleteUserFromChat(QDataStream &inDataStream) // Метод удалит пользователя из беседы
+std::pair<quint8, std::pair<QUuid, QUuid>> TMSGServer::deleteUserFromChat(QDataStream &inDataStream) // Метод удалит пользователя из беседы
 {
-    quint8 Result = Res::rUnknown;
+    std::pair<quint8, std::pair<QUuid, QUuid>> Result; // Результат состоит из резульатат обработки и прары Uuid чата Uuid пользоватля
+    Result.first = Res::rUnknown;
 
     QUuid ChatUuid; // Uuid беседы, из которой удаляем пользователя
     QUuid UserUuid; // Uuid удаляемого пользователя
 
     inDataStream >> ChatUuid >> UserUuid;
 
-    Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(ChatUuid); // Ищим беседу
+    Result.second.first = ChatUuid;
+    Result.second.second = UserUuid;
 
-    if (!Chat) // если беседа не найдена
-        Result = Res::DeleteUserFromChat::deleteFail;
-    else // Беседа найдена
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM delete_user_from_chat(:in_chat_uuid,:in_user_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
     {
-        auto FindRes = Chat->clients()->find(UserUuid); // Ищим удаляемого пользователя
-        if (FindRes == Chat->clients()->end()) // Пользователь беседы не найден
-            Result = Res::DeleteUserFromChat::notInside;
-        else // Пользоваетль беседы найден
-        {   // ВАЖНО! Сначала запускаем синхронизацию удаления, а только посл выполняем удаление само удаление (иначе синхранизация с удалеяемым пользователем не пройдет!)
-            syncDeletedUserFromChat(Chat, UserUuid); // Синхронизируем удаление пользователя из беседы
-            Chat->clients()->erase(FindRes); // Удаляем пользователя из беседы
-            Result = Res::DeleteUserFromChat::deleteSuccess;
+        Query.bindValue(":in_chat_uuid", ChatUuid);
+        Query.bindValue(":in_user_uuid", UserUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result.first = Query.value("delete_user_from_chat").toUInt();
+        }
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+quint8 TMSGServer::deleteChat(const QUuid inChatUuid) // Метод удалит беседу
+{
+    quint8 Result = Res::rUnknown;
+
+    QSqlQuery Query(TDB::Instance().DB());
+
+    if(!Query.prepare("SELECT * FROM delete_chat(:in_chat_uuid)"))
+        qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+    else
+    {
+        Query.bindValue(":in_chat_uuid", inChatUuid);
+
+        if (!Query.exec())
+            qDebug() << "[ОШИБКА]: " + Query.lastError().text();
+        else
+        {
+            while (Query.next()) // Вернётся только 1 запись
+                Result = Query.value("delete_chat").toUInt();
         }
     }
 
