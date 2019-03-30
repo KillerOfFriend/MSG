@@ -80,8 +80,8 @@ void TUserItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     switch (index.sibling(index.row(), TUsersModel::cUserStatus).data().toInt())
     {
-        case Users::UserStatus::usOffline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOffline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
-        case Users::UserStatus::usOnline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOnline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
+        case Core::UserStatus::usOffline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOffline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
+        case Core::UserStatus::usOnline: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserOnline.png").scaled(fStatusSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); break; };
 
         default: { UserStatus = QImage(":/Resurse/UserStatus/Images/UserStatus/UserUnknown.png").scaled(fStatusSize); break; };
     }

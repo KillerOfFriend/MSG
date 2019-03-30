@@ -2,14 +2,16 @@
 #define CHATINFO_H
 
 #include <map>
+#include <list>
 #include <memory>
 
 #include <QObject>
 #include <QUuid>
 
 #include "Classes/UserInfo/UserInfo.h"
+#include "Classes/ChatMessage/ChatMessage.h"
 
-namespace Users
+namespace Core
 {
     class TChatInfo;
 
@@ -38,6 +40,9 @@ namespace Users
         void addUser(UserInfo_Ptr inUserInfo); // Метод добавит пользователя в беседу
         void deleteUser(QUuid inUserUuid); // Метод удалит пользователя из беседы
 
+        std::shared_ptr<std::list<ChatMessage_Ptr>> messages(); // Метод вернёт список сообщений беседы
+        void addMessage(ChatMessage_Ptr inChatMessage); // Метод добавит сообщение
+
         friend QDataStream& operator <<(QDataStream&, const TChatInfo&);
         friend QDataStream& operator >>(QDataStream&, TChatInfo&);
 
@@ -46,6 +51,7 @@ namespace Users
         QString fName; // Название беседы
         bool fPrivateStatus = true; // Флаг приватности беседы (в приватную беседу нельзя добавить пользователя)
         std::shared_ptr<std::map<QUuid, UserInfo_Ptr>> fClients = nullptr; // Список клиентов беседы
+        std::shared_ptr<std::list<ChatMessage_Ptr>> fMessages = nullptr; // Список сообщений
 
     signals:
         void sig_ChatUserAdded(QUuid inChatUuid, UserInfo_Ptr inUserUuid); // Сигнал о добавлении пользователя в чат

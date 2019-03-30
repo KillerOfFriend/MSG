@@ -22,7 +22,7 @@ TDM& TDM::Instance()
 std::shared_ptr<TMSGClient> TDM::Client()
 { return fClient; }
 //-----------------------------------------------------------------------------
-std::shared_ptr<Users::TUserAccount> TDM::UserAccount()
+std::shared_ptr<Core::TUserAccount> TDM::UserAccount()
 { return fUserAccount; }
 //-----------------------------------------------------------------------------
 std::shared_ptr<TFrameController> TDM::FrameController()
@@ -50,11 +50,11 @@ void TDM::init() // Мотод инициализирует классы мод�
 //    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
 }
 //-----------------------------------------------------------------------------
-void TDM::slot_SetUserAccount(Users::TUserAccount &inUserAccount)
+void TDM::slot_SetUserAccount(Core::TUserAccount &inUserAccount)
 {
-    fUserAccount = std::make_shared<Users::TUserAccount>(inUserAccount); // Переназначаем аккаунт
+    fUserAccount = std::make_shared<Core::TUserAccount>(inUserAccount); // Переназначаем аккаунт
     // Линкуем к нему сигналы
-    connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Users::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
-    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
+    connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Core::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
+    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Core::TUserAccount::slot_AddChat); // Добавление новой беседы
 }
 //-----------------------------------------------------------------------------

@@ -2,12 +2,13 @@
 
 #include <QList>
 
-using namespace Users;
+using namespace Core;
 
 //-----------------------------------------------------------------------------
 TChatInfo::TChatInfo(QObject *inParent) : QObject(inParent)
 {
     fClients = std::make_shared<std::map<QUuid, UserInfo_Ptr>>();
+    fMessages = std::make_shared<std::list<ChatMessage_Ptr>>();
 }
 //-----------------------------------------------------------------------------
 TChatInfo::TChatInfo(const TChatInfo &inOther) : QObject(inOther.parent())
@@ -16,6 +17,7 @@ TChatInfo::TChatInfo(const TChatInfo &inOther) : QObject(inOther.parent())
     this->fName = inOther.fName; // Копируем имя беседы
     this->fPrivateStatus = inOther.fPrivateStatus; // Копируем статус приватности беседы
     this->fClients = inOther.fClients; // Копируем список клиентов беседы
+    this->fMessages = inOther.fMessages; // Копируем список сообщенийы
 }
 //-----------------------------------------------------------------------------
 TChatInfo::~TChatInfo()
@@ -79,6 +81,15 @@ void TChatInfo::deleteUser(QUuid inUserUuid) // Метод удалит поль
     }
 }
 //-----------------------------------------------------------------------------
+std::shared_ptr<std::list<ChatMessage_Ptr>> TChatInfo::messages() // Метод вернёт список сообщений беседы
+{ return fMessages; }
+//-----------------------------------------------------------------------------
+void TChatInfo::addMessage(ChatMessage_Ptr inChatMessage) // Метод добавит сообщение
+{
+    fMessages->push_back(inChatMessage);
+    fMessages->sort();
+}
+//-----------------------------------------------------------------------------
 void TChatInfo::slot_SetClients(QList<UserInfo_Ptr> &inClientList) // Слот задаст список клиентов беседы
 {
     fClients->clear(); // Предварительно чистим содержимое контейнера клиентов
@@ -89,7 +100,7 @@ void TChatInfo::slot_SetClients(QList<UserInfo_Ptr> &inClientList) // Слот �
     });
 }
 //-----------------------------------------------------------------------------
-namespace Users
+namespace Core
 {   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
     QDataStream& operator <<(QDataStream &outStream, const TChatInfo &ChatInfo)
     {
@@ -103,6 +114,13 @@ namespace Users
             ClientsBuf.push_back(*UserInfo.second);
         });
         outStream << ClientsBuf;
+
+        QList<TChatMessage> MessagesBuf; // Создаём временный буфер сообщений
+        std::for_each(ChatInfo.fMessages->begin(), ChatInfo.fMessages->end(), [&MessagesBuf](const ChatMessage_Ptr &ChatMessage) // Копируем сообщение
+        {
+            MessagesBuf.push_back(*ChatMessage);
+        });
+        outStream << MessagesBuf;
 
         return outStream;
     }
@@ -125,7 +143,15 @@ namespace Users
             ChatInfo.addUser(std::make_shared<TUserInfo>(UserInfo));
         });
 
+        ChatInfo.fMessages->clear(); // Предварительно чистим содержимое контейнера сообщений
+        QList<TChatMessage> MessagesBuf; // Создаём временный буфер сообщений
+        inStream >> MessagesBuf;
+        std::for_each(MessagesBuf.begin(), MessagesBuf.end(), [&](const TChatMessage &ChatMessage) // Копируем сообщение
+        {
+            ChatInfo.addMessage(std::make_shared<TChatMessage>(ChatMessage));
+        });
+
         return inStream;
     }
-    //-----------------------------------------------------------------------------
 }
+//-----------------------------------------------------------------------------

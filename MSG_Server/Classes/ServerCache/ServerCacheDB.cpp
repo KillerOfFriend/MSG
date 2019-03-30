@@ -13,9 +13,9 @@
  * @param inUserUuid - Uuid пользователя
  * @return Вернёт указатель на информацию о пользователе
  */
-Users::UserInfo_Ptr TServerCache::uploadUserInfoFromDB(const QUuid inUserUuid)
+Core::UserInfo_Ptr TServerCache::uploadUserInfoFromDB(const QUuid inUserUuid)
 {
-    Users::UserInfo_Ptr Result = nullptr;
+    Core::UserInfo_Ptr Result = nullptr;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -29,7 +29,7 @@ Users::UserInfo_Ptr TServerCache::uploadUserInfoFromDB(const QUuid inUserUuid)
             qDebug() << "[ОШИБКА]: " + Query.lastError().text();
         else
         {
-            Result = std::make_shared<Users::TUserInfo>(this); // Выделяем память под результат
+            Result = std::make_shared<Core::TUserInfo>(this); // Выделяем память под результат
             while (Query.next()) // Читаем результат
             {
                 Result->setUserUuid(Query.value("f_user_uuid").toUuid());
@@ -55,9 +55,9 @@ Users::UserInfo_Ptr TServerCache::uploadUserInfoFromDB(const QUuid inUserUuid)
  * @param inChatUuid - Uuid беседы
  * @return Вернёт указатель на информацию о беседе
  */
-Users::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
+Core::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
 {
-    Users::ChatInfo_Ptr Result = nullptr;
+    Core::ChatInfo_Ptr Result = nullptr;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -71,14 +71,14 @@ Users::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
             qDebug() << "[ОШИБКА]: " + Query.lastError().text();
         else
         {
-            Result = std::make_shared<Users::TChatInfo>(this); // Выделяем память под результат
+            Result = std::make_shared<Core::TChatInfo>(this); // Выделяем память под результат
             while (Query.next())
             {
                 Result->setChatUuid(Query.value("f_chat_uuid").toUuid());
                 Result->setChatName(QString::fromUtf8(Query.value("f_chat_name").toByteArray()));
                 Result->setChatPrivateStatus(Query.value("f_chat_is_private").toBool());
 
-                QList<Users::UserInfo_Ptr> ChatUsersBuf = getChatUsers(Result->chatUuid()); // Получаем список пользователей чата
+                QList<Core::UserInfo_Ptr> ChatUsersBuf = getChatUsers(Result->chatUuid()); // Получаем список пользователей чата
                 Result->slot_SetClients(ChatUsersBuf); // Задаём список пользователей чата
             }
             fChatsCache->insert(std::make_pair(Result->chatUuid(), Result)); // Добавляем результат в кеш
@@ -93,9 +93,9 @@ Users::ChatInfo_Ptr TServerCache::uploadChatInfoFromDB(const QUuid inChatUuid)
  * @param inChatUuid - Uuid беседы
  * @return Вернёт список пользователей чатов
  */
-QList<Users::UserInfo_Ptr> TServerCache::getChatUsers(QUuid inChatUuid)
+QList<Core::UserInfo_Ptr> TServerCache::getChatUsers(QUuid inChatUuid)
 {
-    QList<Users::UserInfo_Ptr> Result;
+    QList<Core::UserInfo_Ptr> Result;
 
     QSqlQuery Query(TDB::Instance().DB());
 
@@ -114,7 +114,7 @@ QList<Users::UserInfo_Ptr> TServerCache::getChatUsers(QUuid inChatUuid)
                 QUuid UserUuid = Query.value("found_users_uuid").toUuid(); // Получаем uuid пользователя
                 if (!UserUuid.isNull())
                 {
-                    Users::UserInfo_Ptr UiserInfo = getUserInfo(UserUuid); // Получаем данные о пользователе
+                    Core::UserInfo_Ptr UiserInfo = getUserInfo(UserUuid); // Получаем данные о пользователе
                     if (UiserInfo) // Если пользователь валиден
                         Result.push_back(UiserInfo); // Добавляем его в список
                 }

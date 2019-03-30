@@ -18,7 +18,7 @@ public:
     static TDM& Instance();
 
     std::shared_ptr<TMSGClient> Client();
-    std::shared_ptr<Users::TUserAccount> UserAccount();
+    std::shared_ptr<Core::TUserAccount> UserAccount();
     std::shared_ptr<TFrameController> FrameController();
     std::shared_ptr<TModels> Models();
 
@@ -27,7 +27,7 @@ private:
     ~TDM();
 
     std::shared_ptr<TMSGClient> fClient = nullptr;
-    std::shared_ptr<Users::TUserAccount> fUserAccount = nullptr;
+    std::shared_ptr<Core::TUserAccount> fUserAccount = nullptr;
     std::shared_ptr<TFrameController> fFrameController = nullptr;
     std::shared_ptr<TModels> fModels = nullptr;
 
@@ -39,7 +39,7 @@ private:
 signals:
 
 public slots:
-    void slot_SetUserAccount(Users::TUserAccount &inUserAccount);
+    void slot_SetUserAccount(Core::TUserAccount &inUserAccount);
 
 };
 

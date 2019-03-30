@@ -2,7 +2,7 @@
 
 #include "Classes/DataModule/DataModule.h"
 
-using namespace Users;
+using namespace Core;
 
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
@@ -17,11 +17,11 @@ TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     // Копируем контейнер контактов
     this->fContacts = std::make_shared<TUsersModel>();
-    std::for_each(inOther.fContacts->begin(), inOther.fContacts->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &Contact)
+    std::for_each(inOther.fContacts->begin(), inOther.fContacts->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &Contact)
     { this->fContacts->insert(Contact); });
     // Копируем контейнер контактов
     this->fChats = std::make_shared<TChatsModel>();
-    std::for_each(inOther.fChats->begin(), inOther.fChats->end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Chat)
+    std::for_each(inOther.fChats->begin(), inOther.fChats->end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Chat)
     { this->fChats->insert(Chat); });
 
 }
@@ -40,11 +40,11 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     // Копируем контейнер контактов
     this->fContacts = std::make_shared<TUsersModel>();
-    std::for_each(inOther.fContacts->begin(), inOther.fContacts->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &Contact)
+    std::for_each(inOther.fContacts->begin(), inOther.fContacts->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &Contact)
     { this->fContacts->insert(Contact); });
     // Копируем контейнер контактов
     this->fChats = std::make_shared<TChatsModel>();
-    std::for_each(inOther.fChats->begin(), inOther.fChats->end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Chat)
+    std::for_each(inOther.fChats->begin(), inOther.fChats->end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Chat)
     { this->fChats->insert(Chat); });
 
     this->setParent(inOther.parent());
@@ -155,21 +155,21 @@ void TUserAccount::slot_AddChat(const ChatInfo_Ptr inChat)
 }
 //-----------------------------------------------------------------------------
 
-namespace Users
+namespace Core
 {   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
     QDataStream& operator <<(QDataStream &outStream, const TUserAccount &UserAccount)
     {
         outStream << *UserAccount.fUserInfo; // Передаём информацию о пользователе
         //--
-        QList<Users::TUserInfo> ContactsBuf; // Список передоваемых объектов типа "Инфо Пользователя"
-        std::for_each(UserAccount.fContacts->begin(), UserAccount.fContacts->end(), [&ContactsBuf](const std::pair<QUuid, Users::UserInfo_Ptr> &Contact)
+        QList<Core::TUserInfo> ContactsBuf; // Список передоваемых объектов типа "Инфо Пользователя"
+        std::for_each(UserAccount.fContacts->begin(), UserAccount.fContacts->end(), [&ContactsBuf](const std::pair<QUuid, Core::UserInfo_Ptr> &Contact)
         { // Преобразовываем указатели в объекты
             ContactsBuf.push_back(*Contact.second);
         });
         outStream << ContactsBuf; // Передаём список контактов
         //--
-        QList<Users::TChatInfo> ChatsBuf; // Список передоваемых объектов типа "Инфо Беседы"
-        std::for_each(UserAccount.fChats->begin(), UserAccount.fChats->end(), [&ChatsBuf](const std::pair<QUuid, Users::ChatInfo_Ptr> &Chat)
+        QList<Core::TChatInfo> ChatsBuf; // Список передоваемых объектов типа "Инфо Беседы"
+        std::for_each(UserAccount.fChats->begin(), UserAccount.fChats->end(), [&ChatsBuf](const std::pair<QUuid, Core::ChatInfo_Ptr> &Chat)
         { // Преобразовываем указатели в объекты
             ChatsBuf.push_back(*Chat.second);
         });
@@ -180,24 +180,24 @@ namespace Users
     //-----------------------------------------------------------------------------
     QDataStream& operator >>(QDataStream &inStream, TUserAccount &UserAccount)
     {
-        Users::TUserInfo BufUserInfo;
+        Core::TUserInfo BufUserInfo;
         inStream >> BufUserInfo; // Получаем информацию о пользователе
-        UserAccount.fUserInfo = std::make_shared<Users::TUserInfo>(BufUserInfo); // Преобразуем объект к указателю
+        UserAccount.fUserInfo = std::make_shared<Core::TUserInfo>(BufUserInfo); // Преобразуем объект к указателю
         //--
         UserAccount.fContacts->clear();
-        QList<Users::TUserInfo> ContactsBuf; // Список получаемых объектов типа "Инфо Пользователя"
+        QList<Core::TUserInfo> ContactsBuf; // Список получаемых объектов типа "Инфо Пользователя"
         inStream >> ContactsBuf; // Получаем список контактов
-        std::for_each(ContactsBuf.begin(), ContactsBuf.end(), [&](const Users::TUserInfo &Contact)
+        std::for_each(ContactsBuf.begin(), ContactsBuf.end(), [&](const Core::TUserInfo &Contact)
         { // Преобразовываем объекты в указатели
-            UserAccount.contacts()->insert(std::make_pair(Contact.userUuid(), std::make_shared<Users::TUserInfo>(Contact)));
+            UserAccount.contacts()->insert(std::make_pair(Contact.userUuid(), std::make_shared<Core::TUserInfo>(Contact)));
         });
         //--
         UserAccount.fChats->clear();
-        QList<Users::TChatInfo> ChatsBuf; // Список получаемых объектов типа "Инфо Беседы"
+        QList<Core::TChatInfo> ChatsBuf; // Список получаемых объектов типа "Инфо Беседы"
         inStream >> ChatsBuf; // Получаем список бесед
-        std::for_each(ChatsBuf.begin(), ChatsBuf.end(), [&](const Users::TChatInfo &Chat)
+        std::for_each(ChatsBuf.begin(), ChatsBuf.end(), [&](const Core::TChatInfo &Chat)
         { // Преобразовываем объекты в указатели
-            UserAccount.chats()->insert(std::make_pair(Chat.chatUuid(), std::make_shared<Users::TChatInfo>(Chat)));
+            UserAccount.chats()->insert(std::make_pair(Chat.chatUuid(), std::make_shared<Core::TChatInfo>(Chat)));
         });
 
         return inStream;

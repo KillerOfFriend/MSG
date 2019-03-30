@@ -46,7 +46,8 @@ SOURCES += \
     ../Common/Classes/ChatInfo/ChatInfo.cpp \
     ../Common/Models/ChatsModel/ChatsModel.cpp \
     Classes/ServerCache/ServerCacheDB.cpp \
-    Classes/ServerCache/ServerCache.cpp
+    Classes/ServerCache/ServerCache.cpp \
+    ../Common/Classes/ChatMessage/ChatMessage.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -66,7 +67,8 @@ HEADERS += \
     Models/UsersTypeModelDB/UsersTypeModelDB.h \
     ../Common/Classes/ChatInfo/ChatInfo.h \
     ../Common/Models/ChatsModel/ChatsModel.h \
-    Classes/ServerCache/ServerCache.h
+    Classes/ServerCache/ServerCache.h \
+    ../Common/Classes/ChatMessage/ChatMessage.h
 
 FORMS += \
         ServerMainWindow.ui

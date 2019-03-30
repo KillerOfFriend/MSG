@@ -9,7 +9,7 @@
 
 #include "Classes/UserInfo/UserInfo.h"
 
-class TUsersModel : public QAbstractTableModel, public std::map<QUuid, Users::UserInfo_Ptr>
+class TUsersModel : public QAbstractTableModel, public std::map<QUuid, Core::UserInfo_Ptr>
 {
     Q_OBJECT
 public:
@@ -29,10 +29,10 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     //-- Методы контейнера
-    std::pair<std::map<QUuid, Users::UserInfo_Ptr>::iterator, bool> insert(const std::pair<QUuid, Users::UserInfo_Ptr> &inValue);
+    std::pair<std::map<QUuid, Core::UserInfo_Ptr>::iterator, bool> insert(const std::pair<QUuid, Core::UserInfo_Ptr> &inValue);
     //--
-    std::map<QUuid, Users::UserInfo_Ptr>::iterator erase(std::map<QUuid, Users::UserInfo_Ptr>::iterator inIt);
-    std::map<QUuid, Users::UserInfo_Ptr>::size_type erase(const QUuid &inUuid);
+    std::map<QUuid, Core::UserInfo_Ptr>::iterator erase(std::map<QUuid, Core::UserInfo_Ptr>::iterator inIt);
+    std::map<QUuid, Core::UserInfo_Ptr>::size_type erase(const QUuid &inUuid);
     //--
     void clear();
 

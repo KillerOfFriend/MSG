@@ -9,7 +9,7 @@
 #include <QDate>
 #include <QDataStream>
 
-namespace Users
+namespace Core
 {
     class TUserInfo;
 

@@ -67,7 +67,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                     }
                     else // Авторизация уникальна (Сокет с таким Uuid не найден)
                     {
-                        Users::UserInfo_Ptr UserInfo = fServerCache->getUserInfo(Resuslt.second); // Получаем информацию о пользователе
+                        Core::UserInfo_Ptr UserInfo = fServerCache->getUserInfo(Resuslt.second); // Получаем информацию о пользователе
 
                         if (!UserInfo || UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
                         {
@@ -76,12 +76,12 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                         }
                         else // Данные о пользователе успешно получены
                         {
-                            QList<Users::UserInfo_Ptr> Contacts = getContacts(UserInfo->userUuid()); // Получаем список контактов пользователя
-                            QList<Users::ChatInfo_Ptr> Chats = getChats(UserInfo->userUuid()); // Получаем список бесед пользователя
+                            QList<Core::UserInfo_Ptr> Contacts = getContacts(UserInfo->userUuid()); // Получаем список контактов пользователя
+                            QList<Core::ChatInfo_Ptr> Chats = getChats(UserInfo->userUuid()); // Получаем список бесед пользователя
 
                             checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
 
-                            Users::TUserAccount UserAccount(this);
+                            Core::TUserAccount UserAccount(this);
                             UserAccount.slot_SetUserInfo(UserInfo);
                             UserAccount.slot_SetContacts(Contacts);
                             UserAccount.slot_SetChats(Chats);
@@ -124,7 +124,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::FindUsers: // Поиск пользователей
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на поиск пользователя");
-            QList<Users::UserInfo_Ptr> Resuslt = findUsers(inStream); // Поиск пользователя
+            QList<Core::UserInfo_Ptr> Resuslt = findUsers(inStream); // Поиск пользователя
 
             if (Resuslt.isEmpty()) // Если список пуст
             {
@@ -134,8 +134,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             else
             {
                 checkUsersStatus(Resuslt); // Проверяем контакты онлайн и устанавливаем им статус
-                QList<Users::TUserInfo> UsersBuf;
-                std::for_each(Resuslt.begin(), Resuslt.end(), [&UsersBuf](const Users::UserInfo_Ptr &UserInfo)
+                QList<Core::TUserInfo> UsersBuf;
+                std::for_each(Resuslt.begin(), Resuslt.end(), [&UsersBuf](const Core::UserInfo_Ptr &UserInfo)
                 { // Приобразуем указетели к объектам
                     UsersBuf.push_back(*UserInfo);
                 });
@@ -149,7 +149,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::AddContact: // Добавление контакта
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на добавление контакта");
-            std::pair<quint8, Users::UserInfo_Ptr> Result = addContact(inStream); // Добавляем контакт
+            std::pair<quint8, Core::UserInfo_Ptr> Result = addContact(inStream); // Добавляем контакт
 
             if (Result.first != Res::AddContact::acCreated) // Если пользователь не был добавлен
                 outStream << Command << Result.first; // Пишем в результат команду и результат обработки
@@ -308,9 +308,9 @@ std::pair<quint8, QUuid> TMSGServer::canAuthorization(QDataStream &inDataStream)
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<Users::UserInfo_Ptr> TMSGServer::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
+QList<Core::UserInfo_Ptr> TMSGServer::findUsers(QDataStream &inDataStream) // Метод вернёт список пользователей по их имени\логину
 {
-    QList<Users::UserInfo_Ptr> Result;
+    QList<Core::UserInfo_Ptr> Result;
     QString UserNameLogin = '%' + ReadStringFromStream(inDataStream) + '%'; // Получаем фильтр поиска
 
     QSqlQuery Query(TDB::Instance().DB());
@@ -339,9 +339,9 @@ QList<Users::UserInfo_Ptr> TMSGServer::findUsers(QDataStream &inDataStream) // �
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<quint8, Users::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
+std::pair<quint8, Core::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDataStream) // Метод добавит котнтакт пользователю
 {
-    std::pair<quint8, Users::UserInfo_Ptr> Result;
+    std::pair<quint8, Core::UserInfo_Ptr> Result;
     Result.first = Res::rUnknown;
 
     QUuid Owner; // Владелец нового контакта
@@ -373,9 +373,9 @@ std::pair<quint8, Users::UserInfo_Ptr> TMSGServer::addContact(QDataStream &inDat
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<Users::UserInfo_Ptr> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
+QList<Core::UserInfo_Ptr> TMSGServer::getContacts(const QUuid &inOwnerUuid) // Метод вернёт список контактов по uuid указанного пользователя
 {
-    QList<Users::UserInfo_Ptr> Result;
+    QList<Core::UserInfo_Ptr> Result;
     QSqlQuery Query(TDB::Instance().DB());
 
     if(!Query.prepare("SELECT * FROM get_contacts(:in_owner)"))
@@ -402,7 +402,7 @@ QList<Users::UserInfo_Ptr> TMSGServer::getContacts(const QUuid &inOwnerUuid) // 
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<Users::UserInfo_Ptr> TMSGServer::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
+QList<Core::UserInfo_Ptr> TMSGServer::getContacts(QDataStream &inDataStream) // Метод вернёт список контактов указанного пользователя
 {
     QUuid OwnerUuid;
 
@@ -448,7 +448,7 @@ quint8 TMSGServer::createChat(QDataStream &inDataStream) // Метод доба�
 {
     quint8 Result = Res::rUnknown;
 
-    Users::TChatInfo NewChat; // Читаем данные о беседе из потока
+    Core::TChatInfo NewChat; // Читаем данные о беседе из потока
     inDataStream >> NewChat;
 
     QSqlQuery Query(TDB::Instance().DB());
@@ -472,7 +472,7 @@ quint8 TMSGServer::createChat(QDataStream &inDataStream) // Метод доба�
 
     if (Result != Res::rUnknown) // Если добавление или обновление
     {
-        std::for_each(NewChat.clients()->begin(), NewChat.clients()->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &ChatClient)
+        std::for_each(NewChat.clients()->begin(), NewChat.clients()->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &ChatClient)
         {
             addUserToChat(NewChat.chatUuid(), ChatClient.second->userUuid()); // Добавляем пользователя в беседу
         });
@@ -532,9 +532,9 @@ quint8 TMSGServer::addUserToChat(QUuid inChatUuid, QUuid inUserUuid) // Мето
     return Result;
 }
 //-----------------------------------------------------------------------------
-QList<Users::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // Метод вернёт список бесед указонного пользователя
+QList<Core::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // Метод вернёт список бесед указонного пользователя
 {
-    QList<Users::ChatInfo_Ptr> Result;
+    QList<Core::ChatInfo_Ptr> Result;
 
     QList<QUuid> Chats = findChats(inOwnerUuid); // Получаем список Uuid'ов бесед пользователя
 
@@ -542,7 +542,7 @@ QList<Users::ChatInfo_Ptr> TMSGServer::getChats(const QUuid &inOwnerUuid) // М�
     {
         if (!ChatUuid.isNull()) // Если Uuid беседы валиден
         {
-            Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(ChatUuid); // Получаем данные о беседе
+            Core::ChatInfo_Ptr Chat = fServerCache->getChatInfo(ChatUuid); // Получаем данные о беседе
             if (Chat) // Если полученная беседа валидна
                 Result.push_back(Chat); // Добавляем беседу в список
         }

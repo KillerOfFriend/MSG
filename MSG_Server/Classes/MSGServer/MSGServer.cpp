@@ -60,7 +60,7 @@ void TMSGServer::disconnectClient(QTcpSocket* inClient)
  */
 void TMSGServer::disconnectAll()
 {
-    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client)
+    std::for_each(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Core::TUserAccount> &Client)
     {
         disconnectClient(Client.first);
     });
@@ -144,7 +144,7 @@ void TMSGServer::Link()
  */
 QTcpSocket* TMSGServer::socketByUuid(QUuid inClientUuid)
 {
-    auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&inClientUuid](const std::pair<QTcpSocket*, Users::TUserAccount> &ClientOnline)
+    auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&inClientUuid](const std::pair<QTcpSocket*, Core::TUserAccount> &ClientOnline)
     {
         return ClientOnline.second.userInfo()->userUuid() == inClientUuid;
     });
@@ -158,24 +158,24 @@ QTcpSocket* TMSGServer::socketByUuid(QUuid inClientUuid)
  * @brief TMSGServer::checkUsersStatus - Метод проверит наличие контактов и онлайн и установит их статус
  * @param inContacts - Список проверяемых пользователей
  */
-void TMSGServer::checkUsersStatus(QList<Users::UserInfo_Ptr> &inUsers)
+void TMSGServer::checkUsersStatus(QList<Core::UserInfo_Ptr> &inUsers)
 {
-    std::for_each(inUsers.begin(), inUsers.end(), [&](Users::UserInfo_Ptr &UserInfo) // Перебираем все контакты полученного клиента
+    std::for_each(inUsers.begin(), inUsers.end(), [&](Core::UserInfo_Ptr &UserInfo) // Перебираем все контакты полученного клиента
     {
         checkUserStatus(UserInfo);
     });
 }
 //-----------------------------------------------------------------------------
-void TMSGServer::checkUserStatus(Users::UserInfo_Ptr inUsers) // Метод проверит наличие контакта онлайнт и установит их статус
+void TMSGServer::checkUserStatus(Core::UserInfo_Ptr inUsers) // Метод проверит наличие контакта онлайнт и установит их статус
 {
-    auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&inUsers](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
+    auto FindRes = std::find_if(fClients.begin(), fClients.end(), [&inUsers](const std::pair<QTcpSocket*, Core::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
     {
         return Client.second.userInfo()->userUuid() == inUsers->userUuid(); // Сравнение по Uuid
     });
 
     if (FindRes != fClients.end()) // Если клиент онлайн
-        inUsers->setUserStatus(Users::UserStatus::usOnline);
-    else inUsers->setUserStatus(Users::UserStatus::usOffline);
+        inUsers->setUserStatus(Core::UserStatus::usOnline);
+    else inUsers->setUserStatus(Core::UserStatus::usOffline);
 }
 //-----------------------------------------------------------------------------
 /**
@@ -191,9 +191,9 @@ void TMSGServer::userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus
     {
         sig_LogMessage(inClientSender->peerAddress(), "Отправка данных о смене своего состояния");
 
-        std::for_each(SenderFindRes->second.contacts()->begin(), SenderFindRes->second.contacts()->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &Contact) // Перебираем все контакты пользователя
+        std::for_each(SenderFindRes->second.contacts()->begin(), SenderFindRes->second.contacts()->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &Contact) // Перебираем все контакты пользователя
         {
-            auto ContactFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
+            auto ContactFindRes = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Core::TUserAccount> &Client) // Ищим контакт в списке подключённых клиентов
             {
                 return Client.second.userInfo()->userUuid() == Contact.second->userUuid(); // Сравнение по Uuid
             });
@@ -217,8 +217,8 @@ void TMSGServer::userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus
 void TMSGServer::slot_NewConnection()
 {
     QTcpSocket* NewConnection = fServer->nextPendingConnection();
-    Users::TUserAccount NewAccount(this);
-    Users::UserInfo_Ptr AnonimusInfo = std::make_shared<Users::TUserInfo>(this);
+    Core::TUserAccount NewAccount(this);
+    Core::UserInfo_Ptr AnonimusInfo = std::make_shared<Core::TUserInfo>(this);
 
     AnonimusInfo->setUserType(0);
     AnonimusInfo->setUserUuid(QUuid());
@@ -253,7 +253,7 @@ void TMSGServer::slot_ClientDisconnect()
 
     if (Client)
     {
-        userChangeStatus(Client, Users::UserStatus::usOffline); // Сообщаем об изменении статуса клиента на "Offline"
+        userChangeStatus(Client, Core::UserStatus::usOffline); // Сообщаем об изменении статуса клиента на "Offline"
 
         auto FindRes = fClients.find(Client); // Ищим клиента среди авторизированных пользователей
         if (FindRes != fClients.end()) // Если находим
@@ -323,26 +323,26 @@ void TMSGServer::slot_ClientError(QAbstractSocket::SocketError inError)
  * @param Client - Сокет клиента
  * @param inUserInfo - Данные клиента
  */
-void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAccount &inUserAccount)
+void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Core::TUserAccount &inUserAccount)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
     if (It != fClients.end()) // Если сокет найден
     {
-        inUserAccount.userInfo()->setUserStatus(Users::UserStatus::usOnline); // Задаём статус "Онлайн"
+        inUserAccount.userInfo()->setUserStatus(Core::UserStatus::usOnline); // Задаём статус "Онлайн"
         It->second = inUserAccount; // Задаём личные данные пользователя
         qint32 Row = std::distance(fClients.begin(), It); // Вычисляем номер изменяемой строки
         fClients.slot_UpdateRow(Row); // Вызываем обновление данных пользоваетля
 
         // Нужно обеспечить доступ к беседе пользователя
-        std::for_each(inUserAccount.chats()->begin(), inUserAccount.chats()->end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Chat)
+        std::for_each(inUserAccount.chats()->begin(), inUserAccount.chats()->end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Chat)
         {
             auto FindChatRes = fChats.find(Chat.first); // Ищим данную беседу в списке отслеживаемых бесед
             if (FindChatRes == fChats.end()) // Если данной беседы нет в списке отслеживаемых бесед
                 fChats.insert(Chat); // Добавляем
         });
 
-        userChangeStatus(inClient, Users::UserStatus::usOnline); // Сообщаем об изменении статуса клиента на "Online"
+        userChangeStatus(inClient, Core::UserStatus::usOnline); // Сообщаем об изменении статуса клиента на "Online"
     }
     else // Если сокет не найден (НЕ ДОЛЖНО ТАКОГО БЫТЬ)
     {
@@ -356,7 +356,7 @@ void TMSGServer::slot_SetAuthorizedClient(QTcpSocket* inClient, Users::TUserAcco
  * @param inClient - Сокет клиента
  * @param inContactInfo - Данные добавляемого контакта
  */
-void TMSGServer::slot_AddContact(QTcpSocket* inClient, Users::UserInfo_Ptr &inContactInfo)
+void TMSGServer::slot_AddContact(QTcpSocket* inClient, Core::UserInfo_Ptr &inContactInfo)
 {
     auto It = fClients.find(inClient); // Ищим сокет
 
@@ -397,7 +397,7 @@ void TMSGServer::slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid)
  */
 void TMSGServer::slot_DeleteUserFromChat(QUuid inChatUuid, QUuid inUserUuid)
 {
-    Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(inChatUuid); // Ищим беседу
+    Core::ChatInfo_Ptr Chat = fServerCache->getChatInfo(inChatUuid); // Ищим беседу
 
     if (Chat) // Беседа найдена
     {
@@ -424,13 +424,13 @@ void TMSGServer::slot_DeleteChat(QUuid inChatUuid)
  * @param inContactUuid - Uuid пользователя, которого нужно синхронизировать
  * @param inOwnerInfo - Данные пользователя, добавившего контакт
  */
-void TMSGServer::syncAddedUser(QUuid inContactUuid, Users::UserInfo_Ptr inOwnerInfo)
+void TMSGServer::syncAddedUser(QUuid inContactUuid, Core::UserInfo_Ptr inOwnerInfo)
 {
     if (!inOwnerInfo)
         return;
 
     // Ищим контакт в списке подключённых клиентов
-    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Item)
+    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Core::TUserAccount> &Item)
     {
         return Item.second.userInfo()->userUuid() == inContactUuid;
     });
@@ -454,7 +454,7 @@ void TMSGServer::syncAddedUser(QUuid inContactUuid, Users::UserInfo_Ptr inOwnerI
 void TMSGServer::syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid)
 {
     // Ищим контакт в списке подключённых клиентов
-    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Users::TUserAccount> &Item)
+    auto ContactIt = std::find_if(fClients.begin(), fClients.end(), [&](const std::pair<QTcpSocket*, Core::TUserAccount> &Item)
     {
         return Item.second.userInfo()->userUuid() == inContactUuid;
     });
@@ -476,11 +476,11 @@ void TMSGServer::syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid)
  */
 void TMSGServer::syncCreateChat(QUuid inChatUuid)
 {
-    Users::ChatInfo_Ptr Chat = fServerCache->getChatInfo(inChatUuid); // Ищим беседу
+    Core::ChatInfo_Ptr Chat = fServerCache->getChatInfo(inChatUuid); // Ищим беседу
 
     if (Chat)
     {
-        std::for_each(Chat->clients()->begin(), Chat->clients()->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &ChatClient)
+        std::for_each(Chat->clients()->begin(), Chat->clients()->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &ChatClient)
         {
             syncAddedUserToChat(Chat, ChatClient.second); // Запускаем синхронизацию
         });
@@ -492,12 +492,12 @@ void TMSGServer::syncCreateChat(QUuid inChatUuid)
  * @param inChat - Беседа, в которую был добавлен пользователь
  * @param inUser - Клиента беседы
  */
-void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChatUuid, Users::UserInfo_Ptr inUser)
+void TMSGServer::syncAddedUserToChat(Core::ChatInfo_Ptr inChatUuid, Core::UserInfo_Ptr inUser)
 {
     if (!inChatUuid || !inUser)
         return;
 
-    if (inUser->userStatus() == Users::UserStatus::usOnline ) // Если юзер и беседа валидны, а так же юзер онлайн
+    if (inUser->userStatus() == Core::UserStatus::usOnline ) // Если юзер и беседа валидны, а так же юзер онлайн
     {
         QTcpSocket* ClientSocket = socketByUuid(inUser->userUuid()); // Получаем сокет клиента
 
@@ -518,12 +518,12 @@ void TMSGServer::syncAddedUserToChat(Users::ChatInfo_Ptr inChatUuid, Users::User
  * @param inChat - Беседа, из которой был удалён пользователь
  * @param inUserUuid - Uuid пользователя
  */
-void TMSGServer::syncDeletedUserFromChat(Users::ChatInfo_Ptr inChat, QUuid inUserUuid)
+void TMSGServer::syncDeletedUserFromChat(Core::ChatInfo_Ptr inChat, QUuid inUserUuid)
 {
     if (!inChat)
         return;
 
-    std::for_each(inChat->clients()->begin(), inChat->clients()->end(), [&](const std::pair<QUuid, Users::UserInfo_Ptr> &Client) // Перебираем всех клиентов беседы
+    std::for_each(inChat->clients()->begin(), inChat->clients()->end(), [&](const std::pair<QUuid, Core::UserInfo_Ptr> &Client) // Перебираем всех клиентов беседы
     {
         QTcpSocket* ClientSocket = socketByUuid(Client.second->userUuid()); // Получаем сокет клиента беседы
 

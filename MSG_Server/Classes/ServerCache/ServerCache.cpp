@@ -5,8 +5,8 @@
 //-----------------------------------------------------------------------------
 TServerCache::TServerCache(QObject *inParent) : QObject(inParent)
 {
-    fUsersCache.reset(new std::map<QUuid, Users::UserInfo_Ptr>());
-    fChatsCache.reset(new std::map<QUuid, Users::ChatInfo_Ptr>());
+    fUsersCache.reset(new std::map<QUuid, Core::UserInfo_Ptr>());
+    fChatsCache.reset(new std::map<QUuid, Core::ChatInfo_Ptr>());
 }
 //-----------------------------------------------------------------------------
 TServerCache::~TServerCache()
@@ -20,7 +20,7 @@ TServerCache::~TServerCache()
  * @param inUserUuid - Uuid пользователя
  * @return Вернёт указатель на информацию о пользователе
  */
-Users::UserInfo_Ptr TServerCache::getUserInfo(const QUuid inUserUuid)
+Core::UserInfo_Ptr TServerCache::getUserInfo(const QUuid inUserUuid)
 {
     auto UserFindRes = fUsersCache->find(inUserUuid); // Ищим пользователя в кеше
 
@@ -35,7 +35,7 @@ Users::UserInfo_Ptr TServerCache::getUserInfo(const QUuid inUserUuid)
  * @param inChatUuid - Uuid беседы
  * @return Вернёт указатель на информацию о беседе
  */
-Users::ChatInfo_Ptr TServerCache::getChatInfo(const QUuid inChatUuid)
+Core::ChatInfo_Ptr TServerCache::getChatInfo(const QUuid inChatUuid)
 {
     auto UserChatRes = fChatsCache->find(inChatUuid); // Ищим беседу в кеше
 

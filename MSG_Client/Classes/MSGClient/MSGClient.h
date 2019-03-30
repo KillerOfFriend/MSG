@@ -29,7 +29,7 @@ public:
     bool addContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на добавление контакта
     bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
 
-    bool createChat(Users::TChatInfo &inChatInfo); // Метод отправит команду на создание беседы
+    bool createChat(Core::TChatInfo &inChatInfo); // Метод отправит команду на создание беседы
     bool leaveFromChat(const QUuid inChatUuid); // Метод удалит беседу (По факту, удалит из беседы пользователя)
 
 private:
@@ -68,17 +68,17 @@ signals:
     void sig_LogMessage(QString inMessage);
     void sig_TimeOut(quint8 inResult);
     //--
-    void sig_SetUserInfo(const Users::TUserInfo &inUserInfo);
-    void sig_SetContacts(const QList<Users::TUserInfo> &inUsers);
-    void sig_SetChats(const QList<Users::TChatInfo> &inChats);
+    void sig_SetUserInfo(const Core::TUserInfo &inUserInfo);
+    void sig_SetContacts(const QList<Core::TUserInfo> &inUsers);
+    void sig_SetChats(const QList<Core::TChatInfo> &inChats);
     //--
     void sig_UserCreateResult(quint8 inResult);
     void sig_AuthorizationResult(quint8 inResult);
     void sig_GetUserTypesResult(QList<OtherTypes::TUserType> &inUserTypes);
     //--
-    void sig_FindUsersResult(const QList<Users::TUserInfo> &inUsers);
+    void sig_FindUsersResult(const QList<Core::TUserInfo> &inUsers);
     //--
-    void sig_InviteToChatResult(const Users::ChatInfo_Ptr inChat);
+    void sig_InviteToChatResult(const Core::ChatInfo_Ptr inChat);
 
     void sig_ContactChangeStatus(QUuid inContactUuid, quint8 inNewStatus);
 };

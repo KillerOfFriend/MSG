@@ -4,7 +4,7 @@
 #include "Classes/DataModule/DataModule.h"
 
 //-----------------------------------------------------------------------------
-TUserViewDialog::TUserViewDialog(Users::UserInfo_Ptr &inUserInfo, QWidget *inParent) :
+TUserViewDialog::TUserViewDialog(Core::UserInfo_Ptr &inUserInfo, QWidget *inParent) :
     QDialog(inParent), ui(new Ui::TUserViewDialog)
 {
     ui->setupUi(this);

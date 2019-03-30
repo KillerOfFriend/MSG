@@ -18,20 +18,20 @@ public:
     explicit TServerCache(QObject *inParent = nullptr);
     ~TServerCache();
 
-    Users::UserInfo_Ptr getUserInfo(const QUuid inUserUuid); // Метод вернёт указатель на информацию о пользователе
-    Users::ChatInfo_Ptr getChatInfo(const QUuid inChatUuid); // Метод вернёт указатель на информацию о беседе
+    Core::UserInfo_Ptr getUserInfo(const QUuid inUserUuid); // Метод вернёт указатель на информацию о пользователе
+    Core::ChatInfo_Ptr getChatInfo(const QUuid inChatUuid); // Метод вернёт указатель на информацию о беседе
 
     bool isContainUser(const QUuid inUserUuid); // Метод проверит наличие пользователя в кеше
     bool isContainChat(const QUuid inChatUuid); // Метод проверит наличие беседы в кеше
 
 private:
-    std::unique_ptr<std::map<QUuid, Users::UserInfo_Ptr>> fUsersCache = nullptr; // Контейнер с пользователями
-    std::unique_ptr<std::map<QUuid, Users::ChatInfo_Ptr>> fChatsCache = nullptr; // Контейнер с беседами
+    std::unique_ptr<std::map<QUuid, Core::UserInfo_Ptr>> fUsersCache = nullptr; // Контейнер с пользователями
+    std::unique_ptr<std::map<QUuid, Core::ChatInfo_Ptr>> fChatsCache = nullptr; // Контейнер с беседами
 
-    Users::UserInfo_Ptr uploadUserInfoFromDB(const QUuid inUserUuid); // Метод получит информацию о пользователе из БД и сохранит в кеше
-    Users::ChatInfo_Ptr uploadChatInfoFromDB(const QUuid inChatUuid); // Метод получит информацию о беседе из БД и сохранит в кеше
+    Core::UserInfo_Ptr uploadUserInfoFromDB(const QUuid inUserUuid); // Метод получит информацию о пользователе из БД и сохранит в кеше
+    Core::ChatInfo_Ptr uploadChatInfoFromDB(const QUuid inChatUuid); // Метод получит информацию о беседе из БД и сохранит в кеше
 
-    QList<Users::UserInfo_Ptr> getChatUsers(QUuid inChatUuid); // Метод получит список пользователей указанной беседы
+    QList<Core::UserInfo_Ptr> getChatUsers(QUuid inChatUuid); // Метод получит список пользователей указанной беседы
 
 public slots:
 

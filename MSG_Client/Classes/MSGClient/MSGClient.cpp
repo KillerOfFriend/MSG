@@ -187,7 +187,7 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
     return Result;
 }
 //-----------------------------------------------------------------------------
-bool TMSGClient::createChat(Users::TChatInfo &inChatInfo) // Метод отправит команду на создание беседы
+bool TMSGClient::createChat(Core::TChatInfo &inChatInfo) // Метод отправит команду на создание беседы
 {
     bool Result = true;
 

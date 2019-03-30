@@ -26,9 +26,9 @@ TUserListDialog::~TUserListDialog()
     delete ui;
 }
 //-----------------------------------------------------------------------------
-QList<Users::UserInfo_Ptr> TUserListDialog::selectedUsers() // Метод вернёт Uuid'ы выбранных пользователей
+QList<Core::UserInfo_Ptr> TUserListDialog::selectedUsers() // Метод вернёт Uuid'ы выбранных пользователей
 {
-    QList<Users::UserInfo_Ptr> UsersResult;
+    QList<Core::UserInfo_Ptr> UsersResult;
 
     QModelIndexList Selected = ui->UsersListView->selectionModel()->selectedIndexes(); // Получаем список выделенных пользователей
 

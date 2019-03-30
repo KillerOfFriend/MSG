@@ -23,6 +23,9 @@ private:
     Ui::TChatWidget *ui;
 
     QUuid fChatUuid; // Uuid беседы
+
+protected:
+    bool eventFilter(QObject *inObject, QEvent *inEvent); // Фильтр событий
 };
 
 #endif // CHATWIDGET_H

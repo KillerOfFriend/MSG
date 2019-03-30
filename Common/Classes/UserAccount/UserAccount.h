@@ -13,7 +13,7 @@
 #include "Models/UsersModel/UsersModel.h"
 #include "Models/ChatsModel/ChatsModel.h"
 
-namespace Users
+namespace Core
 {
 
     class TUserAccount : public QObject

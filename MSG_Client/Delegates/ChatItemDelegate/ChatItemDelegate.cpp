@@ -90,7 +90,7 @@ QImage TChatItemDelegate::createPreview(QUuid inChatUuid) const // Метод с
     if (FindChatRes == TDM::Instance().UserAccount()->chats()->end())
         return QImage();
 
-    Users::ChatInfo_Ptr chat = FindChatRes->second;
+    Core::ChatInfo_Ptr chat = FindChatRes->second;
 
     QImage Result = QImage(fPreviewSize, QImage::Format_ARGB32); // Результирующее изображение превью беседы
     Result.fill(Qt::transparent); // Заливаем буфер "прозрачным цветом"
@@ -105,12 +105,15 @@ QImage TChatItemDelegate::createPreview(QUuid inChatUuid) const // Метод с
     auto LastUserIt = FindChatRes->second->clients()->begin(); // Получаем итератор на первого порльзователя беседы
     std::advance(LastUserIt, AvaCount + 1); // Сдвигаем его на последнего отображаемого + 1
     // Перебираем отображаемых на превью пользователей
-    std::for_each(FindChatRes->second->clients()->begin(), LastUserIt, [&] (const std::pair<QUuid, Users::UserInfo_Ptr> &ChatUser)
+    std::for_each(FindChatRes->second->clients()->begin(), LastUserIt, [&] (const std::pair<QUuid, Core::UserInfo_Ptr> &ChatUser)
     {
-        QImage UserAvatar = ChatUser.second->userAvatar().scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Получаем аватар пользователя
+        QImage UserAvatar; // Аватар пользователя
 
-        if (UserAvatar.isNull()) // Если у пользователя нет аватара
-        {
+        if (!ChatUser.second->userAvatar().isNull()) // Если у пользователя задан аватар
+            UserAvatar = ChatUser.second->userAvatar().scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Получаем аватар пользователя
+
+        if (UserAvatar.isNull()) // Если не удалось получить аватар пользователя
+        {   // Требеутся подгрузить дефолтный
             if (ChatUser.second->userIsMale())
                 UserAvatar = QImage(":/Resurse/Other/Images/Other/AvaMale.png").scaled(fPreviewAvaSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation); // Загружаем дефолтный мужской аватар
             else

@@ -22,7 +22,7 @@ public:
     explicit TUserListDialog(QWidget *inParent = nullptr);
     ~TUserListDialog();
 
-    QList<Users::UserInfo_Ptr> selectedUsers(); // Метод вернёт Uuid'ы выбранных пользователей
+    QList<Core::UserInfo_Ptr> selectedUsers(); // Метод вернёт Uuid'ы выбранных пользователей
 
 private:
     Ui::TUserListDialog *ui;

@@ -1,6 +1,6 @@
 #include "UserInfo.h"
 
-using namespace Users;
+using namespace Core;
 
 //-----------------------------------------------------------------------------
 TUserInfo::TUserInfo(QObject *inParent) : QObject(inParent)
@@ -108,7 +108,7 @@ QImage TUserInfo::userAvatar() const
 { return fAvatar; }
 //-----------------------------------------------------------------------------
 
-namespace Users
+namespace Core
 {   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
     QDataStream& operator <<(QDataStream &outStream, const TUserInfo &UserInfo)
     {
@@ -139,5 +139,4 @@ namespace Users
 
         return inStream;
     }
-    //-----------------------------------------------------------------------------
 }

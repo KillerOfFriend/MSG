@@ -8,12 +8,12 @@ TChatsModel::TChatsModel(QObject* inParent) : QAbstractTableModel(inParent)
     initColumns();
 }
 //-----------------------------------------------------------------------------
-TChatsModel::TChatsModel(const TChatsModel &inOther) : QAbstractTableModel(inOther.parent()), std::map<QUuid, Users::ChatInfo_Ptr>()
+TChatsModel::TChatsModel(const TChatsModel &inOther) : QAbstractTableModel(inOther.parent()), std::map<QUuid, Core::ChatInfo_Ptr>()
 {
     this->fColumns = inOther.fColumns;
     this->clear();
 
-    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Item)
+    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Item)
     { this->insert(Item); });
 
     this->setParent(inOther.parent());
@@ -32,7 +32,7 @@ TChatsModel& TChatsModel::operator = (const TChatsModel &inOther)
     this->fColumns = inOther.fColumns;
     this->clear();
 
-    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Users::ChatInfo_Ptr> &Item)
+    std::for_each(inOther.begin(), inOther.end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Item)
     { this->insert(Item); });
 
     this->setParent(inOther.parent());
@@ -99,9 +99,9 @@ QVariant TChatsModel::headerData(int section, Qt::Orientation orientation, int r
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::map<QUuid, Users::ChatInfo_Ptr>::iterator, bool> TChatsModel::insert(const std::pair<QUuid, Users::ChatInfo_Ptr> &inValue)
+std::pair<std::map<QUuid, Core::ChatInfo_Ptr>::iterator, bool> TChatsModel::insert(const std::pair<QUuid, Core::ChatInfo_Ptr> &inValue)
 {
-    auto It = std::map<QUuid, Users::ChatInfo_Ptr>::insert(inValue);
+    auto It = std::map<QUuid, Core::ChatInfo_Ptr>::insert(inValue);
 
     if (It.second)
     {
@@ -115,19 +115,19 @@ std::pair<std::map<QUuid, Users::ChatInfo_Ptr>::iterator, bool> TChatsModel::ins
     return It;
 }
 //-----------------------------------------------------------------------------
-std::map<QUuid, Users::ChatInfo_Ptr>::iterator TChatsModel::erase(std::map<QUuid, Users::ChatInfo_Ptr>::iterator inIt)
+std::map<QUuid, Core::ChatInfo_Ptr>::iterator TChatsModel::erase(std::map<QUuid, Core::ChatInfo_Ptr>::iterator inIt)
 {
     sig_chatDeleting(inIt->first);
     qint32 Row = std::distance(this->begin(), inIt);
 
     beginRemoveRows(QModelIndex(), Row, Row);
-    auto Res =std::map<QUuid, Users::ChatInfo_Ptr>::erase(inIt);
+    auto Res =std::map<QUuid, Core::ChatInfo_Ptr>::erase(inIt);
     endRemoveRows();
 
     return Res;
 }
 //-----------------------------------------------------------------------------
-std::map<QUuid, Users::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &inUuid)
+std::map<QUuid, Core::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &inUuid)
 {
     auto It = this->find(inUuid);
     if (It != this->end())
@@ -136,7 +136,7 @@ std::map<QUuid, Users::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &
         qint32 Row = std::distance(this->begin(), It);
 
         beginRemoveRows(QModelIndex(), Row, Row);
-        size_type Res = std::map<QUuid, Users::ChatInfo_Ptr>::erase(inUuid);
+        size_type Res = std::map<QUuid, Core::ChatInfo_Ptr>::erase(inUuid);
         endRemoveRows();
 
         return Res;
@@ -147,7 +147,7 @@ std::map<QUuid, Users::ChatInfo_Ptr>::size_type TChatsModel::erase(const QUuid &
 void TChatsModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());
-    std::map<QUuid, Users::ChatInfo_Ptr>::clear();
+    std::map<QUuid, Core::ChatInfo_Ptr>::clear();
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------

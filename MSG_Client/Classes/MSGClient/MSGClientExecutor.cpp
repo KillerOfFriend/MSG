@@ -120,7 +120,7 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
     inDataStream >> Result; // Получаем результат выполнения
     if (Result == Res::CanAut::caAuthorizationTrue) // Если авторизация прошла успешно
     {
-        Users::TUserAccount NewAccount;
+        Core::TUserAccount NewAccount;
         inDataStream >> NewAccount; // Получаем информацию о пользователе
 
         //TDM::Instance().UserAccount().reset(new Users::TUserAccount(NewAccount));
@@ -153,7 +153,7 @@ void TMSGClient::getUserTypesResult(QDataStream &inDataStream)
 void TMSGClient::findUsersResult(QDataStream &inDataStream)
 {
     quint8 Result = Res::rUnknown;
-    QList<Users::TUserInfo> FoundUsers;
+    QList<Core::TUserInfo> FoundUsers;
 
     inDataStream >> Result; // Получаем результат поиска
 
@@ -170,7 +170,7 @@ void TMSGClient::findUsersResult(QDataStream &inDataStream)
 void TMSGClient::addContactResult(QDataStream &inDataStream)
 {
     quint8 Result = Res::rUnknown;
-    Users::TUserInfo ContactInfo;
+    Core::TUserInfo ContactInfo;
     inDataStream >> Result;
 
     if (Result == Res::AddContact::acCreated)
@@ -180,7 +180,7 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
     {
         case Res::AddContact::acCreated:
         {
-            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), std::make_shared<Users::TUserInfo>(ContactInfo))); // Добавляем контакт в список
+            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), std::make_shared<Core::TUserInfo>(ContactInfo))); // Добавляем контакт в список
             sig_LogMessage(tr("Успешно добавлен контакт: ") + ContactInfo.userName());
             break;
         };
@@ -244,10 +244,10 @@ void TMSGClient::createChatResult(QDataStream &inDataStream)
  */
 void TMSGClient::inviteToChatResult(QDataStream &inDataStream)
 {
-    Users::TChatInfo AddedChat;
+    Core::TChatInfo AddedChat;
     inDataStream >> AddedChat;
 
-    sig_InviteToChatResult(std::make_shared<Users::TChatInfo>(AddedChat));
+    sig_InviteToChatResult(std::make_shared<Core::TChatInfo>(AddedChat));
 }
 //-----------------------------------------------------------------------------
 /**

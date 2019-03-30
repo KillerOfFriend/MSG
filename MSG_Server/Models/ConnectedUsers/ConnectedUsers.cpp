@@ -104,9 +104,9 @@ QVariant TConnectedUsersModel::headerData(int section, Qt::Orientation orientati
     return Result;
 }
 //-----------------------------------------------------------------------------
-std::pair<std::map<QTcpSocket*, Users::TUserAccount>::iterator, bool> TConnectedUsersModel::insert(std::pair<QTcpSocket *, Users::TUserAccount> inItem)
+std::pair<std::map<QTcpSocket*, Core::TUserAccount>::iterator, bool> TConnectedUsersModel::insert(std::pair<QTcpSocket *, Core::TUserAccount> inItem)
 {
-    auto It = std::map<QTcpSocket*, Users::TUserAccount>::insert(inItem);
+    auto It = std::map<QTcpSocket*, Core::TUserAccount>::insert(inItem);
 
     if (It.second)
     {
@@ -118,18 +118,18 @@ std::pair<std::map<QTcpSocket*, Users::TUserAccount>::iterator, bool> TConnected
     return It;
 }
 //-----------------------------------------------------------------------------
-void TConnectedUsersModel::erase(std::map<QTcpSocket*, Users::TUserAccount>::iterator inIt)
+void TConnectedUsersModel::erase(std::map<QTcpSocket*, Core::TUserAccount>::iterator inIt)
 {
     std::size_t Row = std::distance(this->begin(), inIt);
     beginRemoveRows(QModelIndex(), Row, Row);
-    std::map<QTcpSocket*, Users::TUserAccount>::erase(inIt);
+    std::map<QTcpSocket*, Core::TUserAccount>::erase(inIt);
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------
 void TConnectedUsersModel::clear()
 {
     beginRemoveRows(QModelIndex(), 0, rowCount());
-    std::map<QTcpSocket*, Users::TUserAccount>::clear();
+    std::map<QTcpSocket*, Core::TUserAccount>::clear();
     endRemoveRows();
 }
 //-----------------------------------------------------------------------------
