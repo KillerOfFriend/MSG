@@ -12,6 +12,7 @@
 
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/Settings/Settings.h"
+#include "Classes/ChatMessage/ChatMessage.h"
 #include "comandes.h"
 #include "resultcodes.h"
 
@@ -25,7 +26,10 @@ TMSGClient::TMSGClient(QObject *inParent) : QObject(inParent)
 TMSGClient::~TMSGClient()
 {
     if (isConnected())
+    {
         fClient->disconnectFromHost();
+        fClient->waitForDisconnected();
+    }
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::init()
@@ -226,6 +230,32 @@ bool TMSGClient::leaveFromChat(const QUuid inChatUuid) // Метод удали�
 
     return Result;
 }
+//-----------------------------------------------------------------------------
+bool TMSGClient::sendMessage(QUuid inChatUuid, Core::TChatMessage &inMessage) // Метод отправит сообщение
+{
+    bool Result = true;
+
+    if(!isConnected())
+        Result = false;
+    else
+    {
+        sig_LogMessage("Сообщение отправлено");
+
+//        QByteArray SendingData;
+//        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+//        Stream << Commands::SendMessage << inChatUuid << inMessage; // Шлём ID беседы и сообщение
+
+//        fClient->write(SendingData);
+//        Result = fClient->waitForBytesWritten();
+
+        QDataStream Stream(fClient.get());
+        Stream << Commands::SendMessage << inChatUuid << inMessage; // Шлём ID беседы и сообщение
+    }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+// Slots
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_ReadyRead()
 {

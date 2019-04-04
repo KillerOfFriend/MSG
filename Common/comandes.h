@@ -18,6 +18,7 @@ namespace Commands
     const quint8 AddUserToChat =        10; // Добавление пользователя в беседу
     const quint8 ILeaveFromChat =       11; // Выход пользователя из чата
     const quint8 DeleteUserFromChat =   12; // Удаление пользователя из беседы
+    const quint8 SendMessage =          13; // Отправка сообщения
 }
 
 #endif // COMANDES_H

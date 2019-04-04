@@ -59,6 +59,7 @@ private:
     QList<Core::ChatInfo_Ptr> getChats(const QUuid &inOwnerUuid); // Метод вернёт список бесед указонного пользователя
     std::pair<quint8, std::pair<QUuid,QUuid>> deleteUserFromChat(QDataStream &inDataStream); // Метод удалит пользователя из беседы
     quint8 deleteChat(const QUuid inChatUuid); // Метод удалит беседу
+    quint8 sendMessage(QDataStream &inDataStream); // Метод примит и разашлёт сообщение
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод прочитает строку из потока
 

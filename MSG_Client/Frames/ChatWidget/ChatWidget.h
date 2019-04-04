@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QUuid>
 
+#include "Classes/ChatMessage/ChatMessage.h"
+
 namespace Ui {
 class TChatWidget;
 }
@@ -24,8 +26,14 @@ private:
 
     QUuid fChatUuid; // Uuid беседы
 
+    void sendMessage(Core::TChatMessage &inMessage); // Метод отправит сообщение
+
 protected:
     bool eventFilter(QObject *inObject, QEvent *inEvent); // Фильтр событий
+private slots:
+    void on_btnSendTextMessage_clicked();
+    void on_btnSendFile_clicked();
+    void on_btnSendImage_clicked();
 };
 
 #endif // CHATWIDGET_H

@@ -54,7 +54,8 @@ SOURCES += \
     Dialogs/UserListDialog/UserListDialog.cpp \
     Delegates/ChatItemDelegate/ChatItemDelegate.cpp \
     ../Common/Models/ChatsModel/ChatsProxyModel.cpp \
-    ../Common/Classes/ChatMessage/ChatMessage.cpp
+    ../Common/Classes/ChatMessage/ChatMessage.cpp \
+    ../Common/Classes/MessageHeadline/MessageHeadline.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -82,7 +83,8 @@ HEADERS += \
     Dialogs/UserListDialog/UserListDialog.h \
     Delegates/ChatItemDelegate/ChatItemDelegate.h \
     ../Common/Models/ChatsModel/ChatsProxyModel.h \
-    ../Common/Classes/ChatMessage/ChatMessage.h
+    ../Common/Classes/ChatMessage/ChatMessage.h \
+    ../Common/Classes/MessageHeadline/MessageHeadline.h
 
 FORMS += \
         ClientMainWindow.ui \

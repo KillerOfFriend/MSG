@@ -10,6 +10,7 @@
 #include "Classes/DB/DB.h"
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/UserAccount/UserAccount.h"
+#include "Classes/MessageHeadline/MessageHeadline.h"
 
 //-----------------------------------------------------------------------------
 void TMSGServer::executCommand(QTcpSocket* inClientSender)
@@ -228,6 +229,13 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             outStream << Command << Result.first; // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата выхода из чата");
+            break;
+        }
+        case Commands::SendMessage: // Отправка сообщения
+        {
+            sig_LogMessage(inClientSender->peerAddress(), "Получено сообщение");
+            quint8 Result = sendMessage(inStream);
+
             break;
         }
 
@@ -605,6 +613,19 @@ quint8 TMSGServer::deleteChat(const QUuid inChatUuid) // Метод удалит
                 Result = Query.value("delete_chat").toUInt();
         }
     }
+
+    return Result;
+}
+//-----------------------------------------------------------------------------
+quint8 TMSGServer::sendMessage(QDataStream &inDataStream) // Метод примит и разашлёт сообщение
+{
+    quint8 Result = Res::rUnknown;
+
+    QUuid ChatID;
+    inDataStream >> ChatID;
+
+    Core::TChatMessage Message;
+    inDataStream >> Message;
 
     return Result;
 }

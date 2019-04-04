@@ -5,6 +5,7 @@
 #include <QApplication>
 
 #include "Classes/DataModule/DataModule.h"
+#include "Classes/MessageHeadline/MessageHeadline.h"
 #include "comandes.h"
 #include "resultcodes.h"
 

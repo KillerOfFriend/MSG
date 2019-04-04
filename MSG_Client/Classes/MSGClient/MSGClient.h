@@ -20,17 +20,19 @@ public:
     bool connectToServer();
     void disconnect();
     bool isConnected();
-
+    //--
     bool createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale); // Метод отправит команду на создание пользователья
     bool authorization(QString inLogin, QString inPassword); // Метод отправит номанду на авторизацию пользователя
     bool getUserTypes(); // Метод отправит запрос получение списка типов пользователей
-
+    //--
     bool findUsers(QString inUserName); // Метод отправит команду на поиск пользователей
     bool addContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на добавление контакта
     bool deleteContact(QUuid inSelfUuid, QUuid inContactUuid); // Метод отправит команду на удаление контакта
-
+    //--
     bool createChat(Core::TChatInfo &inChatInfo); // Метод отправит команду на создание беседы
     bool leaveFromChat(const QUuid inChatUuid); // Метод удалит беседу (По факту, удалит из беседы пользователя)
+    bool sendMessage(QUuid inChatUuid, Core::TChatMessage &inMessage); // Метод отправит сообщение
+    //--
 
 private:
     std::unique_ptr<QTcpSocket> fClient = nullptr;

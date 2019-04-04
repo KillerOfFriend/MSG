@@ -8,6 +8,7 @@
 
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/UserInfo/UserInfo.h"
+#include "Classes/ChatMessage/ChatMessage.h"
 
 //-----------------------------------------------------------------------------
 /**
