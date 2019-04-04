@@ -30,6 +30,35 @@ TMessageHeadline& TMessageHeadline::operator =(const TMessageHeadline &inOther)
     return *this;
 }
 //-----------------------------------------------------------------------------
+/**
+ * @brief TMessageHeadline::setMessageSize - Метод задаст длинну сообщения
+ * @param inMessageSize - Новое значение длинны сообщения
+ */
+void TMessageHeadline::setMessageSize(quint64 inMessageSize)
+{ fMsgSize = inMessageSize; }
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMessageHeadline::messageSize - Метод вернёт длинну сообщения
+ * @return Вернёт значение длинны сообщения
+ */
+quint64 TMessageHeadline::messageSize() const
+{ return fMsgSize; }
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMessageHeadline::setModuleVersion - Метод задаст версию ПО
+ * @param inVersion - Новое значение версии ПО
+ */
+void TMessageHeadline::setModuleVersion(QVersionNumber inVersion)
+{ fVersion = inVersion; }
+//-----------------------------------------------------------------------------
+/**
+ * @brief TMessageHeadline::moduleVersion - Метод вернёт версию ПО
+ * @return Вернёт значение версии ПО
+ */
+QVersionNumber TMessageHeadline::moduleVersion()
+{ return fVersion; }
+//-----------------------------------------------------------------------------
+
 
 namespace Core
 {
