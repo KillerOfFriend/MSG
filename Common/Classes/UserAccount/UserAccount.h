@@ -9,7 +9,6 @@
 #include <QUuid>
 #include <QAbstractTableModel>
 
-#include "Classes/Connection/Connection.h"
 #include "Classes/UserInfo/UserInfo.h"
 #include "Models/UsersModel/UsersModel.h"
 #include "Models/ChatsModel/ChatsModel.h"
@@ -26,8 +25,6 @@ namespace Core
         ~TUserAccount();
 
         TUserAccount &operator =(const TUserAccount &inOther);
-
-        TConnection Connection; // Соединение
 
         UserInfo_Ptr userInfo() const; // Метод вернёт информацию о пользователе
         std::shared_ptr<TUsersModel> contacts() const; // Метод вернёт список контактов

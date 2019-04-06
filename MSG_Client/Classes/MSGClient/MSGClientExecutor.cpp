@@ -123,7 +123,6 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
     {
         Core::TUserAccount NewAccount;
         inDataStream >> NewAccount; // Получаем информацию о пользователе
-        NewAccount.Connection.setSocket(fClient.get()); // Задаём сокет соединения
 
         //TDM::Instance().UserAccount().reset(new Users::TUserAccount(NewAccount));
         TDM::Instance().slot_SetUserAccount(NewAccount);

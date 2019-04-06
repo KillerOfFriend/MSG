@@ -83,7 +83,6 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                             checkUsersStatus(Contacts); // Проверяем контакты онлайн и устанавливаем им статус
 
                             Core::TUserAccount UserAccount(this);
-                            UserAccount.Connection.setSocket(inClientSender);
                             UserAccount.slot_SetUserInfo(UserInfo);
                             UserAccount.slot_SetContacts(Contacts);
                             UserAccount.slot_SetChats(Chats);

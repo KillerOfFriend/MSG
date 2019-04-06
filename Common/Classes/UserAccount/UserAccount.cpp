@@ -14,7 +14,6 @@ TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
 //-----------------------------------------------------------------------------
 TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent())
 {
-    this->Connection = inOther.Connection; // Копируем соединение
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     // Копируем контейнер контактов
     this->fContacts = std::make_shared<TUsersModel>();
@@ -38,7 +37,6 @@ TUserAccount& TUserAccount::operator = (const TUserAccount &inOther)
     if (this == &inOther)
          return *this;
 
-    this->Connection = inOther.Connection; // Копируем соединение
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     // Копируем контейнер контактов
     this->fContacts = std::make_shared<TUsersModel>();
@@ -161,7 +159,6 @@ namespace Core
 {   // Во избежании затупов со стороны компиллера, требуется оборачивать реализацию в тот же неймспейс принудительно
     QDataStream& operator <<(QDataStream &outStream, const TUserAccount &UserAccount)
     {
-        // Connection ПЕРЕДАВАТЬ НЕ НУЖНО!
         outStream << *UserAccount.fUserInfo; // Передаём информацию о пользователе
         //--
         QList<Core::TUserInfo> ContactsBuf; // Список передоваемых объектов типа "Инфо Пользователя"
@@ -183,7 +180,6 @@ namespace Core
     //-----------------------------------------------------------------------------
     QDataStream& operator >>(QDataStream &inStream, TUserAccount &UserAccount)
     {
-        // Connection ПОЛУЧАТЬ НЕ НУЖНО!
         Core::TUserInfo BufUserInfo;
         inStream >> BufUserInfo; // Получаем информацию о пользователе
         UserAccount.fUserInfo = std::make_shared<Core::TUserInfo>(BufUserInfo); // Преобразуем объект к указателю
