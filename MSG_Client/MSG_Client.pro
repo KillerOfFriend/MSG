@@ -55,7 +55,8 @@ SOURCES += \
     Delegates/ChatItemDelegate/ChatItemDelegate.cpp \
     ../Common/Models/ChatsModel/ChatsProxyModel.cpp \
     ../Common/Classes/ChatMessage/ChatMessage.cpp \
-    ../Common/Classes/MessageHeadline/MessageHeadline.cpp
+    ../Common/Classes/MessageHeadline/MessageHeadline.cpp \
+    ../Common/Classes/Connection/Connection.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -84,7 +85,8 @@ HEADERS += \
     Delegates/ChatItemDelegate/ChatItemDelegate.h \
     ../Common/Models/ChatsModel/ChatsProxyModel.h \
     ../Common/Classes/ChatMessage/ChatMessage.h \
-    ../Common/Classes/MessageHeadline/MessageHeadline.h
+    ../Common/Classes/MessageHeadline/MessageHeadline.h \
+    ../Common/Classes/Connection/Connection.h
 
 FORMS += \
         ClientMainWindow.ui \
