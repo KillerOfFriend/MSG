@@ -49,7 +49,8 @@ SOURCES += \
     Classes/ServerCache/ServerCache.cpp \
     ../Common/Classes/ChatMessage/ChatMessage.cpp \
     ../Common/Classes/MessageHeadline/MessageHeadline.cpp \
-    ../Common/Classes/Connection/Connection.cpp
+    ../Common/Classes/Connection/Connection.cpp \
+    ../Common/Classes/DataPacker/DataPacker.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -72,7 +73,8 @@ HEADERS += \
     Classes/ServerCache/ServerCache.h \
     ../Common/Classes/ChatMessage/ChatMessage.h \
     ../Common/Classes/MessageHeadline/MessageHeadline.h \
-    ../Common/Classes/Connection/Connection.h
+    ../Common/Classes/Connection/Connection.h \
+    ../Common/Classes/DataPacker/DataPacker.h
 
 FORMS += \
         ServerMainWindow.ui

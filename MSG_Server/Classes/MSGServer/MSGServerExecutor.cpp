@@ -10,7 +10,7 @@
 #include "Classes/DB/DB.h"
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/UserAccount/UserAccount.h"
-#include "Classes/MessageHeadline/MessageHeadline.h"
+#include "Classes/DataPacker/DataPacker.h"
 
 //-----------------------------------------------------------------------------
 void TMSGServer::executCommand(QTcpSocket* inClientSender)
@@ -18,22 +18,34 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
     if (!inClientSender)
         return;
 
-    QDataStream inStream(inClientSender); // Оборачиваем его в поток данных
+    //QDataStream inStream(inClientSender); // Оборачиваем его в поток данных
+    auto FindRes = fClients.find(inClientSender);
+    if (FindRes == fClients.end())
+        return;
+
+    QDataStream inStream(FindRes->second.socketData(), QIODevice::ReadOnly); // Получаем считанные данные клиента
+    Core::TMessageHeadline MessageHeadline(this); // Заголовок сообщения
+    inStream >> MessageHeadline; // Читаем заголовок сообщения
 
     QByteArray ReturningData; // Возвращаемый результат
     QDataStream outStream(&ReturningData, QIODevice::WriteOnly);
+    Core::TDataPacker DataPacker(this); // Готовим запоковщик данных
 
-    quint8 Command; // Команда от клиента
-    inStream >> Command; // Получаем команду
+//    quint8 Command; // Команда от клиента
+//    inStream >> Command; // Получаем команду
 
-    switch (Command) // Проверяем команду
+//    switch (Command) // Проверяем команду
+    switch (MessageHeadline.command()) // Проверяем команду
     {
         case Commands::CreateUser: // Регистрация пользователя
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание пользователя");
 
             quint8 Resuslt = creteUser(inStream); // Регистрация пользователя
-            outStream << Command << Resuslt; // Пишем в результат команду и результат обработки
+
+//outStream << Command << Resuslt; // Пишем в результат команду и результат обработки
+            DataPacker.makePackage(MessageHeadline.command(), outStream, Resuslt); // Пишем в результат команду и результат обработки
+
             sig_LogMessage(inClientSender->peerAddress(), "Отправка ответа о создании пользователя");
 
             break;
@@ -49,13 +61,17 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             {
                 case Res::CanAut::caAuthorizationFalse: // Пользователь не найден (авторизация не возможна)
                 {
-                    outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
+//outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
+                    DataPacker.makePackage(MessageHeadline.command(), outStream, Resuslt.first); // Пишем в результат команду и результат обработки
+
                     sig_LogMessage(inClientSender->peerAddress(), "Отказ в авторизации, пользователь не найден");
                     break;
                 }
                 case Res::CanAut::caIncorrectPass: // Пользователь найден, но пароль не верный (авторизация не возможна)
                 {
-                    outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
+//outStream << Command << Resuslt.first; // Пишем в результат команду и результат обработки
+                    DataPacker.makePackage(MessageHeadline.command(), outStream, Resuslt.first); // Пишем в результат команду и результат обработки
+
                     sig_LogMessage(inClientSender->peerAddress(), "Отказ в авторизации, не верный пароль");
                     break;
                 }
@@ -63,7 +79,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 {
                     if (socketByUuid(Resuslt.second)) // Если пользователь с таким Uuid уже авторизирован (Есть сокет)
                     {
-                        outStream << Command << Res::CanAut::caUserAlredyOnline; // Пишем в результат команду и флаг попытки повторной авторизации
+//outStream << Command << Res::CanAut::caUserAlredyOnline; // Пишем в результат команду и флаг попытки повторной авторизации
+                        DataPacker.makePackage(MessageHeadline.command(), outStream, Res::CanAut::caUserAlredyOnline); // Пишем в результат команду и флаг попытки повторной авторизации
+
                         sig_LogMessage(inClientSender->peerAddress(), "Повторная авторизация запрещена");
                     }
                     else // Авторизация уникальна (Сокет с таким Uuid не найден)
@@ -72,7 +90,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 
                         if (!UserInfo || UserInfo->userUuid() != Resuslt.second) // Если не удалось получить данные о пользователе (Или они не орректны)
                         {
-                            outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
+//outStream << Command << Res::CanAut::caUserInfoError; // Пишем в результат команду и результат обработки
+                            DataPacker.makePackage(MessageHeadline.command(), outStream, Res::CanAut::caUserInfoError); // Пишем в результат команду и результат обработки
+
                             sig_LogMessage(inClientSender->peerAddress(), "Ошибка чтения данных записи");
                         }
                         else // Данные о пользователе успешно получены
@@ -88,7 +108,10 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                             UserAccount.slot_SetChats(Chats);
 
                             slot_SetAuthorizedClient(inClientSender, UserAccount); // Авторизируем пользователя
-                            outStream << Command << Resuslt.first << UserAccount; // Пишем в результат команду и результат обработки
+
+//outStream << Command << Resuslt.first << UserAccount; // Пишем в результат команду и результат обработки
+                            DataPacker.makePackage(MessageHeadline.command(), outStream, Resuslt.first, UserAccount); // Пишем в результат команду и результат обработки
+
                             sig_LogMessage(inClientSender->peerAddress(), "Авторизация разрешена");
                         }
                     }
@@ -96,7 +119,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 }
                 default: // Вернулось нипойми что
                 {
-                    outStream << Command << Res::rUnknown; // Пишем в результат команду и результат обработки
+//outStream << Command << Res::rUnknown; // Пишем в результат команду и результат обработки
+                    DataPacker.makePackage(MessageHeadline.command(), outStream, Res::rUnknown); // Пишем в результат команду и результат обработки
+
                     sig_LogMessage(inClientSender->peerAddress(), "Неизвестная ошибка");
                     break;
                 }
@@ -108,14 +133,18 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос списка типов пользователей");
 
-            if (!fClients.userTypes() || fClients.userTypes()->size() == 0) // Если не инициализирово нили пусто
+            if (!fClients.userTypes() || fClients.userTypes()->size() == 0) // Если не инициализирово или пусто
             {
-                outStream << Command << Res::GetUserTypes::gtFail;
+//outStream << Command << Res::GetUserTypes::gtFail;
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Res::GetUserTypes::gtFail); // Пишем в результат команду и результат обработки
+
                 sig_LogMessage(inClientSender->peerAddress(), "Не удалось передать типы пользователей");
             }
             else
             {
-                outStream << Command << Res::GetUserTypes::gtOK << fClients.userTypes()->toList();
+//outStream << Command << Res::GetUserTypes::gtOK << fClients.userTypes()->toList();
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Res::GetUserTypes::gtOK, fClients.userTypes()->toList()); // Пишем в результат команду и результат обработки
+
                 sig_LogMessage(inClientSender->peerAddress(), "Отправлен список типов пользователей");
             }
 
@@ -129,7 +158,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
 
             if (Resuslt.isEmpty()) // Если список пуст
             {
-                outStream << Command << Res::FindUsers::fuUsersNotFound; // Возвращаем результат (Пользователи не найдены)
+//outStream << Command << Res::FindUsers::fuUsersNotFound; // Возвращаем результат (Пользователи не найдены)
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Res::FindUsers::fuUsersNotFound); // Возвращаем результат (Пользователи не найдены)
+
                 sig_LogMessage(inClientSender->peerAddress(), "Пользователи не найдены");
             }
             else
@@ -140,7 +171,9 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 { // Приобразуем указетели к объектам
                     UsersBuf.push_back(*UserInfo);
                 });
-                outStream << Command << Res::FindUsers::fuUsersFound << UsersBuf; // Пишем в результат команду и результат обработки
+//outStream << Command << Res::FindUsers::fuUsersFound << UsersBuf; // Пишем в результат команду и результат обработки
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Res::FindUsers::fuUsersFound, UsersBuf); // Пишем в результат команду и результат обработки
+
                 sig_LogMessage(inClientSender->peerAddress(), "Отправка списка пользователей");
             }
 
@@ -153,7 +186,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             std::pair<quint8, Core::UserInfo_Ptr> Result = addContact(inStream); // Добавляем контакт
 
             if (Result.first != Res::AddContact::acCreated) // Если пользователь не был добавлен
-                outStream << Command << Result.first; // Пишем в результат команду и результат обработки
+//outStream << Command << Result.first; // Пишем в результат команду и результат обработки
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first); // Пишем в результат команду и результат обработки
             else // Если добавление прошло успешно
             {
                 slot_AddContact(inClientSender, Result.second); // Добавляем контакт клиенту
@@ -163,7 +197,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 if (SenderIt != fClients.end()) // Если пославший найден
                     syncAddedUser(Result.second->userUuid(), SenderIt->second.userInfo()); // Синхронизируем добовление контакта (с этим самым контактом)
 
-                outStream << Command << Result.first << *Result.second; // Пишем в результат команду, результат обработки и информацию о контакте
+//outStream << Command << Result.first << *Result.second; // Пишем в результат команду, результат обработки и информацию о контакте
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first, *Result.second); // Пишем в результат команду, результат обработки и информацию о контакте
             }
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата добавления контакта");
@@ -176,7 +211,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             std::pair<quint8, QUuid> Result = deleteContact(inStream); // Удаляем контакт
 
             if (Result.first != Res::DeleteContact::dcContactRemove) // Если контакт не удалён
-                outStream << Command << Result.first; // Пишем в результат команду и результат обработки
+//outStream << Command << Result.first; // Пишем в результат команду и результат обработки
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first); // Пишем в результат команду и результат обработки
             else
             {
                 slot_DelContact(inClientSender, Result.second);
@@ -185,7 +221,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
                 if (SenderIt != fClients.end()) // Если пославший найден
                      syncDeletedUser(Result.second, SenderIt->second.userInfo()->userUuid()); // Синхронизируем удаление контакта (с этим самым контактом)
 
-                outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и Uuid удалённого контакта
+//outStream << Command << Result.first << Result.second; // Пишем в результат команду, результат обработки и Uuid удалённого контакта
+                DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first, Result.second); // Пишем в результат команду, результат обработки и Uuid удалённого контакта
             }
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления контакта");
@@ -197,7 +234,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             sig_LogMessage(inClientSender->peerAddress(), "Получен запрос на создание беседы");
             quint8 Result = createChat(inStream); // Пытаемся добавить беседу
 
-            outStream << Command << Result; // Шлём команду и результат обработки
+//outStream << Command << Result; // Шлём команду и результат обработки
+            DataPacker.makePackage(MessageHeadline.command(), outStream, Result); // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата создания беседы");
             break;
@@ -212,7 +250,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             if (Result.first == Res::DeleteUserFromChat::dufcSuccess) // Если пользователь успешно удалён из беседы (В БД)
                 slot_DeleteUserFromChat(Result.second.first, Result.second.second); // Удаляем пользователя из бесседы в кеше
 
-            outStream << Command << Result.first; // Шлём команду и результат обработки
+//outStream << Command << Result.first; // Шлём команду и результат обработки
+            DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first); // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата удаления пользователя из чата");
             break;
@@ -226,7 +265,8 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
             if (Result.first == Res::DeleteUserFromChat::dufcSuccess) // Если пользователь успешно удалён из беседы (В БД)
                 slot_DeleteUserFromChat(Result.second.first, Result.second.second); // Удаляем пользователя из бесседы в кеше
 
-            outStream << Command << Result.first; // Шлём команду и результат обработки
+//outStream << Command << Result.first; // Шлём команду и результат обработки
+            DataPacker.makePackage(MessageHeadline.command(), outStream, Result.first); // Шлём команду и результат обработки
 
             sig_LogMessage(inClientSender->peerAddress(), "Отправка результата выхода из чата");
             break;
@@ -234,7 +274,7 @@ void TMSGServer::executCommand(QTcpSocket* inClientSender)
         case Commands::SendMessage: // Отправка сообщения
         {
             sig_LogMessage(inClientSender->peerAddress(), "Получено сообщение");
-            quint8 Result = sendMessage(inStream);
+            //quint8 Result = sendMessage(inStream);
 
             break;
         }

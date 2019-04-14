@@ -13,6 +13,8 @@
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/Settings/Settings.h"
 #include "Classes/ChatMessage/ChatMessage.h"
+#include "Classes/DataPacker/DataPacker.h"
+
 #include "comandes.h"
 #include "resultcodes.h"
 
@@ -34,7 +36,7 @@ TMSGClient::~TMSGClient()
 //-----------------------------------------------------------------------------
 void TMSGClient::init()
 {
-    fClient.reset(new QTcpSocket(this));
+    fClient = std::make_shared<QTcpSocket>(new QTcpSocket(this));
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::Link()
@@ -71,6 +73,9 @@ void TMSGClient::disconnect()
 bool TMSGClient::isConnected()
 { return fClient->state() == QAbstractSocket::ConnectedState; }
 //-----------------------------------------------------------------------------
+std::shared_ptr<QTcpSocket> TMSGClient::clientSocket() // Метод вернёт сокет клиента
+{ return fClient; }
+//-----------------------------------------------------------------------------
 bool TMSGClient::createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale) /// Метод отправит команду на создание пользователья
 {
     bool Result = true;
@@ -81,11 +86,14 @@ bool TMSGClient::createUser(QString inLogin, QString inPassword, QString inName,
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Core::TDataPacker DataPacker(this);
 
         QByteArray PasswordHash = QCryptographicHash::hash(inPassword.toUtf8(), QCryptographicHash::Md5);
-        Stream << Commands::CreateUser << inLogin.toLower().toUtf8() << PasswordHash << inName.toUtf8() << inIsMale;
+//        Stream << Commands::CreateUser << inLogin.toLower().toUtf8() << PasswordHash << inName.toUtf8() << inIsMale;
+        Result = DataPacker.makePackage(Commands::CreateUser, Stream, inLogin.toLower().toUtf8(), PasswordHash, inName.toUtf8(), inIsMale);
 
-        fClient->write(SendingData);
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
         //Result = fClient->waitForBytesWritten();
     }
 
@@ -102,11 +110,14 @@ bool TMSGClient::authorization(QString inLogin, QString inPassword) // Мето�
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Core::TDataPacker DataPacker(this);
 
         QByteArray PasswordHash = QCryptographicHash::hash(inPassword.toUtf8(), QCryptographicHash::Md5);
-        Stream << Commands::Authorization << inLogin.toLower().toUtf8() << PasswordHash;
+        //Stream << Commands::Authorization << inLogin.toLower().toUtf8() << PasswordHash;
+        Result = DataPacker.makePackage(Commands::Authorization, Stream, inLogin.toLower().toUtf8(), PasswordHash);
 
-        fClient->write(SendingData);
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
         //Result = fClient->waitForBytesWritten();
     }
 
@@ -123,9 +134,13 @@ bool TMSGClient::getUserTypes() // Метод отправит запрос по
     {
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Core::TDataPacker DataPacker(this);
 
-        Stream << Commands::GetUserTypes;
-        fClient->write(SendingData);
+        //Stream << Commands::GetUserTypes;
+        Result = DataPacker.makePackage(Commands::GetUserTypes, Stream, 0);
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -143,9 +158,13 @@ bool TMSGClient::findUsers(QString inUserName) // Метод отправит к
 
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::FindUsers << inUserName.toLower().toUtf8();
+        Core::TDataPacker DataPacker(this);
 
-        fClient->write(SendingData);
+        //Stream << Commands::FindUsers << inUserName.toLower().toUtf8();
+        Result = DataPacker.makePackage(Commands::FindUsers, Stream, inUserName.toLower().toUtf8());
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -163,9 +182,13 @@ bool TMSGClient::addContact(QUuid inSelfUuid, QUuid inContactUuid) // Метод
 
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::AddContact << inSelfUuid << inContactUuid;
+        Core::TDataPacker DataPacker(this);
 
-        fClient->write(SendingData);
+        //Stream << Commands::AddContact << inSelfUuid << inContactUuid;
+        Result = DataPacker.makePackage(Commands::AddContact, Stream, inSelfUuid, inContactUuid);
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -183,9 +206,13 @@ bool TMSGClient::deleteContact(QUuid inSelfUuid, QUuid inContactUuid) // Мет�
 
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::DeleteContact << inSelfUuid << inContactUuid;
+        Core::TDataPacker DataPacker(this);
 
-        fClient->write(SendingData);
+        //Stream << Commands::DeleteContact << inSelfUuid << inContactUuid;
+        Result = DataPacker.makePackage(Commands::DeleteContact, Stream, inSelfUuid, inContactUuid);
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -203,9 +230,13 @@ bool TMSGClient::createChat(Core::TChatInfo &inChatInfo) // Метод отпр�
 
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::CreateChat << inChatInfo;
+        Core::TDataPacker DataPacker(this);
 
-        fClient->write(SendingData);
+        //Stream << Commands::CreateChat << inChatInfo;
+        Result = DataPacker.makePackage(Commands::CreateChat, Stream, inChatInfo);
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -223,9 +254,13 @@ bool TMSGClient::leaveFromChat(const QUuid inChatUuid) // Метод удали�
 
         QByteArray SendingData;
         QDataStream Stream(&SendingData, QIODevice::WriteOnly);
-        Stream << Commands::ILeaveFromChat << inChatUuid << TDM::Instance().UserAccount()->userInfo()->userUuid(); // Шлём ID беседы и свой Uuid
+        Core::TDataPacker DataPacker(this);
 
-        fClient->write(SendingData);
+        //Stream << Commands::ILeaveFromChat << inChatUuid << TDM::Instance().UserAccount()->userInfo()->userUuid(); // Шлём ID беседы и свой Uuid
+        Result = DataPacker.makePackage(Commands::ILeaveFromChat, Stream, inChatUuid, TDM::Instance().UserAccount()->userInfo()->userUuid());
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -248,8 +283,15 @@ bool TMSGClient::sendMessage(QUuid inChatUuid, Core::TChatMessage &inMessage) //
 //        fClient->write(SendingData);
 //        Result = fClient->waitForBytesWritten();
 
-        QDataStream Stream(fClient.get());
-        Stream << Commands::SendMessage << inChatUuid << inMessage; // Шлём ID беседы и сообщение
+        QByteArray SendingData;
+        QDataStream Stream(&SendingData, QIODevice::WriteOnly);
+        Core::TDataPacker DataPacker(this);
+
+        //Stream << Commands::SendMessage << inChatUuid << inMessage; // Шлём ID беседы и сообщение
+        Result = DataPacker.makePackage(Commands::SendMessage, Stream,  inChatUuid, inMessage);
+
+        if (Result) // Если данные корректно запакованы
+            fClient->write(SendingData); // Пишем их в поток
     }
 
     return Result;
@@ -259,7 +301,11 @@ bool TMSGClient::sendMessage(QUuid inChatUuid, Core::TChatMessage &inMessage) //
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_ReadyRead()
 {
-    executCommand(fClient.get());
+    //executCommand(fClient.get());
+
+    TDM &DM = TDM::Instance();
+    if (fClient && DM.UserAccount())
+        DM.UserAccount()->readData();
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_hostFound()

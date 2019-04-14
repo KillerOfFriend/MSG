@@ -92,7 +92,7 @@ private slots:
     void slot_DelContact(QTcpSocket* inClient, QUuid &inContactUuid); // Слот, удаляющий контакт пользователя
 
     void slot_DeleteUserFromChat(QUuid inChatUuid, QUuid inUserUuid); // Слот, удаляющий пользователя из беседы
-    void slot_DeleteChat(QUuid inChatUuid); // Слот, удаляющий беседу
+    //void slot_DeleteChat(QUuid inChatUuid); // Слот, удаляющий беседу
 };
 
 #endif // MSGSERVER_H

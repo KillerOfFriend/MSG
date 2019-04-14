@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
         qDebug() << "[ФАТАЛЬНАЯ ОШИБКА] Провал инициализации. Аварийное завершение.";
     }
     else
-    {   // Выводим окно авторизации
+    {
+        // Выводим окно авторизации
         TConnectDialog ConnectDialog;
         ConnectDialog.setWindowModality(Qt::WindowModal);
         ConnectDialog.exec();

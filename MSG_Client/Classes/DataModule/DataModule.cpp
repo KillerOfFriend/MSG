@@ -48,6 +48,19 @@ void TDM::init() // Мотод инициализирует классы мод�
     connect(fClient.get(), &TMSGClient::sig_GetUserTypesResult, fModels.get(), &TModels::slot_InitUserTypes); // Передача списка типов пользователей
 
 //    connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Users::TUserAccount::slot_AddChat); // Добавление новой беседы
+
+    // Создаём "Анонимный" аккаунт
+    Core::TUserAccount NewAccount(this);
+    Core::UserInfo_Ptr AnonimusInfo = std::make_shared<Core::TUserInfo>(this);
+    // Задаём параметры анонимного не авторизированног опльзователя
+    AnonimusInfo->setUserType(0);
+    AnonimusInfo->setUserUuid(QUuid());
+    AnonimusInfo->setUserLogin("Anonimus");
+    AnonimusInfo->setUserName("Anonimus");
+
+    if (fClient->clientSocket())
+        NewAccount.setSocket(fClient->clientSocket().get()); // Задаём сокет
+    slot_SetUserAccount(NewAccount); // Задаём анонимный аккаунт
 }
 //-----------------------------------------------------------------------------
 void TDM::slot_SetUserAccount(Core::TUserAccount &inUserAccount)
@@ -56,5 +69,6 @@ void TDM::slot_SetUserAccount(Core::TUserAccount &inUserAccount)
     // Линкуем к нему сигналы
     connect(fClient.get(), &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Core::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
     connect(fClient.get(), &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Core::TUserAccount::slot_AddChat); // Добавление новой беседы
+    connect(fUserAccount.get(), &Core::TUserAccount::sig_ComandReadyToExecute, fClient.get(), &TMSGClient::executCommand); // Запуск выполнения полученой команды
 }
 //-----------------------------------------------------------------------------

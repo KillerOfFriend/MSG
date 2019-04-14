@@ -5,6 +5,8 @@
 #include <QDataStream>
 #include <QVersionNumber>
 
+#include "comandes.h"
+
 namespace Core
 {
     class TMessageHeadline : public QObject
@@ -12,6 +14,7 @@ namespace Core
         Q_OBJECT
     public:
         explicit TMessageHeadline(QObject *inParent = nullptr);
+        TMessageHeadline(quint8 inCommand, QObject *inParent = nullptr);
         TMessageHeadline(const TMessageHeadline &inOther);
         TMessageHeadline();
 
@@ -21,11 +24,16 @@ namespace Core
         quint64 messageSize() const; // Метод вернёт длинну сообщения
 
         void setModuleVersion(QVersionNumber inVersion); // Метод задаст версию ПО
-        QVersionNumber moduleVersion(); // Метод вернёт версию ПО
+        QVersionNumber moduleVersion() const; // Метод вернёт версию ПО
+
+        void setCommand(quint8 inCommand); // Метод задаст сообщению команду
+        quint8 command() const; // Метод вернёт команду сообщения
 
     private:
         quint64 fMsgSize = 0; // Длинна сообщения
         QVersionNumber fVersion; // Верисия софта
+
+        quint8 fCommand = Commands::Unknown; // Команда
 
         friend QDataStream& operator <<(QDataStream&, const TMessageHeadline&);
         friend QDataStream& operator >>(QDataStream&, TMessageHeadline&);

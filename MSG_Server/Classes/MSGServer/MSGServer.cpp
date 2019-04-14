@@ -6,6 +6,7 @@
 
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/MessageHeadline/MessageHeadline.h"
+#include "Classes/DataPacker/DataPacker.h"
 #include "comandes.h"
 #include "resultcodes.h"
 
@@ -203,8 +204,11 @@ void TMSGServer::userChangeStatus(QTcpSocket* inClientSender, quint8 inNewStatus
             {
                 QByteArray StatusData; // Отправляемый статус пользователя
                 QDataStream outStream(&StatusData, QIODevice::WriteOnly);
+                Core::TDataPacker DataPacker(this);
+
                 // Отправляем команду "Статус контакта изменён" + Uuid этого контакта + новый статус
-                outStream << Commands::ContactChangeStatus << SenderFindRes->second.userInfo()->userUuid()  << inNewStatus;
+//outStream << Commands::ContactChangeStatus << SenderFindRes->second.userInfo()->userUuid()  << inNewStatus;
+                DataPacker.makePackage(Commands::ContactChangeStatus, outStream, SenderFindRes->second.userInfo()->userUuid(), inNewStatus);
 
                 ContactFindRes->first->write(StatusData); // Отправляем данные
             }
@@ -220,12 +224,14 @@ void TMSGServer::slot_NewConnection()
     QTcpSocket* NewConnection = fServer->nextPendingConnection();
     Core::TUserAccount NewAccount(this);
     Core::UserInfo_Ptr AnonimusInfo = std::make_shared<Core::TUserInfo>(this);
-
+    // Задаём параметры анонимного не авторизированног опльзователя
     AnonimusInfo->setUserType(0);
     AnonimusInfo->setUserUuid(QUuid());
     AnonimusInfo->setUserLogin("Anonimus");
     AnonimusInfo->setUserName("Anonimus");
-    NewAccount.slot_SetUserInfo(AnonimusInfo);
+
+    NewAccount.setSocket(NewConnection); // Задаём сокет подключения
+    NewAccount.slot_SetUserInfo(AnonimusInfo); // Задаём информацию о пользователе
 
     auto InsertRes = fClients.insert(std::make_pair(NewConnection, NewAccount));  // Получаем сокет подключаемого клиента
 
@@ -236,10 +242,12 @@ void TMSGServer::slot_NewConnection()
     }
     else
     {
-        connect(NewConnection, &QTcpSocket::readyRead, this, &TMSGServer::slot_ClientReadData);
-        connect(NewConnection, &QTcpSocket::disconnected, this, &TMSGServer::slot_ClientDisconnect);
-        connect(NewConnection, &QAbstractSocket::stateChanged, this, &TMSGServer::slot_ClientChangeState);
-        connect(NewConnection, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &TMSGServer::slot_ClientError);
+        connect(&InsertRes.first->second, &Core::TUserAccount::sig_ComandReadyToExecute, this, &TMSGServer::executCommand); // Запуск выполнения полученой команды
+
+        connect(NewConnection, &QTcpSocket::readyRead, this, &TMSGServer::slot_ClientReadData); // Готовность к чтению данных
+        connect(NewConnection, &QTcpSocket::disconnected, this, &TMSGServer::slot_ClientDisconnect); // Отключение клиента
+        connect(NewConnection, &QAbstractSocket::stateChanged, this, &TMSGServer::slot_ClientChangeState); // Изменение статуса клиента
+        connect(NewConnection, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &TMSGServer::slot_ClientError); // Ошибка сокета клиента
 
         sig_LogMessage(NewConnection->peerAddress(), "Новое подключение");
     }
@@ -272,10 +280,14 @@ void TMSGServer::slot_ClientReadData()
     QTcpSocket* Client = qobject_cast<QTcpSocket*>(QObject::sender());
 
     if (!Client)
-        sig_LogMessage(Client->peerAddress(), "Ошибка получения сокета!");
+        sig_LogMessage(QHostAddress(), "Ошибка получения сокета!");
     else
     {
-        executCommand(Client);
+        //executCommand(Client);
+        auto FindeRes = fClients.find(Client); // Ищим клиента среди подключённых
+        if (FindeRes == fClients.end()) // Если не найден (Не должно такого быть)
+            sig_LogMessage(Client->peerAddress(), "Получены данные от несуществующего подключения!");
+        else FindeRes->second.readData(); // Активируем чтение данных найденного клиента
     }
 }
 //-----------------------------------------------------------------------------
@@ -411,14 +423,14 @@ void TMSGServer::slot_DeleteUserFromChat(QUuid inChatUuid, QUuid inUserUuid)
     }
 }
 //-----------------------------------------------------------------------------
-/**
- * @brief slot_DeleteChat - Слот, удаляющий беседу
- * @param inChatUuid - Uuid удаляемой беседы
- */
-void TMSGServer::slot_DeleteChat(QUuid inChatUuid)
-{
-    //deleteChat(inChatUuid); // Вызываем удалеие беседы
-}
+///**
+// * @brief slot_DeleteChat - Слот, удаляющий беседу
+// * @param inChatUuid - Uuid удаляемой беседы
+// */
+//void TMSGServer::slot_DeleteChat(QUuid inChatUuid)
+//{
+//    deleteChat(inChatUuid); // Вызываем удалеие беседы
+//}
 //-----------------------------------------------------------------------------
 /**
  * @brief TMSGServer::syncAddedUser - Метод синхранизирует список контактов после добавления пользователя
@@ -440,9 +452,12 @@ void TMSGServer::syncAddedUser(QUuid inContactUuid, Core::UserInfo_Ptr inOwnerIn
     {
         QByteArray Data;
         QDataStream outStream(&Data, QIODevice::WriteOnly); // Создаём выходной поток
+        Core::TDataPacker DataPacker(this);
 
         // Шлём команду на добавление пользоваеля вместе с информацией о добовившем (добавляемом) юзере
-        outStream << Commands::AddContact << Res::AddContact::acCreated << *inOwnerInfo;
+//outStream << Commands::AddContact << Res::AddContact::acCreated << *inOwnerInfo;
+        DataPacker.makePackage(Commands::AddContact, outStream, Res::AddContact::acCreated, *inOwnerInfo);
+
         ContactIt->first->write(Data);
     }
 }
@@ -464,9 +479,12 @@ void TMSGServer::syncDeletedUser(QUuid inContactUuid, QUuid inOwnerUuid)
     {
         QByteArray Data;
         QDataStream outStream(&Data, QIODevice::WriteOnly); // Создаём выходной поток
+        Core::TDataPacker DataPacker(this);
 
         // Шлём команду на удаление пользоваеля вместе с информацией о удалившем (удаляемом) юзере
-        outStream << Commands::DeleteContact << Res::DeleteContact::dcContactRemove << inOwnerUuid;
+//outStream << Commands::DeleteContact << Res::DeleteContact::dcContactRemove << inOwnerUuid;
+        DataPacker.makePackage(Commands::DeleteContact, outStream, Res::DeleteContact::dcContactRemove, inOwnerUuid);
+
         ContactIt->first->write(Data);
     }
 }
@@ -506,8 +524,10 @@ void TMSGServer::syncAddedUserToChat(Core::ChatInfo_Ptr inChatUuid, Core::UserIn
         {
             QByteArray Data;
             QDataStream outStream(&Data, QIODevice::WriteOnly);
+            Core::TDataPacker DataPacker(this);
 
-            outStream << Commands::InviteToChat << *inChatUuid; // Шлём команду на добавление + беседу
+//outStream << Commands::InviteToChat << *inChatUuid; // Шлём команду на добавление + беседу
+            DataPacker.makePackage(Commands::InviteToChat, outStream, *inChatUuid); // Шлём команду на добавление + беседу
 
             ClientSocket->write(Data);
         }
@@ -532,8 +552,10 @@ void TMSGServer::syncDeletedUserFromChat(Core::ChatInfo_Ptr inChat, QUuid inUser
         {
             QByteArray Data;
             QDataStream outStream(&Data, QIODevice::WriteOnly);
+            Core::TDataPacker DataPacker(this);
 
-            outStream << Commands::DeleteUserFromChat << Res::DeleteUserFromChat::dufcSuccess << inChat->chatUuid() << inUserUuid; // Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
+//outStream << Commands::DeleteUserFromChat << Res::DeleteUserFromChat::dufcSuccess << inChat->chatUuid() << inUserUuid; // Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
+            DataPacker.makePackage(Commands::DeleteUserFromChat, outStream, Res::DeleteUserFromChat::dufcSuccess, inChat->chatUuid(), inUserUuid);// Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
 
             ClientSocket->write(Data);
         }

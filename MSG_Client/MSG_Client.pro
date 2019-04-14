@@ -56,7 +56,8 @@ SOURCES += \
     ../Common/Models/ChatsModel/ChatsProxyModel.cpp \
     ../Common/Classes/ChatMessage/ChatMessage.cpp \
     ../Common/Classes/MessageHeadline/MessageHeadline.cpp \
-    ../Common/Classes/Connection/Connection.cpp
+    ../Common/Classes/Connection/Connection.cpp \
+    ../Common/Classes/DataPacker/DataPacker.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -86,7 +87,8 @@ HEADERS += \
     ../Common/Models/ChatsModel/ChatsProxyModel.h \
     ../Common/Classes/ChatMessage/ChatMessage.h \
     ../Common/Classes/MessageHeadline/MessageHeadline.h \
-    ../Common/Classes/Connection/Connection.h
+    ../Common/Classes/Connection/Connection.h \
+    ../Common/Classes/DataPacker/DataPacker.h
 
 FORMS += \
         ClientMainWindow.ui \

@@ -20,6 +20,10 @@ public:
     bool connectToServer();
     void disconnect();
     bool isConnected();
+    std::shared_ptr<QTcpSocket> clientSocket(); // Метод вернёт сокет клиента
+
+    /*!!!*/void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
+
     //--
     bool createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale); // Метод отправит команду на создание пользователья
     bool authorization(QString inLogin, QString inPassword); // Метод отправит номанду на авторизацию пользователя
@@ -35,12 +39,12 @@ public:
     //--
 
 private:
-    std::unique_ptr<QTcpSocket> fClient = nullptr;
+    std::shared_ptr<QTcpSocket> fClient = nullptr;
 
     void init();
     void Link();
 
-    void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
+    //void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
     //--
     void creteUserResult(QDataStream &inDataStream); // Мтод обработает результат регистрации
     void userAuthorization(QDataStream &inDataStream); // Метод обработает результат авторизации

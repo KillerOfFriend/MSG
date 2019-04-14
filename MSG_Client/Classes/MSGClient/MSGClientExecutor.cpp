@@ -9,6 +9,8 @@
 #include "Classes/DataModule/DataModule.h"
 #include "Classes/UserInfo/UserInfo.h"
 #include "Classes/ChatMessage/ChatMessage.h"
+#include "Classes/MessageHeadline/MessageHeadline.h"
+
 
 //-----------------------------------------------------------------------------
 /**
@@ -20,13 +22,16 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
     if (!inClientSender)
         return;
 
-    QByteArray All = inClientSender->readAll(); // Получаем полный набор данных от клиента
-    QDataStream inStream(&All, QIODevice::ReadOnly); // Оборачиваем его в поток данных
+//    QByteArray All = inClientSender->readAll(); // Получаем полный набор данных от клиента
+//    QDataStream inStream(&All, QIODevice::ReadOnly); // Оборачиваем его в поток данных
+//    quint8 Command; // Команда от клиента
+//    inStream >> Command; // Получаем команду
 
-    quint8 Command; // Команда от клиента
-    inStream >> Command; // Получаем команду
+    QDataStream inStream(TDM::Instance().UserAccount()->socketData(), QIODevice::ReadOnly); // Получаем считанные данные клиента
+    Core::TMessageHeadline MessageHeadline(this); // Заголовок сообщения
+    inStream >> MessageHeadline; // Читаем заголовок сообщения
 
-    switch (Command) // Проверяем команду
+    switch (MessageHeadline.command()) // Проверяем команду
     {
         case Commands::CreateUser: // Регистрация пользователя
         {
@@ -123,6 +128,7 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
     {
         Core::TUserAccount NewAccount;
         inDataStream >> NewAccount; // Получаем информацию о пользователе
+        NewAccount.setSocket(fClient.get());
 
         //TDM::Instance().UserAccount().reset(new Users::TUserAccount(NewAccount));
         TDM::Instance().slot_SetUserAccount(NewAccount);

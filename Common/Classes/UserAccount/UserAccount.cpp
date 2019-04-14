@@ -5,14 +5,14 @@
 using namespace Core;
 
 //-----------------------------------------------------------------------------
-TUserAccount::TUserAccount(QObject *inParent) : QObject(inParent)
+TUserAccount::TUserAccount(QObject *inParent) : TConnection(inParent)
 {
     fUserInfo = std::make_shared<TUserInfo>();
     fContacts = std::make_shared<TUsersModel>();
     fChats = std::make_shared<TChatsModel>();
 }
 //-----------------------------------------------------------------------------
-TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent())
+TUserAccount::TUserAccount(const TUserAccount &inOther) : TConnection(inOther)
 {
     this->fUserInfo = inOther.fUserInfo; // Копируем инфо пользователя
     // Копируем контейнер контактов
@@ -23,7 +23,6 @@ TUserAccount::TUserAccount(const TUserAccount &inOther) : QObject(inOther.parent
     this->fChats = std::make_shared<TChatsModel>();
     std::for_each(inOther.fChats->begin(), inOther.fChats->end(), [&](const std::pair<QUuid, Core::ChatInfo_Ptr> &Chat)
     { this->fChats->insert(Chat); });
-
 }
 //-----------------------------------------------------------------------------
 TUserAccount::~TUserAccount()
@@ -174,6 +173,7 @@ namespace Core
             ChatsBuf.push_back(*Chat.second);
         });
         outStream << ChatsBuf; // Передаём список бесед
+        // Члены TConnection не передаются
 
         return outStream;
     }
@@ -199,6 +199,7 @@ namespace Core
         { // Преобразовываем объекты в указатели
             UserAccount.chats()->insert(std::make_pair(Chat.chatUuid(), std::make_shared<Core::TChatInfo>(Chat)));
         });
+        // Члены TConnection не передаются
 
         return inStream;
     }

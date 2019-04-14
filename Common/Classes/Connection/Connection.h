@@ -21,6 +21,8 @@ namespace Core
         void setSocket(QTcpSocket* inSocket); // Мтод задаст сокет соединения
         QTcpSocket* socket(); // Метод вернёт сокет соединения
 
+        QByteArray* socketData(); // Метод вернёт указатель на считанные данные
+
         bool isReading(); // Метод вернёт флаг чтения (идёт чтение \ не идёт чтение)
         void freeData(bool inForcibly = false); // Метод очистит уже прочитанные данные соеденения
         void readData(); // Метод читает данные из сокета
@@ -36,7 +38,7 @@ namespace Core
         bool checkReadFinihs(); // Метод проверит завершилось ли соедениение
 
     signals:
-        void sig_ComandReadyToExecute(QByteArray &inData); // Сигнал, сообщающий о завершении чтения и готовности команды к выполнению
+        void sig_ComandReadyToExecute(QTcpSocket* &inSocket); // Сигнал, сообщающий о завершении чтения и готовности команды к выполнению
         void sig_ComandCorupted(); // Сигнал, сообщающий о получении повреждённой команды
     };
 }
