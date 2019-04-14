@@ -86,8 +86,8 @@ void TChatItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 //-----------------------------------------------------------------------------
 QImage TChatItemDelegate::createPreview(QUuid inChatUuid) const // Метод создаст превью беседы
 {
-    auto FindChatRes = TDM::Instance().UserAccount()->chats()->find(inChatUuid);
-    if (FindChatRes == TDM::Instance().UserAccount()->chats()->end())
+    auto FindChatRes = TDM::Instance().Client()->userAccount()->chats()->find(inChatUuid);
+    if (FindChatRes == TDM::Instance().Client()->userAccount()->chats()->end())
         return QImage();
 
     Core::ChatInfo_Ptr chat = FindChatRes->second;

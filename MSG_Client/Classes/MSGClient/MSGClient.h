@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include "othertypes.h"
+#include "Classes/UserAccount/UserAccount.h"
 #include "Classes/UserInfo/UserInfo.h"
 #include "Classes/ChatInfo/ChatInfo.h"
 
@@ -20,9 +21,9 @@ public:
     bool connectToServer();
     void disconnect();
     bool isConnected();
-    std::shared_ptr<QTcpSocket> clientSocket(); // Метод вернёт сокет клиента
 
-    /*!!!*/void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
+    std::shared_ptr<QTcpSocket> clientSocket(); // Метод вернёт сокет клиента
+    std::shared_ptr<Core::TUserAccount> userAccount(); // Метод вернёт аккаунт пользователя
 
     //--
     bool createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale); // Метод отправит команду на создание пользователья
@@ -40,11 +41,12 @@ public:
 
 private:
     std::shared_ptr<QTcpSocket> fClient = nullptr;
+    std::shared_ptr<Core::TUserAccount> fUserAccount = nullptr;
 
     void init();
     void Link();
 
-    //void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
+    void executCommand(QTcpSocket* inSender); // Метод исполняющий команды
     //--
     void creteUserResult(QDataStream &inDataStream); // Мтод обработает результат регистрации
     void userAuthorization(QDataStream &inDataStream); // Метод обработает результат авторизации
@@ -63,12 +65,14 @@ private:
 
     QString ReadStringFromStream(QDataStream &inDataStream); // Метод считает строку из потока
 
-private slots: 
+private slots:   
     void slot_ReadyRead();
 
     void slot_hostFound();
     void slot_connected();
     void slot_disconnected();
+
+    void slot_SetUserAccount(Core::TUserAccount &inUserAccount);
 
 signals:
     void sig_LogMessage(QString inMessage);

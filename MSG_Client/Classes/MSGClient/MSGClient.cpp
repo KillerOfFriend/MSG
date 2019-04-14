@@ -37,6 +37,19 @@ TMSGClient::~TMSGClient()
 void TMSGClient::init()
 {
     fClient = std::make_shared<QTcpSocket>(new QTcpSocket(this));
+
+    // Создаём "Анонимный" аккаунт
+    Core::TUserAccount NewAccount(this);
+    Core::UserInfo_Ptr AnonimusInfo = std::make_shared<Core::TUserInfo>(this);
+    // Задаём параметры анонимного не авторизированног опльзователя
+    AnonimusInfo->setUserType(0);
+    AnonimusInfo->setUserUuid(QUuid());
+    AnonimusInfo->setUserLogin("Anonimus");
+    AnonimusInfo->setUserName("Anonimus");
+
+    if (fClient)
+        NewAccount.setSocket(fClient.get()); // Задаём сокет
+    slot_SetUserAccount(NewAccount); // Задаём анонимный аккаунт
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::Link()
@@ -75,6 +88,9 @@ bool TMSGClient::isConnected()
 //-----------------------------------------------------------------------------
 std::shared_ptr<QTcpSocket> TMSGClient::clientSocket() // Метод вернёт сокет клиента
 { return fClient; }
+//-----------------------------------------------------------------------------
+std::shared_ptr<Core::TUserAccount> TMSGClient::userAccount()
+{ return fUserAccount; }
 //-----------------------------------------------------------------------------
 bool TMSGClient::createUser(QString inLogin, QString inPassword, QString inName, bool inIsMale) /// Метод отправит команду на создание пользователья
 {
@@ -257,7 +273,7 @@ bool TMSGClient::leaveFromChat(const QUuid inChatUuid) // Метод удали�
         Core::TDataPacker DataPacker(this);
 
         //Stream << Commands::ILeaveFromChat << inChatUuid << TDM::Instance().UserAccount()->userInfo()->userUuid(); // Шлём ID беседы и свой Uuid
-        Result = DataPacker.makePackage(Commands::ILeaveFromChat, Stream, inChatUuid, TDM::Instance().UserAccount()->userInfo()->userUuid());
+        Result = DataPacker.makePackage(Commands::ILeaveFromChat, Stream, inChatUuid, fUserAccount->userInfo()->userUuid());
 
         if (Result) // Если данные корректно запакованы
             fClient->write(SendingData); // Пишем их в поток
@@ -303,9 +319,8 @@ void TMSGClient::slot_ReadyRead()
 {
     //executCommand(fClient.get());
 
-    TDM &DM = TDM::Instance();
-    if (fClient && DM.UserAccount())
-        DM.UserAccount()->readData();
+    if (fClient && fUserAccount)
+        fUserAccount->readData();
 }
 //-----------------------------------------------------------------------------
 void TMSGClient::slot_hostFound()
@@ -318,5 +333,14 @@ void TMSGClient::slot_disconnected()
 {
     qDebug() << "slot_disconnected";
     sig_LogMessage("Соеденение разорвано");
+}
+//-----------------------------------------------------------------------------
+void TMSGClient::slot_SetUserAccount(Core::TUserAccount &inUserAccount)
+{
+    fUserAccount = std::make_shared<Core::TUserAccount>(inUserAccount); // Переназначаем аккаунт
+    // Линкуем к нему сигналы
+    connect(this, &TMSGClient::sig_ContactChangeStatus, fUserAccount.get(), &Core::TUserAccount::slot_ContactChangeStatus); // Передача изменнённого статуса контакта
+    connect(this, &TMSGClient::sig_InviteToChatResult, fUserAccount.get(), &Core::TUserAccount::slot_AddChat); // Добавление новой беседы
+    connect(fUserAccount.get(), &Core::TUserAccount::sig_ComandReadyToExecute, this, &TMSGClient::executCommand); // Запуск выполнения полученой команды
 }
 //-----------------------------------------------------------------------------

@@ -34,9 +34,9 @@ void TfmeMainFrame::init()
 {
     TDM& DM = TDM::Instance();
 
-    ui->UserHeaderWidget->slot_SetUserAvatar(DM.UserAccount()->userInfo()->userAvatar(), DM.UserAccount()->userInfo()->userIsMale());
-    ui->UserHeaderWidget->slot_SetUserName(DM.UserAccount()->userInfo()->userName());
-    ui->UserHeaderWidget->slot_SetUserLogin(DM.UserAccount()->userInfo()->userLogin());
+    ui->UserHeaderWidget->slot_SetUserAvatar(DM.Client()->userAccount()->userInfo()->userAvatar(), DM.Client()->userAccount()->userInfo()->userIsMale());
+    ui->UserHeaderWidget->slot_SetUserName(DM.Client()->userAccount()->userInfo()->userName());
+    ui->UserHeaderWidget->slot_SetUserLogin(DM.Client()->userAccount()->userInfo()->userLogin());
 
     ui->LogInfoListView->setModel(DM.Models()->LogModel().get()); // Задаём модель логов клиента
 
@@ -48,8 +48,8 @@ void TfmeMainFrame::init()
     fChatsProxyModel.reset(new TChatsProxyModel(this));
     fFounUsersProxyModel.reset(new QSortFilterProxyModel(this));
 
-    fUsersProxyModel->setSourceModel(DM.UserAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
-    fChatsProxyModel->setSourceModel(DM.UserAccount()->chats().get());
+    fUsersProxyModel->setSourceModel(DM.Client()->userAccount()->contacts().get()); // Задаём модель-источник фильтру списку контактов
+    fChatsProxyModel->setSourceModel(DM.Client()->userAccount()->chats().get());
     fFounUsersProxyModel->setSourceModel(fFoundUsers.get()); // Задаём модель-источник фильтру списка найденых пользователей
 
     ui->ContactsListView->setItemDelegate(fUserListDelegate.get()); // Задаём делегат отображения контактов
@@ -78,7 +78,7 @@ void TfmeMainFrame::Link()
     connect(ui->LogInfoListView->model(), &QAbstractItemModel::rowsInserted, ui->LogInfoListView, &QListView::scrollToBottom); // Автопрокрутка логов
 
     connect(TDM::Instance().Client().get(), &TMSGClient::sig_FindUsersResult, this, &TfmeMainFrame::slot_FindUsersRes); // Получение результатов поиска контактов
-    connect(TDM::Instance().UserAccount()->chats().get(), &TChatsModel::sig_chatDeleting, this, &TfmeMainFrame::slot_CloseChat); // Закрытие беседы (удалённой)
+    connect(TDM::Instance().Client()->userAccount()->chats().get(), &TChatsModel::sig_chatDeleting, this, &TfmeMainFrame::slot_CloseChat); // Закрытие беседы (удалённой)
 
     connect(ui->ChatTabWidget, &QTabWidget::tabCloseRequested, this, &TfmeMainFrame::slot_CloseTab); // Закрытие вкладки беседы (крестом)
     connect(ui->ContactsFindLineEdit, &QLineEdit::returnPressed, this, &TfmeMainFrame::slot_FindUsers); // Вызов поиска контактов
@@ -129,13 +129,13 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Core::UserInfo_Ptr inUserInf
     {
         case TUserViewDialog::rbAdd:
         {
-            if (!DM.Client()->addContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo->userUuid()))
+            if (!DM.Client()->addContact(DM.Client()->userAccount()->userInfo()->userUuid(), inUserInfo->userUuid()))
                 QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось добавить контакт!"));
             break;
         };
         case TUserViewDialog::rbRemove:
         {
-            if (!DM.Client()->deleteContact(DM.UserAccount()->userInfo()->userUuid(), inUserInfo->userUuid()))
+            if (!DM.Client()->deleteContact(DM.Client()->userAccount()->userInfo()->userUuid(), inUserInfo->userUuid()))
                 QMessageBox::critical(this, tr("Ошибка"), tr("Не удалось удалить контакт!"));
             break;
         };
@@ -145,19 +145,19 @@ void TfmeMainFrame::slot_UserViewDialogResult(const Core::UserInfo_Ptr inUserInf
             // Формируем Uuid приватной беседы
             // Uuid прививатной беседы формируется из суммы байтовых последовательностей самого клиента и клиента, которуму пишется
             // ВАЖНО! для правильной генерации Uuid с обеих сторон соединения, последовательность должна быть от меньшего к большему
-            if (DM.UserAccount()->userInfo()->userUuid() < inUserInfo->userUuid())
-                ChatUuid = QUuid(DM.UserAccount()->userInfo()->userUuid().toByteArray() + inUserInfo->userUuid().toByteArray());
-            else ChatUuid = QUuid(inUserInfo->userUuid().toByteArray() + DM.UserAccount()->userInfo()->userUuid().toByteArray());
+            if (DM.Client()->userAccount()->userInfo()->userUuid() < inUserInfo->userUuid())
+                ChatUuid = QUuid(DM.Client()->userAccount()->userInfo()->userUuid().toByteArray() + inUserInfo->userUuid().toByteArray());
+            else ChatUuid = QUuid(inUserInfo->userUuid().toByteArray() + DM.Client()->userAccount()->userInfo()->userUuid().toByteArray());
 
-            auto FindCharRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
-            if (FindCharRes == DM.UserAccount()->chats()->end()) // Если беседа не найдена
+            auto FindCharRes = DM.Client()->userAccount()->chats()->find(ChatUuid); // Ищим беседу по UUid
+            if (FindCharRes == DM.Client()->userAccount()->chats()->end()) // Если беседа не найдена
             {
                 Core::TChatInfo NewChat; // Новая беседа
                 NewChat.setChatUuid(ChatUuid); // Задаём Uuid новой беседы
-                NewChat.setChatName(DM.UserAccount()->userInfo()->userName() + "|" + inUserInfo->userName());
+                NewChat.setChatName(DM.Client()->userAccount()->userInfo()->userName() + "|" + inUserInfo->userName());
                 NewChat.setChatPrivateStatus(true); // Помечаем беседу как приватную
 
-                NewChat.addUser(DM.UserAccount()->userInfo());  // Добавляем "Себя"
+                NewChat.addUser(DM.Client()->userAccount()->userInfo());  // Добавляем "Себя"
                 NewChat.addUser(inUserInfo); // Добавляем пользователя
 
                 if(!DM.Client()->createChat(NewChat)) // Шлём команду на создание приватной беседы
@@ -227,7 +227,7 @@ void TfmeMainFrame::slot_ChatAddNew() // Слот вызывает добавл�
         TDM &DM = TDM::Instance();
 
         //QString ChatName = DM.UserAccount()->userInfo()->userName(); // Создаём имя беседы
-        NewChat.addUser(DM.UserAccount()->userInfo()); // Добавляем в беседу себя
+        NewChat.addUser(DM.Client()->userAccount()->userInfo()); // Добавляем в беседу себя
 
         QList<Core::UserInfo_Ptr> Users = UserListDialog.selectedUsers(); // Получаем список Uuid'ов выбранных пользователей
 
@@ -266,9 +266,9 @@ void TfmeMainFrame::slot_ChatOpenCurrent() // Слот вызывает откр
         return;
 
     QWidget* TabWidget = nullptr;
-    auto It = TDM::Instance().UserAccount()->chats()->find(ChatUuidIndex.data().toUuid());
+    auto It = TDM::Instance().Client()->userAccount()->chats()->find(ChatUuidIndex.data().toUuid());
 
-    if (It != TDM::Instance().UserAccount()->chats()->end())
+    if (It != TDM::Instance().Client()->userAccount()->chats()->end())
     {
         auto FindRes = fOpenChatTabs.find(It->second->chatUuid()); // Ищим среди открытых вкладок беседу
 
@@ -300,9 +300,9 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
     UserViewDialog.setModal(true); // Задаём подальность
 
     TDM& DM = TDM::Instance();
-    auto FindRes = DM.UserAccount()->contacts()->find(OtherUserIt->second->userUuid()); // Ищим пользователя в списке контактов
+    auto FindRes = DM.Client()->userAccount()->contacts()->find(OtherUserIt->second->userUuid()); // Ищим пользователя в списке контактов
 
-    if (FindRes != DM.UserAccount()->contacts()->end()) // Если найден
+    if (FindRes != DM.Client()->userAccount()->contacts()->end()) // Если найден
         UserViewDialog.setButtons(TUserViewDialog::eResButtons(TUserViewDialog::rbRemove | TUserViewDialog::rbSendMsg)); // Разрешаем удалить и написать
     else // Если не найден
         UserViewDialog.setButtons(TUserViewDialog::rbAdd); // Разрешаем добавить
@@ -314,7 +314,7 @@ void TfmeMainFrame::on_ContactsFindListView_doubleClicked(const QModelIndex &ind
 //-----------------------------------------------------------------------------
 void TfmeMainFrame::on_ContactsListView_doubleClicked(const QModelIndex &index)
 {
-    auto OtherUserIt = TDM::Instance().UserAccount()->contacts()->begin();
+    auto OtherUserIt = TDM::Instance().Client()->userAccount()->contacts()->begin();
     QModelIndex ContactIndex = fUsersProxyModel->mapToSource(index); // Полученый индекс фильтрующей модели приводим к индексу модели источника
     std::advance(OtherUserIt, ContactIndex.row()); // Получаем итератор на выбраный контакт
 

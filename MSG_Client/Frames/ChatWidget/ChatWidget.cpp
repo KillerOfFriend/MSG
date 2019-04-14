@@ -94,7 +94,7 @@ void TChatWidget::on_btnSendTextMessage_clicked()
     // Идентификатор задаст БД ChatMessage.setMessageUuid(QUuid::createUuid()); // Задаём сообщению идентификатор
     ChatMessage.setMessageType(Core::MSGType::Text); // Задаём тип сообщения "Текст"
     ChatMessage.setMessageData(ui->ChatMessagePlainTextEdit->toPlainText().toUtf8()); // Задаём текст сообщения
-    ChatMessage.setMessageSender(TDM::Instance().UserAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
+    ChatMessage.setMessageSender(TDM::Instance().Client()->userAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
     ChatMessage.setMessageTimeCode(QDateTime::currentDateTime()); // Задаём таймкод
 
     sendMessage(ChatMessage); // Отправляем сформированное сообщение
@@ -114,7 +114,7 @@ void TChatWidget::on_btnSendFile_clicked()
             Core::TChatMessage ChatMessage(this); // Создаём новое сообщение
             ChatMessage.setMessageType(Core::MSGType::File); // Задаём тип сообщения "Текст"
             ChatMessage.setMessageData(SendingFile.readAll()); // Загружаем файл
-            ChatMessage.setMessageSender(TDM::Instance().UserAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
+            ChatMessage.setMessageSender(TDM::Instance().Client()->userAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
             ChatMessage.setMessageTimeCode(QDateTime::currentDateTime()); // Задаём таймкод
 
             SendingFile.close(); // Закрываем файл
@@ -140,7 +140,7 @@ void TChatWidget::on_btnSendImage_clicked()
             Core::TChatMessage ChatMessage(this); // Создаём новое сообщение
             ChatMessage.setMessageType(Core::MSGType::Image); // Задаём тип сообщения "Текст"
             ChatMessage.setMessageData(SendingFile.readAll()); // Загружаем файл
-            ChatMessage.setMessageSender(TDM::Instance().UserAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
+            ChatMessage.setMessageSender(TDM::Instance().Client()->userAccount()->userInfo()->userUuid()); // Задаём Uuid отправителя
             ChatMessage.setMessageTimeCode(QDateTime::currentDateTime()); // Задаём таймкод
 
             SendingFile.close(); // Закрываем файл

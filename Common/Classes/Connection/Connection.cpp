@@ -2,6 +2,8 @@
 
 #include "Classes/MessageHeadline/MessageHeadline.h"
 
+#include <QDebug>
+
 using namespace Core;
 
 //-----------------------------------------------------------------------------
@@ -84,12 +86,6 @@ void TConnection::readData() // Метод читает данные из сок
     {
         freeData(true); // Вызываем очищение (принудительно)
 
-        //QDataStream inStream(fSocket); // Оборачиваем сокет в поток
-        //TMessageHeadline MessageHeadline(this); // Создаём экземпляр заголовка сообщения
-
-        //inStream >> MessageHeadline; // Читаем заголовок сообщения
-
-        //if (MessageHeadline.messageSize() == 0) // Если резмер полученного сообщение 0
         if (fSocket->bytesAvailable() == 0) // Если резмер полученного сообщение 0
             sig_ComandCorupted(); // Шлём сигнал о некорректной команде
         else // Заголовак получен
@@ -102,9 +98,12 @@ void TConnection::readData() // Метод читает данные из сок
             inStream >> MessageHeadline; // Читаем заголовок
             fSize = MessageHeadline.messageSize(); // Запоминаем размер сообщения
 
+            //qDebug() << "[СЧИТЫВАНИЕ НАЧАТО]" << fData.size() << fSize;
+
             if (fSize == 0) // Если в заголовке размер == 0
             {
                 fData.clear(); // Очищаем считаный буфер
+                //qDebug() << "[ОШИБКА]" << "Получено повреждённое сообщение!";
                 sig_ComandCorupted(); // Шлём сигнал о некорректной команде
             }
             else fIsReading = true; // Размер из заголовка считан успешно. Взводим флаг чтения
@@ -112,6 +111,7 @@ void TConnection::readData() // Метод читает данные из сок
 
         if (checkReadFinihs()) // Если чтение завершено
         {
+            //qDebug() << "[СЧИТЫВАНИЕ ЗАВЕРШЕНО]" << fSize << fData.size();
             sig_ComandReadyToExecute(fSocket); // Шлём сигнал о завершении чтения и поток данных на выполнение
             fIsReading = false;
         }
@@ -120,8 +120,11 @@ void TConnection::readData() // Метод читает данные из сок
     {
         fData += fSocket->readAll(); // Читаем поступившие данные
 
+        //qDebug() << "[СЧИТЫВАНИЕ ПРОДОЛЖАЕТСЯ]" << fData.size() << fSize;
+
         if (checkReadFinihs()) // Если чтение завершено
         {
+            //qDebug() << "[СЧИТЫВАНИЕ ЗАВЕРШЕНО]" << fSize << fData.size();
             sig_ComandReadyToExecute(fSocket); // Шлём сигнал о завершении чтения и поток данных на выполнение
             fIsReading = false;
         }

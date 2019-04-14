@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QDataStream>
+#include <QDebug>
 
 #include "Classes/MessageHeadline/MessageHeadline.h"
 
@@ -30,6 +31,7 @@ namespace Core
             MessageHandel.setMessageSize(inStream.device()->size()); // Задаём полученный размер сообщения
             inStream.device()->seek(0); // Возвращаемся в самое начало потока
             Result &= writer(inStream, MessageHandel); // Пишем заголовок во временный поток (Поверх старого)
+            //qDebug() << "[ЗАПАКОВКА ЗАВЕРШЕНА]" << inStream.device()->size() << inCommand;
 
             for ( const bool& Res : Ress ) // Проверяем удалось ли записать все параметры
             { Result &= Res; }

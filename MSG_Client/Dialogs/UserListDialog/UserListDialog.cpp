@@ -11,7 +11,7 @@ TUserListDialog::TUserListDialog(QWidget *inParent) :
 {
     ui->setupUi(this);
 
-    ui->UsersListView->setModel(TDM::Instance().UserAccount()->contacts().get());
+    ui->UsersListView->setModel(TDM::Instance().Client()->userAccount()->contacts().get());
     ui->UsersListView->setSelectionMode( QAbstractItemView::ExtendedSelection );
 
     fUserListDelegate.reset(new TUserItemDelegate());
@@ -39,8 +39,8 @@ QList<Core::UserInfo_Ptr> TUserListDialog::selectedUsers() // Метод вер�
 
         if (UuidIndex.isValid()) // Если cмешённый индекс валидный
         {
-            auto FindRes = DM.UserAccount()->contacts()->find(UuidIndex.data().toUuid()); // Ищим по пользователя по uuid
-            if (FindRes != DM.UserAccount()->contacts()->end()) // Если юзер найден
+            auto FindRes = DM.Client()->userAccount()->contacts()->find(UuidIndex.data().toUuid()); // Ищим по пользователя по uuid
+            if (FindRes != DM.Client()->userAccount()->contacts()->end()) // Если юзер найден
                 UsersResult.push_back(FindRes->second); // Добавляем его в результат
         }
     });

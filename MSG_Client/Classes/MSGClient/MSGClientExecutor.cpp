@@ -27,7 +27,7 @@ void TMSGClient::executCommand(QTcpSocket* inClientSender)
 //    quint8 Command; // Команда от клиента
 //    inStream >> Command; // Получаем команду
 
-    QDataStream inStream(TDM::Instance().UserAccount()->socketData(), QIODevice::ReadOnly); // Получаем считанные данные клиента
+    QDataStream inStream(fUserAccount->socketData(), QIODevice::ReadOnly); // Получаем считанные данные клиента
     Core::TMessageHeadline MessageHeadline(this); // Заголовок сообщения
     inStream >> MessageHeadline; // Читаем заголовок сообщения
 
@@ -131,7 +131,7 @@ void TMSGClient::userAuthorization(QDataStream &inDataStream)
         NewAccount.setSocket(fClient.get());
 
         //TDM::Instance().UserAccount().reset(new Users::TUserAccount(NewAccount));
-        TDM::Instance().slot_SetUserAccount(NewAccount);
+        slot_SetUserAccount(NewAccount); // Инициализируем аккаунт
     }
 
     sig_AuthorizationResult(Result); // Шлём сигнал с результатом авторизации
@@ -187,7 +187,7 @@ void TMSGClient::addContactResult(QDataStream &inDataStream)
     {
         case Res::AddContact::acCreated:
         {
-            TDM::Instance().UserAccount()->contacts()->insert(std::make_pair(ContactInfo.userUuid(), std::make_shared<Core::TUserInfo>(ContactInfo))); // Добавляем контакт в список
+            fUserAccount->contacts()->insert(std::make_pair(ContactInfo.userUuid(), std::make_shared<Core::TUserInfo>(ContactInfo))); // Добавляем контакт в список
             sig_LogMessage(tr("Успешно добавлен контакт: ") + ContactInfo.userName());
             break;
         };
@@ -215,7 +215,7 @@ void TMSGClient::deleteContactResult(QDataStream &inDataStream)
     {
         case Res::DeleteContact::dcContactRemove:
         {
-            TDM::Instance().UserAccount()->contacts()->erase(ContactUuid);
+            fUserAccount->contacts()->erase(ContactUuid);
             sig_LogMessage(tr("Контакт успешно удалён"));
             break;
         };
@@ -272,18 +272,17 @@ void TMSGClient::deleteUserFromChatResult(QDataStream &inDataStream)
     {
         case Res::DeleteUserFromChat::dufcSuccess: // Успешное удаление
         {
-            TDM &DM = TDM::Instance();
             QString LogMessage = "";
-            auto FindChatRes = DM.UserAccount()->chats()->find(ChatUuid); // Ищим беседу
+            auto FindChatRes = fUserAccount->chats()->find(ChatUuid); // Ищим беседу
 
-            if (FindChatRes == DM.UserAccount()->chats()->end())
+            if (FindChatRes == fUserAccount->chats()->end())
                 LogMessage = tr("Ошибка, получен запрос на удаление пользователя из несуществующей беседы");
             else
             {
-                if (UserUuid == DM.UserAccount()->userInfo()->userUuid()) // Если удалён текущий пользователь
+                if (UserUuid == fUserAccount->userInfo()->userUuid()) // Если удалён текущий пользователь
                 {   // То требуется удалить саму беседу
                     LogMessage = tr("Вы покидаете беседу: ") + FindChatRes->second->chatName();
-                    DM.UserAccount()->chats()->erase(FindChatRes); // Удаляем беседу (сгенерируется сигнал об удалении беседы)
+                    fUserAccount->chats()->erase(FindChatRes); // Удаляем беседу (сгенерируется сигнал об удалении беседы)
                 }
                 else // если удаляется не текущий пользователь
                 {

@@ -530,6 +530,7 @@ void TMSGServer::syncAddedUserToChat(Core::ChatInfo_Ptr inChatUuid, Core::UserIn
             DataPacker.makePackage(Commands::InviteToChat, outStream, *inChatUuid); // Шлём команду на добавление + беседу
 
             ClientSocket->write(Data);
+//            ClientSocket->waitForReadyRead(-1);
         }
     }
 }
@@ -558,6 +559,7 @@ void TMSGServer::syncDeletedUserFromChat(Core::ChatInfo_Ptr inChat, QUuid inUser
             DataPacker.makePackage(Commands::DeleteUserFromChat, outStream, Res::DeleteUserFromChat::dufcSuccess, inChat->chatUuid(), inUserUuid);// Шлём команду на удаление + uuid беседы и uuid удаляемого пользователя
 
             ClientSocket->write(Data);
+//            ClientSocket->waitForReadyRead();
         }
     });
 }
