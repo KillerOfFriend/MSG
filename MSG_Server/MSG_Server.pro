@@ -8,6 +8,9 @@ QT       += core gui sql network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+include( ../common.pri ) # Общие настройки
+include( ../app.pri ) # Настройки сборки
+
 TARGET = MSG_Server
 TEMPLATE = app
 
