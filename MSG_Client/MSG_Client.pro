@@ -60,7 +60,11 @@ SOURCES += \
     ../Common/Classes/ChatMessage/ChatMessage.cpp \
     ../Common/Classes/MessageHeadline/MessageHeadline.cpp \
     ../Common/Classes/Connection/Connection.cpp \
-    ../Common/Classes/DataPacker/DataPacker.cpp
+    ../Common/Classes/DataPacker/DataPacker.cpp \
+    ../Common/Classes/CommandSystem/CommandSystem.cpp \
+    ../Common/Classes/AbstractCommand/AbstractCommand.cpp \
+    ../Common/Classes/AbstractExecutedCommand/AbstractExecutedCommand.cpp \
+    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.cpp
 
 HEADERS += \
         ClientMainWindow.h \
@@ -91,7 +95,11 @@ HEADERS += \
     ../Common/Classes/ChatMessage/ChatMessage.h \
     ../Common/Classes/MessageHeadline/MessageHeadline.h \
     ../Common/Classes/Connection/Connection.h \
-    ../Common/Classes/DataPacker/DataPacker.h
+    ../Common/Classes/DataPacker/DataPacker.h \
+    ../Common/Classes/CommandSystem/CommandSystem.h \
+    ../Common/Classes/AbstractCommand/AbstractCommand.h \
+    ../Common/Classes/AbstractExecutedCommand/AbstractExecutedCommand.h \
+    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.h
 
 FORMS += \
         ClientMainWindow.ui \
