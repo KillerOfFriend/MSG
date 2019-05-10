@@ -7,11 +7,12 @@
 #include <QTimer>
 
 #include "othertypes.h"
+#include "Classes/CommandSystem/CommandSystem.h"
 #include "Classes/UserAccount/UserAccount.h"
 #include "Classes/UserInfo/UserInfo.h"
 #include "Classes/ChatInfo/ChatInfo.h"
 
-class TMSGClient : public QObject
+class TMSGClient : public Core::TCommandSystem
 {
     Q_OBJECT
 public:

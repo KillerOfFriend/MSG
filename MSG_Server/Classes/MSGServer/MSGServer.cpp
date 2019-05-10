@@ -15,7 +15,7 @@
  * @brief TMSGServer::TMSGServer - Конструктор по умолчанию
  * @param inParent - Предок типа QObject
  */
-TMSGServer::TMSGServer(QObject *inParent) : QObject(inParent)
+TMSGServer::TMSGServer(QObject *inParent) : Core::TCommandSystem(inParent)
 {
     init();
     Link();

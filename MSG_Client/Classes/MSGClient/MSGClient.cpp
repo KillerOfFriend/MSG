@@ -19,7 +19,7 @@
 #include "resultcodes.h"
 
 //-----------------------------------------------------------------------------
-TMSGClient::TMSGClient(QObject *inParent) : QObject(inParent)
+TMSGClient::TMSGClient(QObject *inParent) : Core::TCommandSystem(inParent)
 {
     init();
     Link();

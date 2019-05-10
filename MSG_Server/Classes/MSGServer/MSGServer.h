@@ -10,10 +10,11 @@
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 
+#include "Classes/CommandSystem/CommandSystem.h"
 #include "Classes/ServerCache/ServerCache.h"
 #include "Models/ConnectedUsers/ConnectedUsers.h"
 
-class TMSGServer : public QObject
+class TMSGServer : public Core::TCommandSystem
 {
     Q_OBJECT
 public:

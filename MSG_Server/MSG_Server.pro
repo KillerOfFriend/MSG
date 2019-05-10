@@ -55,7 +55,8 @@ SOURCES += \
     ../Common/Classes/Connection/Connection.cpp \
     ../Common/Classes/DataPacker/DataPacker.cpp \
     ../Common/Classes/AbstractCommand/AbstractCommand.cpp \
-    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.cpp
+    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.cpp \
+    ../Common/Classes/CommandSystem/CommandSystem.cpp
 
 HEADERS += \
         ServerMainWindow.h \
@@ -81,7 +82,8 @@ HEADERS += \
     ../Common/Classes/Connection/Connection.h \
     ../Common/Classes/DataPacker/DataPacker.h \
     ../Common/Classes/AbstractCommand/AbstractCommand.h \
-    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.h
+    ../Common/Classes/AbstractSendedCommand/AbstractSendedCommand.h \
+    ../Common/Classes/CommandSystem/CommandSystem.h
 
 FORMS += \
         ServerMainWindow.ui
