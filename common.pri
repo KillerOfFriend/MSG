@@ -1,5 +1,7 @@
 PROJECT_ROOT_PATH = $${PWD}/
 
+CONFIG += c++11
+
 win32: OS_SUFFIX = win32
 linux-g++: OS_SUFFIX = linux
 
@@ -10,18 +12,14 @@ CONFIG(debug, debug|release) {
     BUILD_FLAG = release
 }
 
-LIBS_PATH = $${PROJECT_ROOT_PATH}/Build/lib.$${OS_SUFFIX}/
-IMPORT_PATH = $${PROJECT_ROOT_PATH}/Build/import/
-BIN_PATH = $${PROJECT_ROOT_PATH}/Build/bin/$${BUILD_FLAG}/
+BUILD_FOLDER = $${PROJECT_ROOT_PATH}/Build/$${OS_SUFFIX}
 
-BUILD_PATH = $${PROJECT_ROOT_PATH}/Build/build.$${OS_SUFFIX}/$${BUILD_FLAG}/$${TARGET}/
+LIBS_PATH = $${BUILD_FOLDER}/Project/lib/$${BUILD_FLAG}/
+BIN_PATH = $${BUILD_FOLDER}/Project/bin/$${BUILD_FLAG}/
+
+BUILD_PATH = $${BUILD_FOLDER}/BuildingFiles/$${TARGET}/
+
 RCC_DIR = $${BUILD_PATH}/rcc/
 UI_DIR = $${BUILD_PATH}/ui/
 MOC_DIR = $${BUILD_PATH}/moc/
 OBJECTS_DIR = $${BUILD_PATH}/obj/
-
-linux-g++: QMAKE_CXXFLAGS += -std=c++11
-
-INCLUDEPATH += $${IMPORT_PATH}/QxtCore/ $${IMPORT_PATH}/QxtNetwork/
-INCLUDEPATH += $${PROJECT_ROOT_PATH}/src/include/
-LIBS += -L$${LIBS_PATH}/

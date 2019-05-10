@@ -129,7 +129,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../clientres.qrc">
-         <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/AddToContacts.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/AddToContacts.png</iconset>
+         <normaloff>:/Resurse/Images/UserViewDialog/AddToContacts.png</normaloff>:/Resurse/Images/UserViewDialog/AddToContacts.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -158,7 +158,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../clientres.qrc">
-         <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/RemoveFromContacts.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/RemoveFromContacts.png</iconset>
+         <normaloff>:/Resurse/Images/UserViewDialog/RemoveFromContacts.png</normaloff>:/Resurse/Images/UserViewDialog/RemoveFromContacts.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -187,7 +187,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../clientres.qrc">
-         <normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/SendMessage.png</normaloff>:/Resurse/UserViewDialog/Images/UserViewDialog/SendMessage.png</iconset>
+         <normaloff>:/Resurse/Images/UserViewDialog/SendMessage.png</normaloff>:/Resurse/Images/UserViewDialog/SendMessage.png</iconset>
        </property>
        <property name="iconSize">
         <size>

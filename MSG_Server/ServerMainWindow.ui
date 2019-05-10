@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>MSG Server</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="serverres.qrc">
+    <normaloff>:/Resurse/ico/Images/icons8-сервер-64.png</normaloff>:/Resurse/ico/Images/icons8-сервер-64.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
@@ -236,6 +240,8 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="serverres.qrc"/>
+ </resources>
  <connections/>
 </ui>

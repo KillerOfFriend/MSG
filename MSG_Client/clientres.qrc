@@ -1,16 +1,19 @@
 <RCC>
-    <qresource prefix="/Resurse/UserViewDialog">
+    <qresource prefix="/Resurse">
         <file>Images/UserViewDialog/AddToContacts.png</file>
         <file>Images/UserViewDialog/RemoveFromContacts.png</file>
         <file>Images/UserViewDialog/SendMessage.png</file>
     </qresource>
-    <qresource prefix="/Resurse/UserStatus">
+    <qresource prefix="/Resurse/Ico">
         <file>Images/UserStatus/UserOffline.png</file>
         <file>Images/UserStatus/UserOnline.png</file>
         <file>Images/UserStatus/UserAFK.png</file>
         <file>Images/UserStatus/UserMute.png</file>
         <file>Images/UserStatus/UserBanned.png</file>
         <file>Images/UserStatus/UserUnknown.png</file>
+        <file>Images/Ico/Icons8-Windows-8-Network-Windows-Client.ico</file>
+        <file>Images/Ico/Icons8-Windows-8-Network-Linux-Client.ico</file>
+        <file>Images/Ico/Icons8-Windows-8-Network-Mac-Client.ico</file>
     </qresource>
     <qresource prefix="/Resurse/Other">
         <file>Images/Other/AvaMale.png</file>

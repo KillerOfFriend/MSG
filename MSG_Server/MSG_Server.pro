@@ -87,3 +87,6 @@ HEADERS += \
 
 FORMS += \
         ServerMainWindow.ui
+
+RESOURCES += \
+    serverres.qrc

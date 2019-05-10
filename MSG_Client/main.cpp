@@ -21,8 +21,24 @@ int main(int argc, char *argv[])
     }
     else
     {
+        QIcon AppIcon;
+
+        #ifdef Q_OS_WIN32
+        AppIcon = QIcon(":/Resurse/Ico/Images/Ico/Icons8-Windows-8-Network-Windows-Client.ico");
+        #endif
+
+        #ifdef Q_OS_UNIX
+        AppIcon = QIcon(":/Resurse/Ico/Images/Ico/Icons8-Windows-8-Network-Linux-Client.ico");
+        #endif
+
+        #ifdef Q_OS_MACX
+        AppIcon = QIcon(":/Resurse/Ico/Images/Ico/Icons8-Windows-8-Network-Mac-Client.ico");
+        #endif
+
+
         // Выводим окно авторизации
         TConnectDialog ConnectDialog;
+        ConnectDialog.setWindowIcon(AppIcon);
         ConnectDialog.setWindowModality(Qt::WindowModal);
         ConnectDialog.exec();
 
@@ -44,6 +60,7 @@ int main(int argc, char *argv[])
                 qDebug() << "[УСПЕХ] Готов к работе.";
 
                 TClientMainWindow w;
+                w.setWindowIcon(AppIcon);
                 w.show();
                 WorkResult = a.exec();
             }

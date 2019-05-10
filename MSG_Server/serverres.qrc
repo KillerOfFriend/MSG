@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/Resurse/ico">
+        <file>Images/icons8-сервер-64.png</file>
+    </qresource>
+</RCC>
